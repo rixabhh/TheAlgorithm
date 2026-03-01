@@ -9,6 +9,9 @@ MODEL_NAME = "cardiffnlp/twitter-xlm-roberta-base-sentiment"
 MODEL_DIR = os.environ.get("MODEL_DIR", "/app/models/sentiment")
 
 print(f"Downloading {MODEL_NAME} to {MODEL_DIR}...")
-AutoTokenizer.from_pretrained(MODEL_NAME, cache_dir=MODEL_DIR)
-AutoModelForSequenceClassification.from_pretrained(MODEL_NAME, cache_dir=MODEL_DIR)
-print("Model downloaded successfully.")
+tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+model = AutoModelForSequenceClassification.from_pretrained(MODEL_NAME)
+
+tokenizer.save_pretrained(MODEL_DIR)
+model.save_pretrained(MODEL_DIR)
+print("Model downloaded and saved successfully.")
