@@ -22,7 +22,7 @@ COPY . .
 
 # Download favicon if missing (stripped from HF push to avoid binary rejection)
 RUN if [ ! -f static/favicon.png ]; then \
-      curl -sL https://raw.githubusercontent.com/rixabhh/TheAlgorithm/main/static/favicon.png -o static/favicon.png || true; \
+      curl -sL https://media.githubusercontent.com/media/rixabhh/TheAlgorithm/main/static/favicon.png -o static/favicon.png || true; \
     fi
 
 # Create uploads directory
