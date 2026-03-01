@@ -5,6 +5,7 @@ import tempfile
 from flask import Flask, render_template, request, jsonify, session
 from werkzeug.utils import secure_filename
 import traceback
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # Local Modules
 from core.parsers import process_file
@@ -79,12 +80,19 @@ def process_chat():
         if not saved_files:
              return jsonify({'error': 'No valid files uploaded'}), 400
              
-        # 2. Parse Files
+        # 2. Parse Files Concurrently
         dfs = []
-        for filepath in saved_files:
-            df = process_file(filepath, my_name, partner_name)
-            if not df.empty:
-                dfs.append(df)
+        with ThreadPoolExecutor(max_workers=min(32, len(saved_files) + 4)) as executor:
+            # Submit all parsing tasks
+            future_to_filepath = {executor.submit(process_file, fp, my_name, partner_name): fp for fp in saved_files}
+            
+            for future in as_completed(future_to_filepath):
+                try:
+                    df = future.result()
+                    if not df.empty:
+                        dfs.append(df)
+                except Exception as exc:
+                    print(f"File parsing generated an exception: {exc}")
                 
         if not dfs:
             return jsonify({'error': 'Could not extract any valid messages from the provided files.'}), 400
