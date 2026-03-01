@@ -143,9 +143,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     const ratioVal = powerDynamics.power_ratio || 1.0;
     document.getElementById('powerRatioValue').textContent = ratioVal.toFixed(1) + 'x';
-    let ratioDesc = "Perfectly balanced communication volume.";
-    if (ratioVal > 1.2) ratioDesc = "You are driving the majority of the conversation space.";
-    else if (ratioVal < 0.8) ratioDesc = "Your partner is driving the majority of the conversation space.";
+    let ratioDesc = "You both text about the same amount.";
+    if (ratioVal > 1.2) ratioDesc = "You generally send longer or more frequent messages.";
+    else if (ratioVal < 0.8) ratioDesc = "Your partner generally sends longer or more frequent messages.";
     document.getElementById('powerRatioText').textContent = ratioDesc;
 
     const affCount = affectionFriction.affirmative_count || 0;
