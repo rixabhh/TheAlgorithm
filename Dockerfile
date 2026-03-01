@@ -22,9 +22,15 @@ COPY . .
 # Create uploads directory
 RUN mkdir -p uploads
 
-# Expose port
-ENV PORT=5000
-EXPOSE 5000
+# Expose port for Hugging Face Spaces
+ENV PORT=7860
+EXPOSE 7860
+
+# Set up a non-root user required by Hugging Face
+RUN adduser --system --uid 1000 --group user
+RUN chown -R 1000:1000 /app
+
+USER 1000
 
 # Run with gunicorn for production
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "--timeout", "300", "app:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:7860", "--workers", "2", "--timeout", "300", "app:app"]
