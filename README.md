@@ -240,6 +240,26 @@ uvicorn app:app --host 0.0.0.0 --port 8000
 
 ---
 
+## 🤝 Contributing
+
+We welcome contributions to make The Algorithm even better! Here's how you can get started:
+
+1. **Fork the Repository**: Create your own fork of the project.
+2. **Clone Locally**: `git clone https://github.com/your-username/the-algorithm.git`
+3. **Create a Branch**: Create a feature branch (`git checkout -b feature/AmazingFeature`).
+4. **Make Changes**: Implement your feature, bug fix, or documentation update. Ensure you don't break the local privacy pipelines.
+5. **Test**: Run the application locally to verify your changes work flawlessly.
+6. **Commit**: Commit your changes (`git commit -m 'Add some AmazingFeature'`).
+7. **Push**: Push to the branch (`git push origin feature/AmazingFeature`).
+8. **Open a Pull Request**: Submit a Pull Request outlining your changes and why they should be merged.
+
+**Guidelines:**
+- Keep the `core/` analytics purely local (no external NLP APIs without an opt-out).
+- Maintain Tailwind CSS standards for any frontend changes.
+- Ensure the prompt structure in `llm_service.py` remains empathetic and non-clinical.
+
+---
+
 ## 📄 License
 
 This project is open source and available under the [MIT License](https://www.google.com/search?q=LICENSE).

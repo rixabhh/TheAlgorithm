@@ -294,7 +294,7 @@ def calculate_support_gap(df: pd.DataFrame) -> dict:
     """Identify stress messages and measure partner's response quality (V4.0)."""
     if 'text' not in df.columns or len(df) < 5: return {}
     
-    stress_keywords = ['work', 'tired', 'sad', 'stressed', 'deadline', 'exhausted', 'unhappy', 'worry', 'anxious']
+    stress_keywords = ['work', 'tired', 'sad', 'stressed', 'deadline', 'exhausted', 'unhappy', 'worry', 'anxious', 'sick', 'bad day', 'hard time']
     
     df_temp = df.copy().sort_values('timestamp').reset_index(drop=True)
     df_temp['is_stress'] = df_temp['text'].astype(str).str.lower().str.contains('|'.join(stress_keywords), regex=True)
@@ -310,6 +310,7 @@ def calculate_support_gap(df: pd.DataFrame) -> dict:
     for _, row in df_temp.iterrows():
         sender = row['sender']
         timestamp = row['timestamp']
+        msg_text = str(row['text']).lower()
         
         # Did this person just send a stress message?
         if row['is_stress']:
@@ -319,9 +320,9 @@ def calculate_support_gap(df: pd.DataFrame) -> dict:
         # Did this person just respond to the OTHER person's stress message?
         other_sender = 'PARTNER' if sender == 'ME' else 'ME'
         if active_stress[other_sender] is not None:
-            # Check if response is within 2 hours
-            time_diff = (timestamp - active_stress[other_sender]).total_seconds() / 3600.0
-            if time_diff <= 2.0:
+            # Check if response is within 60 mins and decent length
+            time_diff = (timestamp - active_stress[other_sender]).total_seconds() / 60.0
+            if time_diff <= 60.0 and len(msg_text) > 10:
                 support_results[other_sender]['support_received'] += 1
                 # Clear their stress state so we don't double count
                 active_stress[other_sender] = None
