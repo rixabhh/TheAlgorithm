@@ -30,6 +30,7 @@
         }
     </script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         .step-card {
@@ -128,9 +129,8 @@
     <header
         class="w-full py-6 px-8 flex justify-between items-center border-b border-white/5 backdrop-blur-md sticky top-0 z-50">
         <a href="/" class="flex items-center gap-3 group">
-            <div
-                class="w-8 h-8 rounded-full bg-gradient-to-tr from-brand-600 to-pink-500 flex items-center justify-center font-bold shadow-lg shadow-brand-500/20 group-hover:scale-110 transition-transform">
-                A</div>
+            <img src="{{ url_for('static', filename='favicon.png') }}" alt="The Algorithm"
+                class="w-8 h-8 rounded-full shadow-lg shadow-brand-500/20 group-hover:scale-110 transition-transform">
             <h1
                 class="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-gray-100 to-gray-400">
                 The Algorithm</h1>
@@ -146,23 +146,31 @@
     </header>
 
     <!-- Main Content -->
-    <main class="flex-grow flex justify-center p-6 md:p-10">
+    <main class="flex-grow flex justify-center p-6 md:p-8">
         <div class="max-w-3xl w-full">
 
             <!-- Page Title -->
-            <div class="text-center mb-10">
-                <h2 class="text-3xl md:text-4xl font-bold mb-3 tracking-tight">How to <span
+            <div class="text-center mb-6">
+                <h2 class="text-2xl md:text-3xl font-bold mb-2 tracking-tight">How to <span
                         class="text-transparent bg-clip-text bg-gradient-to-r from-brand-500 to-pink-500">Export Your
                         Chat</span>
                 </h2>
-                <p class="text-gray-400 text-base max-w-xl mx-auto">Follow these quick steps to export your
+                <p class="text-gray-400 text-sm max-w-xl mx-auto">Follow these quick steps to export your
                     conversation history. It only takes a minute.</p>
             </div>
 
             <!-- Platform Tabs -->
-            <div class="flex flex-wrap justify-center gap-3 mb-8">
-                <button id="tab-whatsapp" onclick="switchTab('whatsapp')"
+            <div class="flex flex-wrap justify-center gap-2 mb-6">
+                <button id="tab-api-keys" onclick="switchTab('api-keys')"
                     class="tab-btn active-tab flex items-center gap-2.5 px-5 py-3 rounded-xl border border-white/10 text-gray-400 font-medium text-sm transition-all hover:text-white cursor-pointer">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M12.65 10C11.83 7.67 9.61 6 7 6c-3.31 0-6 2.69-6 6s2.69 6 6 6c2.61 0 4.83-1.67 5.65-4h2.35l2 2 2-2 2 2 2-2v-4h-9.65zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z" />
+                    </svg>
+                    Get API Keys
+                </button>
+                <button id="tab-whatsapp" onclick="switchTab('whatsapp')"
+                    class="tab-btn flex items-center gap-2.5 px-5 py-3 rounded-xl border border-white/10 text-gray-400 font-medium text-sm transition-all hover:text-white cursor-pointer">
                     <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                         <path
                             d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
@@ -195,8 +203,89 @@
                 </button>
             </div>
 
+            <!-- ========== API KEYS PANEL ========== -->
+            <div id="panel-api-keys" class="platform-panel active-panel">
+                <div class="text-center mb-6">
+                    <p
+                        class="text-sm text-brand-400 font-medium bg-brand-500/10 inline-block px-4 py-1.5 rounded-full border border-brand-500/20">
+                        The Algorithm requires your own API Key (BYOK) for 100% privacy and zero middleman servers.</p>
+                </div>
+
+                <div class="space-y-6">
+                    <!-- Gemini (Recommended Free Tier) -->
+                    <div
+                        class="glass-card rounded-2xl p-6 border border-brand-500/30 shadow-[0_0_15px_rgba(244,63,94,0.1)] relative">
+                        <div
+                            class="absolute -top-3 -right-3 bg-gradient-to-r from-brand-600 to-pink-500 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-lg">
+                            Recommended / Best Free Tier</div>
+                        <h4 class="font-bold text-lg text-white mb-2 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-blue-400" viewBox="0 0 24 24" fill="currentColor">
+                                <path
+                                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-5l-2.25 2.25-1.06-1.06L12 8.35v8.15h-1z" />
+                            </svg>
+                            Google Gemini
+                        </h4>
+                        <ol class="list-decimal list-inside space-y-2 text-sm text-gray-300">
+                            <li><strong class="text-gray-100">Click Here:</strong> Go to <a
+                                    href="https://aistudio.google.com/app/apikey" target="_blank"
+                                    class="text-brand-400 hover:text-brand-300 underline">Google AI Studio API Keys</a>.
+                            </li>
+                            <li>Sign in with your Google account.</li>
+                            <li>Click the blue <strong class="text-gray-100">"Create API key"</strong> button.</li>
+                            <li>Select an existing project or create a new one.</li>
+                            <li>Copy the resulting key (looks like <code>AIzaSy...</code>) and paste it into the
+                                analyzer's settings modal.</li>
+                            <li class="text-xs text-gray-400 mt-2 italic border-t border-white/5 pt-2">Note: Gemini
+                                offers a very generous free tier (15 RPM) perfect for analyzing heavy chats at $0 cost.
+                            </li>
+                        </ol>
+                    </div>
+
+                    <!-- Anthropic -->
+                    <div class="glass-card rounded-2xl p-6 relative">
+                        <h4 class="font-bold text-lg text-white mb-2 flex items-center gap-2">
+                            Anthropic (Claude 3.5)
+                        </h4>
+                        <ol class="list-decimal list-inside space-y-2 text-sm text-gray-300">
+                            <li><strong class="text-gray-100">Click Here:</strong> Go to <a
+                                    href="https://console.anthropic.com/settings/keys" target="_blank"
+                                    class="text-brand-400 hover:text-brand-300 underline">Anthropic Console</a>.</li>
+                            <li>Sign in or create an account.</li>
+                            <li>Navigate to <strong class="text-gray-100">Settings &rarr; API Keys</strong>.</li>
+                            <li>Click <strong class="text-gray-100">"Create Key"</strong>. Name it something like "The
+                                Algorithm".</li>
+                            <li>Copy the key (starts with <code>sk-ant-</code>) and paste it into the analyzer settings.
+                            </li>
+                            <li class="text-xs text-gray-400 mt-2 italic border-t border-white/5 pt-2">Note: To use
+                                Claude, you must add a minimum of $5 in billing credits to your Anthropic account.</li>
+                        </ol>
+                    </div>
+
+                    <!-- OpenAI -->
+                    <div class="glass-card rounded-2xl p-6 relative">
+                        <h4 class="font-bold text-lg text-white mb-2 flex items-center gap-2">
+                            OpenAI (GPT-4o)
+                        </h4>
+                        <ol class="list-decimal list-inside space-y-2 text-sm text-gray-300">
+                            <li><strong class="text-gray-100">Click Here:</strong> Go to <a
+                                    href="https://platform.openai.com/api-keys" target="_blank"
+                                    class="text-brand-400 hover:text-brand-300 underline">OpenAI API Keys</a>.</li>
+                            <li>Sign in or create a developer account.</li>
+                            <li>Click <strong class="text-gray-100">"Create new secret key"</strong>.</li>
+                            <li>Copy the key (starts with <code>sk-</code> or <code>sk-proj-</code>) immediately (you
+                                can't view it again).</li>
+                            <li>Paste the key into the analyzer settings modal.</li>
+                            <li class="text-xs text-gray-400 mt-2 italic border-t border-white/5 pt-2">Note: Requires
+                                prepaid credits via <a href="https://platform.openai.com/account/billing"
+                                    target="_blank" class="text-brand-400 underline">Billing</a>. Minimum $5 balance
+                                needed.</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
             <!-- ========== WHATSAPP PANEL ========== -->
-            <div id="panel-whatsapp" class="platform-panel active-panel">
+            <div id="panel-whatsapp" class="platform-panel">
                 <div class="flex justify-center gap-2 mb-6">
                     <button onclick="switchDevice('whatsapp','android')"
                         class="device-btn-whatsapp text-xs px-4 py-1.5 rounded-full border border-white/10 text-gray-400 hover:text-white transition-all cursor-pointer active-device">📱
@@ -435,7 +524,15 @@
                     activePanel.style.opacity = '1';
                 }, 50);
             }
+            history.replaceState(null, null, '#' + platform);
         }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const hash = window.location.hash.replace('#', '');
+            if (hash) {
+                switchTab(hash);
+            }
+        });
 
         // ── Device Sub-tab Switching ──
         function switchDevice(platform, device) {

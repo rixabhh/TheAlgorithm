@@ -103,6 +103,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            const apiKey = localStorage.getItem('api_key') || '';
+            if (!apiKey) {
+                alert('An AI API Key is required to run the analysis. Please click the Settings gear icon ⚙️ in the top right to configure your API key first. (e.g. Google Gemini 2.5 Flash is quick to set up!)');
+                return;
+            }
+
             const formData = new FormData();
             formData.append('my_name', document.getElementById('myName').value);
             formData.append('partner_name', document.getElementById('partnerName').value);

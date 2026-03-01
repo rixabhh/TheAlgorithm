@@ -28,6 +28,7 @@
         }
     </script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
@@ -35,120 +36,279 @@
 
     <!-- Header -->
     <header
-        class="w-full py-6 px-8 flex justify-between items-center border-b border-white/5 backdrop-blur-md sticky top-0 z-50">
+        class="w-full py-4 px-8 flex justify-between items-center border-b border-white/5 backdrop-blur-md sticky top-0 z-50">
         <div class="flex items-center gap-3">
-            <div
-                class="w-8 h-8 rounded-full bg-gradient-to-tr from-brand-600 to-pink-500 flex items-center justify-center font-bold shadow-lg shadow-brand-500/20">
-                A</div>
+            <img src="{{ url_for('static', filename='favicon.png') }}" alt="The Algorithm"
+                class="w-8 h-8 rounded-full shadow-lg shadow-brand-500/20">
             <h1
                 class="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-gray-100 to-gray-400">
                 The Algorithm</h1>
         </div>
-        <div class="flex items-center gap-4">
-            <a href="/instructions"
-                class="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/5 flex items-center gap-1.5 text-sm"
-                title="How to Export Chat">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
-                    </path>
-                </svg>
-                <span class="hidden md:inline">How to Export</span>
-            </a>
-
-            <button id="settingsBtn"
-                class="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/5"
-                title="API Settings">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
-                    </path>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                </svg>
-            </button>
+        <button id="settingsBtn"
+            class="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/5"
+            title="API Settings">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
+                </path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+        </button>
     </header>
 
-    <!-- Main Content: Two-Column Split -->
-    <main class="flex-grow flex items-center justify-center px-6 py-10 lg:py-0">
-        <div class="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+    <!-- Main Content: Full-Width Vertical Layout -->
+    <main class="flex-grow px-6 py-6 lg:py-8">
+        <div class="max-w-6xl mx-auto space-y-6">
 
-            <!-- LEFT: Hero / Details Side -->
-            <div class="space-y-8 lg:pr-8">
-                <div>
-                    <p class="text-sm font-semibold text-brand-400 uppercase tracking-widest mb-3">Relationship
-                        Intelligence</p>
-                    <h2 class="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight leading-[1.1]">
-                        Decode Your <br>
-                        <span
-                            class="text-transparent bg-clip-text bg-gradient-to-r from-brand-500 via-pink-500 to-purple-500">Connection.</span>
-                    </h2>
-                    <p class="text-gray-400 text-lg mt-4 max-w-md">Upload your chat history. Get deep behavioral
-                        insights, emotional analytics, and AI coaching — 100% private.</p>
-                </div>
+            <!-- ===== HERO SECTION ===== -->
+            <section class="text-center space-y-3">
+                <p class="text-xs font-semibold text-brand-400 uppercase tracking-widest">Relationship Intelligence</p>
+                <h2 class="text-3xl md:text-4xl lg:text-5xl font-black tracking-tight leading-[1.1]">
+                    Decode Your
+                    <span
+                        class="text-transparent bg-clip-text bg-gradient-to-r from-brand-500 via-pink-500 to-purple-500">Connection.</span>
+                </h2>
+                <p class="text-gray-400 text-base max-w-lg mx-auto">Upload your chat history. Get deep behavioral
+                    insights, emotional analytics, and AI coaching — 100% private.</p>
 
-                <!-- Feature Bullets -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div class="flex items-start gap-3 group">
-                        <div
-                            class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                            <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
-                                </path>
-                            </svg>
-                        </div>
-                        <div>
-                            <p class="text-sm font-semibold text-white">100% Private</p>
-                            <p class="text-xs text-gray-500">NLP runs locally on your machine. Raw text never leaves.
-                            </p>
-                        </div>
+                <!-- Feature Pills Row -->
+                <div class="flex flex-wrap justify-center gap-2 pt-1">
+                    <div
+                        class="flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+                        <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
+                            </path>
+                        </svg>
+                        <span class="text-xs font-semibold text-emerald-300">100% Private</span>
                     </div>
-                    <div class="flex items-start gap-3 group">
-                        <div
-                            class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                            <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z">
-                                </path>
-                            </svg>
-                        </div>
-                        <div>
-                            <p class="text-sm font-semibold text-white">Multi-Platform</p>
-                            <p class="text-xs text-gray-500">WhatsApp, Telegram, Instagram, Discord & PDFs.</p>
-                        </div>
+                    <div
+                        class="flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20">
+                        <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z">
+                            </path>
+                        </svg>
+                        <span class="text-xs font-semibold text-blue-300">Multi-Platform</span>
                     </div>
-                    <div class="flex items-start gap-3 group">
-                        <div
-                            class="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                            <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z">
-                                </path>
-                            </svg>
-                        </div>
-                        <div>
-                            <p class="text-sm font-semibold text-white">AI Coaching</p>
-                            <p class="text-xs text-gray-500">GPT-4o, Claude, or Gemini for personalized insights.</p>
-                        </div>
+                    <div
+                        class="flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/20">
+                        <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z">
+                            </path>
+                        </svg>
+                        <span class="text-xs font-semibold text-purple-300">AI Coaching</span>
                     </div>
-                    <div class="flex items-start gap-3 group">
-                        <div
-                            class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                            <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                            </svg>
-                        </div>
-                        <div>
-                            <p class="text-sm font-semibold text-white">Lightning Fast</p>
-                            <p class="text-xs text-gray-500">Optional cloud GPU offload for 50x faster analysis.</p>
-                        </div>
+                    <div
+                        class="flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/20">
+                        <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                        <span class="text-xs font-semibold text-amber-300">Lightning Fast</span>
                     </div>
                 </div>
+            </section>
 
-                <!-- Trust Badge -->
-                <div class="flex items-center gap-3 pt-2">
+            <!-- ===== TWO-CARD LAYOUT ===== -->
+            <form id="uploadForm">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                    <!-- CARD 1: Configuration -->
+                    <div class="glass-card rounded-2xl p-5 shadow-2xl relative overflow-hidden">
+                        <div
+                            class="absolute inset-0 bg-gradient-to-br from-brand-500/10 to-transparent pointer-events-none">
+                        </div>
+                        <div class="relative z-10 space-y-4">
+                            <div class="flex items-center gap-2 mb-1">
+                                <svg class="w-5 h-5 text-brand-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4">
+                                    </path>
+                                </svg>
+                                <h3 class="text-lg font-bold text-white">Configuration</h3>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="space-y-1">
+                                    <label class="text-sm font-medium text-gray-300 ml-1">Your Name</label>
+                                    <input type="text" id="myName" required placeholder="e.g. Rahul"
+                                        class="w-full bg-dark-900/50 border border-white/10 rounded-lg px-3 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all text-sm">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-sm font-medium text-gray-300 ml-1">Partner's Name</label>
+                                    <input type="text" id="partnerName" required placeholder="e.g. Priya"
+                                        class="w-full bg-dark-900/50 border border-white/10 rounded-lg px-3 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-500/50 focus:border-pink-500 transition-all text-sm">
+                                </div>
+                            </div>
+
+                            <div class="space-y-1">
+                                <label class="text-sm font-medium text-gray-300 ml-1">Connection Type</label>
+                                <div class="relative">
+                                    <select id="connectionType"
+                                        class="w-full bg-dark-900/50 border border-white/10 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all appearance-none cursor-pointer">
+                                        <option value="romantic" selected>Romantic Partner</option>
+                                        <option value="friendship">Close Friend</option>
+                                        <option value="professional">Professional / Work</option>
+                                        <option value="family">Family Member</option>
+                                        <option value="casual">Casual Acquaintance</option>
+                                    </select>
+                                    <div
+                                        class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-400">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="space-y-1">
+                                <label class="text-sm font-medium text-gray-300 ml-1">Context Input (Optional)</label>
+                                <textarea id="userContext" rows="1"
+                                    placeholder="e.g. 'We just moved to a new city' or 'My partner started a stressful job'"
+                                    class="w-full bg-dark-900/50 border border-white/10 rounded-lg px-3 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all resize-none text-sm"></textarea>
+                                <p class="text-[10px] text-gray-500 ml-1 mt-1">Providing context helps the AI deliver a
+                                    more accurate emotional analysis.</p>
+                            </div>
+
+                            <div
+                                class="flex items-center justify-between p-3 bg-dark-900/40 rounded-xl border border-white/5">
+                                <div class="flex flex-col">
+                                    <span class="text-sm font-medium text-gray-200">Sensitive Mode</span>
+                                    <span class="text-xs text-gray-500">Hides real names from the final report.</span>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="sensitiveMode" class="sr-only peer">
+                                    <div
+                                        class="w-11 h-6 bg-dark-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-500">
+                                    </div>
+                                </label>
+                            </div>
+
+                            <!-- API Key Info -->
+                            <div
+                                class="bg-dark-900/50 border border-brand-500/30 rounded-xl p-4 relative overflow-hidden">
+                                <div
+                                    class="absolute inset-0 bg-gradient-to-r from-brand-500/5 to-transparent pointer-events-none">
+                                </div>
+                                <div class="flex items-start gap-3 relative z-10">
+                                    <svg class="w-5 h-5 text-brand-400 flex-shrink-0 mt-0.5" fill="none"
+                                        stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z">
+                                        </path>
+                                    </svg>
+                                    <div class="w-full">
+                                        <div class="flex items-center justify-between mb-1">
+                                            <p class="text-sm font-medium text-gray-200">API Key Required</p>
+                                            <button type="button"
+                                                onclick="document.getElementById('settingsBtn').click()"
+                                                class="text-xs bg-white/10 hover:bg-white/20 text-white px-2.5 py-1 rounded-md transition-colors">⚙️
+                                                Configure</button>
+                                        </div>
+                                        <p class="text-xs text-gray-400 mb-2">An AI API key is needed for insights. Your
+                                            chats are processed locally first.</p>
+                                        <a href="/instructions#api-keys"
+                                            class="text-xs text-brand-400 hover:text-brand-300 font-medium underline inline-flex items-center gap-1">
+                                            How to get a free API Key →
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CARD 2: Upload & Run -->
+                    <div class="glass-card rounded-2xl p-5 shadow-2xl relative overflow-hidden flex flex-col">
+                        <div
+                            class="absolute inset-0 bg-gradient-to-br from-pink-500/5 to-transparent pointer-events-none">
+                        </div>
+                        <div class="relative z-10 flex flex-col flex-grow space-y-4">
+                            <div class="flex items-center gap-2 mb-1">
+                                <svg class="w-5 h-5 text-pink-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                                </svg>
+                                <h3 class="text-lg font-bold text-white">Upload Chat Export</h3>
+                            </div>
+
+                            <!-- Drop Zone -->
+                            <div id="dropZone"
+                                class="border-2 border-dashed border-white/10 rounded-xl p-5 text-center hover:border-brand-500/50 hover:bg-white/[0.02] transition-all cursor-pointer group relative flex-grow flex flex-col items-center justify-center">
+                                <input type="file" id="chatFile" multiple accept=".txt,.html,.pdf,.json" class="hidden">
+                                <div
+                                    class="w-12 h-12 rounded-full bg-white/5 mx-auto mb-2 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                    <svg class="w-7 h-7 text-brand-400" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                                    </svg>
+                                </div>
+                                <p class="text-base font-semibold text-gray-200 mb-1">Click to upload or drag & drop</p>
+                                <p class="text-sm text-gray-500 mb-3">WhatsApp · Telegram · Instagram · Discord · PDF
+                                </p>
+                                <div id="fileList" class="mt-2 text-sm text-pink-400 font-medium hidden"></div>
+                            </div>
+
+                            <!-- How to Export Chats - Prominent Link -->
+                            <a href="/instructions#whatsapp"
+                                class="flex items-center gap-3 p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 hover:bg-blue-500/15 transition-all group">
+                                <div
+                                    class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                                    <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                                        </path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-semibold text-white">How to Export Chats</p>
+                                    <p class="text-xs text-gray-400">Step-by-step guide for WhatsApp, Telegram,
+                                        Instagram & Discord</p>
+                                </div>
+                                <svg class="w-4 h-4 text-gray-400 ml-auto" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </a>
+
+                            <!-- Run Button -->
+                            <button type="submit" id="analyzeBtn"
+                                class="w-full bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-500 hover:to-brand-400 text-white font-semibold py-4 rounded-xl shadow-[0_0_20px_rgba(244,63,94,0.3)] hover:shadow-[0_0_30px_rgba(244,63,94,0.5)] transition-all flex items-center justify-center gap-2">
+                                <span>Run The Algorithm</span>
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                </svg>
+                            </button>
+
+                            <div id="progressUI" class="hidden flex-col items-center gap-3 mt-2">
+                                <div class="w-full h-2 bg-dark-900 rounded-full overflow-hidden">
+                                    <div id="progressBar"
+                                        class="h-full bg-gradient-to-r from-brand-500 to-pink-500 transition-all duration-300"
+                                        style="width: 0%"></div>
+                                </div>
+                                <div class="flex justify-between w-full text-xs text-gray-400">
+                                    <span id="statusText">Initializing local NLP engine...</span>
+                                    <span id="estimatedTime">Est: ~30s</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </form>
+
+            <!-- Footer Trust Badge -->
+            <div class="flex flex-col items-center gap-3 pt-4 pb-4">
+                <div class="flex items-center gap-3">
                     <div class="flex -space-x-2">
                         <div
                             class="w-8 h-8 rounded-full bg-gradient-to-br from-brand-500 to-pink-500 border-2 border-dark-950 flex items-center justify-center text-[10px] font-bold">
@@ -166,115 +326,7 @@
                             relationships.</p>
                     </div>
                 </div>
-            </div>
-
-            <!-- RIGHT: Upload Panel Side -->
-            <div>
-                <div class="glass-card rounded-2xl p-8 shadow-2xl relative overflow-hidden">
-                    <div
-                        class="absolute inset-0 bg-gradient-to-br from-brand-500/10 to-transparent pointer-events-none">
-                    </div>
-
-                    <form id="uploadForm" class="relative z-10 flex flex-col gap-5">
-
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="space-y-1">
-                                <label class="text-sm font-medium text-gray-300 ml-1">Your Name</label>
-                                <input type="text" id="myName" required placeholder="e.g. Rahul"
-                                    class="w-full bg-dark-900/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all">
-                            </div>
-                            <div class="space-y-1">
-                                <label class="text-sm font-medium text-gray-300 ml-1">Partner's Name</label>
-                                <input type="text" id="partnerName" required placeholder="e.g. Priya"
-                                    class="w-full bg-dark-900/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-500/50 focus:border-pink-500 transition-all">
-                            </div>
-                        </div>
-
-                        <div class="space-y-1">
-                            <label class="text-sm font-medium text-gray-300 ml-1">Connection Type</label>
-                            <div class="relative">
-                                <select id="connectionType"
-                                    class="w-full bg-dark-900/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all appearance-none cursor-pointer">
-                                    <option value="romantic" selected>Romantic Partner</option>
-                                    <option value="friendship">Close Friend</option>
-                                    <option value="professional">Professional / Work</option>
-                                    <option value="family">Family Member</option>
-                                    <option value="casual">Casual Acquaintance</option>
-                                </select>
-                                <div
-                                    class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-400">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M19 9l-7 7-7-7"></path>
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="space-y-1">
-                            <label class="text-sm font-medium text-gray-300 ml-1">Context Input (Optional)</label>
-                            <textarea id="userContext" rows="2"
-                                placeholder="e.g. 'We just moved to a new city' or 'My partner started a stressful job'"
-                                class="w-full bg-dark-900/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all resize-none text-sm"></textarea>
-                            <p class="text-[10px] text-gray-500 ml-1 mt-1">Providing context helps the AI deliver a more
-                                accurate emotional analysis.</p>
-                        </div>
-
-                        <div
-                            class="flex items-center justify-between p-3 bg-dark-900/40 rounded-xl border border-white/5">
-                            <div class="flex flex-col">
-                                <span class="text-sm font-medium text-gray-200">Sensitive Mode</span>
-                                <span class="text-xs text-gray-500">Hides real names from the final report.</span>
-                            </div>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="sensitiveMode" class="sr-only peer">
-                                <div
-                                    class="w-11 h-6 bg-dark-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-500">
-                                </div>
-                            </label>
-                        </div>
-
-                        <div id="dropZone"
-                            class="border-2 border-dashed border-white/10 rounded-xl p-6 text-center hover:border-brand-500/50 hover:bg-white/[0.02] transition-all cursor-pointer group">
-                            <input type="file" id="chatFile" multiple accept=".txt,.html,.pdf,.json" class="hidden">
-                            <div
-                                class="w-10 h-10 rounded-full bg-white/5 mx-auto mb-2 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                <svg class="w-5 h-5 text-brand-400" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
-                                </svg>
-                            </div>
-                            <p class="text-sm font-medium text-gray-200 mb-1">Click to upload or drag & drop</p>
-                            <p class="text-xs text-gray-500">WhatsApp · Telegram · Instagram · Discord · PDF</p>
-                            <div id="fileList" class="mt-3 text-sm text-pink-400 font-medium hidden"></div>
-                        </div>
-
-                        <button type="submit" id="analyzeBtn"
-                            class="w-full bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-500 hover:to-brand-400 text-white font-semibold py-4 rounded-xl shadow-[0_0_20px_rgba(244,63,94,0.3)] hover:shadow-[0_0_30px_rgba(244,63,94,0.5)] transition-all flex items-center justify-center gap-2">
-                            <span>Run The Algorithm</span>
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                            </svg>
-                        </button>
-
-                        <div id="progressUI" class="hidden flex-col items-center gap-3 mt-2">
-                            <div class="w-full h-2 bg-dark-900 rounded-full overflow-hidden">
-                                <div id="progressBar"
-                                    class="h-full bg-gradient-to-r from-brand-500 to-pink-500 transition-all duration-300"
-                                    style="width: 0%"></div>
-                            </div>
-                            <div class="flex justify-between w-full text-xs text-gray-400">
-                                <span id="statusText">Initializing local NLP engine...</span>
-                                <span id="estimatedTime">Est: ~30s</span>
-                            </div>
-                        </div>
-
-                    </form>
-                </div>
-
-                <p class="text-center text-xs text-gray-600 mt-5 flex items-center justify-center gap-2">
+                <p class="text-xs text-gray-600 flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">

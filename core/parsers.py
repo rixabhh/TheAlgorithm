@@ -58,9 +58,11 @@ def standardize_entities(df: pd.DataFrame, my_name: str, partner_name: str) -> p
         
     # PHASE C: Worst case fallback (If nothing mapped at all, just take top 2 in order)
     if not mapping and len(top_senders) >= 2:
-        # Assume the user put themselves first or something? 
-        # Actually, let's just use the substring match on the whole dataframe if top 2 failed
-        pass
+        mapping[top_senders[0]] = 'ME'
+        mapping[top_senders[1]] = 'PARTNER'
+        print(f"Smart Mapping: Phase C fallback triggered. Mapped top 2 senders.")
+    elif not mapping and len(top_senders) == 1:
+        mapping[top_senders[0]] = 'ME'
 
     print(f"Final Mapping Registry: {mapping}")
     
