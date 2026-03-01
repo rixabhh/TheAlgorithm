@@ -1,10 +1,22 @@
 import os
 import re
+import unicodedata
 import pandas as pd
 from datetime import datetime
 from bs4 import BeautifulSoup
 import pdfplumber
 import json
+
+
+def sanitize_text(text: str) -> str:
+    """Strip invisible Unicode characters (LTR/RTL marks, zero-width spaces, BOM, etc.)
+    that messaging apps embed in exports. Applied universally before any parser touches the text."""
+    # Remove Unicode categories: Cf (format), Cc (control except \n \r \t), Zl/Zp (line/paragraph sep)
+    return ''.join(
+        ch for ch in text
+        if ch in ('\n', '\r', '\t')
+        or unicodedata.category(ch) not in ('Cf', 'Cc', 'Zl', 'Zp')
+    )
 
 def standardize_entities(df: pd.DataFrame, my_name: str, partner_name: str) -> pd.DataFrame:
     """
@@ -88,7 +100,7 @@ class Parsers:
         messages = []
         with open(file_path, 'r', encoding='utf-8') as f:
             for line in f:
-                line = line.strip()
+                line = sanitize_text(line).strip()
                 if not line:
                     continue
                 match = pattern.match(line)
@@ -122,7 +134,7 @@ class Parsers:
     def parse_telegram(file_path: str) -> pd.DataFrame:
         messages = []
         with open(file_path, 'r', encoding='utf-8') as f:
-            soup = BeautifulSoup(f.read(), 'html.parser')
+            soup = BeautifulSoup(sanitize_text(f.read()), 'html.parser')
 
         current_sender = "UNKNOWN"
         for msg_div in soup.find_all('div', class_='message'):
@@ -197,7 +209,7 @@ class Parsers:
             for page in pdf.pages:
                 text = page.extract_text()
                 if text:
-                    extracted_text.extend(text.split('\n'))
+                    extracted_text.extend(sanitize_text(text).split('\n'))
 
         # Create a temp txt file memory construct and run WhatsApp regex over it
         # Sometimes PDF chat exports match txt logs linearly.
@@ -235,7 +247,7 @@ class Parsers:
         """Determines if JSON is Instagram or Discord and parses accordingly."""
         with open(file_path, 'r', encoding='utf-8') as f:
             try:
-                data = json.load(f)
+                data = json.loads(sanitize_text(f.read()))
             except Exception as e:
                 print(f"JSON Parse Error: {e}")
                 return pd.DataFrame()
