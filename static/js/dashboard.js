@@ -12,7 +12,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // 1. V4.0: Narrative & Coaching Elements
     document.getElementById('report-headline').textContent = report.dynamic_headline || "Your Relationship Pulse";
     document.getElementById('report-pulse').textContent = report.pulse_summary || "Could not generate pulse summary.";
-    document.getElementById('report-persona').textContent = report.relationship_persona || "Analyzing...";
+    document.getElementById('report-persona').textContent = report.relationship_persona || "The Enigma";
+    document.getElementById('report-compatibility').textContent = report.compatibility_score || "85";
 
     // Support Score Calculation
     const meSupport = supportGap['ME'] || { stress_count: 0, support_received: 0 };
@@ -182,18 +183,7 @@ async function downloadWrappedCard() {
     document.getElementById('share-snippet').textContent = report.top_shareable_snippet || "Just vibing.";
     document.getElementById('share-predictive').textContent = report.predictive_path || "Walking the path together.";
     document.getElementById('share-time-machine').textContent = report.time_machine_insights || "Building history.";
-
-    const nudgesEl = document.getElementById('share-nudges');
-    if (report.repair_tips && Array.isArray(report.repair_tips)) {
-        nudgesEl.innerHTML = report.repair_tips.map(tip => `
-            <div style="display: flex; gap: 1rem; align-items: start;">
-                <span style="color: #f472b6; font-weight: bold;">●</span>
-                <span>${tip}</span>
-            </div>
-        `).join('');
-    } else {
-        nudgesEl.innerHTML = `<span>Just keep doing what you're doing.</span>`;
-    }
+    document.getElementById('share-compatibility').textContent = report.compatibility_score || "85";
 
     // 3. Unhide, Capture, and Re-hide
     const container = document.getElementById('shareable-capture-container');
