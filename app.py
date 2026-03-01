@@ -1,6 +1,7 @@
 import os
 import shutil
 import pandas as pd
+import tempfile
 from flask import Flask, render_template, request, jsonify, session
 from werkzeug.utils import secure_filename
 import traceback
@@ -12,8 +13,12 @@ from core.llm_service import generate_report
 
 app = Flask(__name__)
 app.secret_key = 'super-secret-key-for-session-state' # Change in production
-app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
-app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024 # 100 mb limit
+app.config.update(
+    UPLOAD_FOLDER=os.path.join(tempfile.gettempdir(), 'the_algorithm_uploads'),
+    MAX_CONTENT_LENGTH=100 * 1024 * 1024, # 100 mb limit
+    SESSION_COOKIE_SAMESITE='None',
+    SESSION_COOKIE_SECURE=True
+)
 
 # Simple server-side store to bypass 4KB session cookie limit
 GLOBAL_DATA_STORE = {}
