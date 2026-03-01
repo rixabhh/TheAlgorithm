@@ -5,6 +5,7 @@ WORKDIR /app
 # Install OS-level deps
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python deps first (cached layer)
@@ -18,6 +19,11 @@ RUN python scripts/download_model.py
 
 # Copy application code
 COPY . .
+
+# Download favicon if missing (stripped from HF push to avoid binary rejection)
+RUN if [ ! -f static/favicon.png ]; then \
+      curl -sL https://raw.githubusercontent.com/rixabhh/TheAlgorithm/main/static/favicon.png -o static/favicon.png || true; \
+    fi
 
 # Create uploads directory
 RUN mkdir -p uploads

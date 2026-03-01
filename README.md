@@ -4,7 +4,7 @@ emoji: 🧠
 colorFrom: pink
 colorTo: red
 sdk: docker
-app_port: 5000
+app_port: 7860
 pinned: false
 license: mit
 short_description: AI-powered relationship analyzer — privacy-first, BYOK.
