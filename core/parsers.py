@@ -91,10 +91,10 @@ class Parsers:
     @staticmethod
     def parse_whatsapp(file_path: str) -> pd.DataFrame:
         pattern = re.compile(
-            r'^\[?(?P<date>\d{1,2}[/-]\d{1,2}[/-]\d{2,4})[, ]+(?P<time>\d{1,2}:\d{2}(?::\d{2})?(?: [apAp][mM])?)\]?[ -]+(?P<sender>[^:]+):\s+(?P<text>.*)$'
+            r'^\[?(?P<date>\d{1,2}[/-]\d{1,2}[/-]\d{2,4})[,\s]+(?P<time>\d{1,2}:\d{2}(?::\d{2})?(?:\s*[apAp][mM])?)\]?[\s-]+(?P<sender>[^:]+):\s+(?P<text>.*)$'
         )
         sys_pattern = re.compile(
-            r'^\[?(?P<date>\d{1,2}[/-]\d{1,2}[/-]\d{2,4})[, ]+(?P<time>\d{1,2}:\d{2}(?::\d{2})?(?: [apAp][mM])?)\]?[ -]+(?P<sys_msg>Messages and calls are end-to-end encrypted.*|.*changed their phone number|.*joined using an invite link|.*left|.*changed the subject to|.*changed the group description|.*You deleted this message.*)$'
+            r'^\[?(?P<date>\d{1,2}[/-]\d{1,2}[/-]\d{2,4})[,\s]+(?P<time>\d{1,2}:\d{2}(?::\d{2})?(?:\s*[apAp][mM])?)\]?[\s-]+(?P<sys_msg>Messages and calls are end-to-end encrypted.*|.*changed their phone number|.*joined using an invite link|.*left|.*changed the subject to|.*changed the group description|.*You deleted this message.*)$'
         )
 
         messages = []
@@ -219,7 +219,7 @@ class Parsers:
     @staticmethod
     def _parse_raw_lines_whatsapp(lines: list) -> pd.DataFrame:
         pattern = re.compile(
-            r'^\[?(?P<date>\d{1,2}[/-]\d{1,2}[/-]\d{2,4})[, ]+(?P<time>\d{1,2}:\d{2}(?::\d{2})?(?: [apAp][mM])?)\]?[ -]+(?P<sender>[^:]+):\s+(?P<text>.*)$'
+            r'^\[?(?P<date>\d{1,2}[/-]\d{1,2}[/-]\d{2,4})[,\s]+(?P<time>\d{1,2}:\d{2}(?::\d{2})?(?:\s*[apAp][mM])?)\]?[\s-]+(?P<sender>[^:]+):\s+(?P<text>.*)$'
         )
         messages = []
         for line in lines:
