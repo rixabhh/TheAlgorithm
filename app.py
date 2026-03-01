@@ -56,6 +56,7 @@ def process_chat():
     my_name = request.form.get('my_name', '').strip()
     partner_name = request.form.get('partner_name', '').strip()
     connection_type = request.form.get('connection_type', 'romantic').strip()
+    output_language = request.form.get('output_language', 'english').strip()
     user_context = request.form.get('user_context', '').strip()
     api_key = request.form.get('api_key', '').strip()
     hf_url = request.form.get('hf_url', '').strip()
@@ -98,7 +99,7 @@ def process_chat():
             return jsonify({'error': 'Not enough data to form weekly statistics.'}), 400
             
         # 4. LLM Generation - Pass the entire analytics payload, not just weekly stats
-        report = generate_report(provider, api_key, analytics_result, my_name, partner_name, connection_type, user_context)
+        report = generate_report(provider, api_key, analytics_result, my_name, partner_name, connection_type, user_context, output_language)
         
         # 5. Store in Global Data Store (Session cookies are limited to 4KB)
         import uuid

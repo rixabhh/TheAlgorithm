@@ -113,6 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
             formData.append('my_name', document.getElementById('myName').value);
             formData.append('partner_name', document.getElementById('partnerName').value);
             formData.append('connection_type', document.getElementById('connectionType').value);
+            formData.append('output_language', document.getElementById('outputLanguage').value);
             formData.append('user_context', document.getElementById('userContext')?.value || '');
 
             const isSensitive = document.getElementById('sensitiveMode')?.checked || false;
