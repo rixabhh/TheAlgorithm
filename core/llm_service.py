@@ -32,6 +32,7 @@ Output a valid JSON object with these EXACT keys:
   "relationship_persona": "A creative, endearing title (e.g., 'The Midnight Philosophers', 'The Steady Rocks').",
   "time_machine_insights": "A warm reflective paragraph analyzing how their shared language, emotional support, and shared rhythms have evolved together over time.",
   "predictive_path": "A gentle, inspiring thought about where their connection is heading based on their recent energy.",
+  "compatibility_score": 85,
   "repair_tips": ["A highly specific, warm, human invitation to connect (not a rigid 'exercise').", "A second gentle, heartfelt suggestion based on any recent friction."],
   "milestones": ["First major emotional or connection highlight", "Second meaningful memory or milestone"],
   "top_shareable_snippet": "A fun, short, 'Spotify Wrapped' style compliment or highlight.",

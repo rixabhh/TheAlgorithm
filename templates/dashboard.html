@@ -91,7 +91,16 @@
                     </button>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+                    <!-- Compatibility Score Card -->
+                    <div class="bg-white/5 border border-white/10 rounded-2xl p-5 hover:bg-white/10 transition-colors">
+                        <span
+                            class="text-[10px] font-bold text-emerald-400 uppercase tracking-tighter block mb-1">Compatibility</span>
+                        <div class="text-3xl text-emerald-300 font-bold flex items-baseline gap-1">
+                            <span id="report-compatibility">--</span><span
+                                class="text-sm text-gray-400 font-medium">/100</span>
+                        </div>
+                    </div>
                     <!-- Persona Card -->
                     <div class="bg-white/5 border border-white/10 rounded-2xl p-5 hover:bg-white/10 transition-colors">
                         <span class="text-[10px] font-bold text-gray-400 uppercase tracking-tighter block mb-1">Your
@@ -171,7 +180,8 @@
                         </div>
                         <h3
                             class="text-[10px] font-bold text-red-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                            <span class="text-lg">❤️‍🔥</span> Emotional Rhythm</h3>
+                            <span class="text-lg">❤️‍🔥</span> Emotional Rhythm
+                        </h3>
                         <p class="text-sm text-gray-200 font-medium leading-relaxed relative z-10"
                             id="insight-stability">...</p>
                     </div>
@@ -184,7 +194,8 @@
                         </div>
                         <h3
                             class="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                            <span class="text-lg">🌊</span> Communication Flow</h3>
+                            <span class="text-lg">🌊</span> Communication Flow
+                        </h3>
                         <p class="text-sm text-gray-200 font-medium leading-relaxed relative z-10" id="insight-volume">
                             ...</p>
                     </div>
@@ -197,7 +208,8 @@
                         </div>
                         <h3
                             class="text-[10px] font-bold text-emerald-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                            <span class="text-lg">⏱️</span> Response Space</h3>
+                            <span class="text-lg">⏱️</span> Response Space
+                        </h3>
                         <p class="text-sm text-gray-200 font-medium leading-relaxed relative z-10" id="insight-latency">
                             ...</p>
                     </div>
@@ -372,12 +384,14 @@
                         </div>
 
                         <div
-                            style="background: rgba(236,72,153,0.05); border: 1px solid rgba(236,72,153,0.2); border-radius: 2rem; padding: 2.5rem;">
+                            style="background: rgba(16,185,129,0.05); border: 1px solid rgba(16,185,129,0.2); border-radius: 2rem; padding: 2.5rem;">
                             <h3
-                                style="font-size: 1.5rem; color: #f472b6; text-transform: uppercase; letter-spacing: 0.1em; font-weight: bold; margin-bottom: 1rem;">
-                                🌱 Action Nudges</h3>
-                            <div id="share-nudges"
-                                style="font-size: 1.8rem; color: #e2e8f0; line-height: 1.5; display: flex; flex-direction: column; gap: 1.5rem;">
+                                style="font-size: 1.5rem; color: #34d399; text-transform: uppercase; letter-spacing: 0.1em; font-weight: bold; margin-bottom: 1rem;">
+                                ✨ Compatibility Score</h3>
+                            <div
+                                style="font-size: 3.5rem; font-weight: 800; color: #34d399; display: flex; align-items: baseline; gap: 0.5rem;">
+                                <span id="share-compatibility">--</span><span
+                                    style="font-size: 1.5rem; color: #9ca3af; font-weight: 600;">/ 100</span>
                             </div>
                         </div>
                     </div>
