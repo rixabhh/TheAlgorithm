@@ -1,0 +1,9 @@
+uploads/
+__pycache__/
+*.pyc
+.env
+.pytest_cache/
+CHATS/
+.venv/
+models/
+docs/

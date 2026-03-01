@@ -1,0 +1,427 @@
+import os
+import pandas as pd
+import numpy as np
+from transformers import pipeline
+import torch
+import emoji
+from collections import Counter
+
+sentiment_pipeline = None
+
+def get_sentiment_pipeline():
+    """Lazy load and quantize the Hinglish sentiment model on CPU."""
+    global sentiment_pipeline
+    if sentiment_pipeline is None:
+        print("Loading and quantizing multilingual sentiment model...")
+        model_name = "cardiffnlp/twitter-xlm-roberta-base-sentiment"
+        
+        # Use pre-downloaded model dir (Docker) or fall back to HuggingFace cache (local dev)
+        model_dir = os.environ.get("MODEL_DIR")
+        model_kwargs = {"model": model_name, "device": -1}
+        if model_dir and os.path.isdir(model_dir):
+            print(f"Loading model from local directory: {model_dir}")
+            model_kwargs["model"] = model_dir
+        
+        sentiment_pipeline = pipeline("sentiment-analysis", **model_kwargs)
+        # Apply dynamic quantization to Linear layers for 50% RAM reduction
+        sentiment_pipeline.model = torch.quantization.quantize_dynamic(
+            sentiment_pipeline.model, 
+            {torch.nn.Linear}, 
+            dtype=torch.qint8
+        )
+        print("Model loaded successfully.")
+    return sentiment_pipeline
+
+def calculate_latency(df: pd.DataFrame) -> pd.DataFrame:
+    df = df.sort_values('timestamp').reset_index(drop=True)
+    df['prev_sender'] = df['sender'].shift(1)
+    df['prev_timestamp'] = df['timestamp'].shift(1)
+    
+    df['time_gap_mins'] = (df['timestamp'] - df['prev_timestamp']).dt.total_seconds() / 60.0
+    
+    # Valid reply: Different sender, gap <= 24 hours (1440 mins)
+    valid_reply_mask = (df['sender'] != df['prev_sender']) & (df['time_gap_mins'] <= 1440)
+    
+    df['latency_mins'] = np.nan
+    df.loc[valid_reply_mask, 'latency_mins'] = df.loc[valid_reply_mask, 'time_gap_mins']
+    
+    df.drop(columns=['prev_sender', 'prev_timestamp', 'time_gap_mins'], inplace=True)
+    return df
+
+def apply_sentiment(df: pd.DataFrame, hf_url: str = "") -> pd.DataFrame:
+    # We only score PARTNER messages for the risk algorithm
+    partner_mask = df['sender'] == 'PARTNER'
+    partner_msgs = df.loc[partner_mask, 'text'].astype(str).tolist()
+    
+    # Truncate to 512 characters to prevent token overflow
+    partner_msgs = [x[:512] for x in partner_msgs]
+    
+    sentiment_scores = []
+    
+    if hf_url:
+        print(f"Offloading sentiment analysis of {len(partner_msgs)} messages to Cloud GPU...")
+        import requests
+        import concurrent.futures
+        import time as _time
+        
+        # Ensure URL has /analyze endpoint precisely once
+        base_url = hf_url.rstrip('/').replace('/analyze', '')
+        api_endpoint = base_url + "/analyze"
+        
+        chunk_size = 1500 # Send in batches of 1500 to prevent payload too large/timeouts
+        total_chunks = (len(partner_msgs) + chunk_size - 1) // chunk_size
+        
+        sentiment_scores = [0] * len(partner_msgs)
+        
+        MAX_RETRIES = 3
+        BASE_TIMEOUT = 120  # seconds; increased from 90 to handle cold starts
+        
+        def fetch_chunk(chunk, chunk_index, start_idx):
+            """Send a chunk to the Cloud GPU. Retries up to MAX_RETRIES on failure."""
+            last_error = None
+            for attempt in range(1, MAX_RETRIES + 1):
+                timeout = BASE_TIMEOUT + (attempt - 1) * 60  # 120s, 180s, 240s
+                try:
+                    print(f"  Chunk {chunk_index}/{total_chunks} ({len(chunk)} msgs) → Cloud GPU (attempt {attempt}/{MAX_RETRIES}, timeout={timeout}s)...")
+                    response = requests.post(
+                        api_endpoint,
+                        json={"texts": chunk},
+                        headers={"Content-Type": "application/json"},
+                        timeout=timeout
+                    )
+                    response.raise_for_status()
+                    result = response.json()
+                    if "scores" in result:
+                        print(f"  ✓ Chunk {chunk_index}/{total_chunks} completed.")
+                        return start_idx, result["scores"]
+                    else:
+                        raise ValueError(f"Invalid API response format for chunk {chunk_index}: missing 'scores' key")
+                except Exception as e:
+                    last_error = e
+                    if attempt < MAX_RETRIES:
+                        wait = 5 * attempt
+                        print(f"  ✗ Chunk {chunk_index} attempt {attempt} failed ({e}). Retrying in {wait}s...")
+                        _time.sleep(wait)
+            # All retries exhausted — propagate the error (NO local fallback)
+            raise RuntimeError(f"Chunk {chunk_index} failed after {MAX_RETRIES} attempts: {last_error}")
+            
+        chunks_data = []
+        for i in range(0, len(partner_msgs), chunk_size):
+            chunk = partner_msgs[i:i + chunk_size]
+            chunk_index = (i // chunk_size) + 1
+            chunks_data.append((chunk, chunk_index, i))
+        
+        try:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+                futures = [executor.submit(fetch_chunk, c, ci, si) for c, ci, si in chunks_data]
+                for future in concurrent.futures.as_completed(futures):
+                    start_idx, scores = future.result()
+                    for idx, score in enumerate(scores):
+                        if start_idx + idx < len(sentiment_scores):
+                            sentiment_scores[start_idx + idx] = score
+                             
+        except Exception as e:
+            print(f"CRITICAL: Cloud GPU offload failed: {e}.")
+            # No local fallback when a cloud URL is provided — this prevents 70k+ messages from locking up the CPU.
+            raise RuntimeError(f"Cloud Sentiment Analysis Failed: {e}. Check your Lightning Studio instance.")
+            
+    else:
+        # ONLY run local scoring if NO cloud URL was provided at all
+        pipe = get_sentiment_pipeline()
+        results = []
+        batch_size = 32
+        print(f"Scoring {len(partner_msgs)} messages locally in batches of {batch_size}...")
+        
+        for i in range(0, len(partner_msgs), batch_size):
+            batch = partner_msgs[i:i+batch_size]
+            try:
+                batch_results = pipe(batch)
+                results.extend(batch_results)
+            except Exception as e:
+                print(f"Batch failed: {e}")
+                results.extend([{'label': 'Neutral', 'score': 0}] * len(batch))
+                
+        for r in results:
+            label = r['label'].lower()
+            if 'positive' in label or label == 'label_2':
+                sentiment_scores.append(1)
+            elif 'negative' in label or label == 'label_0':
+                sentiment_scores.append(-1)
+            else:
+                sentiment_scores.append(0)
+                
+    df['sentiment'] = 0
+    df.loc[partner_mask, 'sentiment'] = sentiment_scores
+    
+    return df
+
+def aggregate_weekly(df: pd.DataFrame) -> pd.DataFrame:
+    # Anchor to Monday
+    df['week_start'] = df['timestamp'].dt.to_period('W').apply(lambda r: r.start_time)
+    
+    # Aggregate
+    weekly = df.groupby('week_start').apply(lambda g: pd.Series({
+        'volume': len(g),
+        'median_latency': g['latency_mins'].median(),
+        'mean_sentiment': g.loc[g['sender'] == 'PARTNER', 'sentiment'].mean()
+    })).reset_index()
+    
+    weekly.fillna({'median_latency': 0, 'mean_sentiment': 0}, inplace=True)
+    return weekly
+
+def calculate_emoji_frequency(df: pd.DataFrame) -> dict:
+    """Extract top-10 emoji usage per sender. Must be called BEFORE privacy firewall drops text."""
+    result = {}
+    for sender in ['ME', 'PARTNER']:
+        mask = df['sender'] == sender
+        all_text = ' '.join(df.loc[mask, 'text'].astype(str).tolist())
+        emojis = [c for c in all_text if emoji.is_emoji(c)]
+        counts = Counter(emojis).most_common(10)
+        result[sender] = [{'emoji': e, 'count': c} for e, c in counts]
+    return result
+
+def calculate_initiator_ratio(df: pd.DataFrame) -> dict:
+    """Count conversation initiations. An initiation = message after a >=4 hour gap."""
+    df = df.sort_values('timestamp').reset_index(drop=True)
+    if len(df) < 2:
+        return {'me_initiations': 0, 'partner_initiations': 0, 'me_ratio': 0.0}
+    
+    gap_threshold_mins = 240  # 4 hours
+    
+    df['prev_ts'] = df['timestamp'].shift(1)
+    df['gap_mins'] = (df['timestamp'] - df['prev_ts']).dt.total_seconds() / 60.0
+    
+    # First message is always an initiation
+    initiation_mask = (df['gap_mins'] >= gap_threshold_mins) | (df.index == 0)
+    initiations = df.loc[initiation_mask]
+    
+    me_count = int((initiations['sender'] == 'ME').sum())
+    partner_count = int((initiations['sender'] == 'PARTNER').sum())
+    total = me_count + partner_count
+    
+    df.drop(columns=['prev_ts', 'gap_mins'], inplace=True)
+    
+    return {
+        'me_initiations': me_count,
+        'partner_initiations': partner_count,
+        'me_ratio': round(me_count / total, 4) if total > 0 else 0.0
+    }
+
+def calculate_risk_score(weekly_df: pd.DataFrame) -> pd.DataFrame:
+    if weekly_df.empty: return weekly_df
+    
+    # Sentiment: -1 (bad) to 1 (good). Inverted: 1 (high risk) to 0 (low risk)
+    weekly_df['sentiment_inv'] = (1 - weekly_df['mean_sentiment']) / 2.0
+    
+    # Latency: Normalize 0 to 1
+    max_lat = weekly_df['median_latency'].max()
+    min_lat = weekly_df['median_latency'].min()
+    if max_lat > min_lat:
+        weekly_df['latency_norm'] = (weekly_df['median_latency'] - min_lat) / (max_lat - min_lat)
+    else:
+        weekly_df['latency_norm'] = 0
+        
+    # Volume: Normalize and Invert
+    max_vol = weekly_df['volume'].max()
+    min_vol = weekly_df['volume'].min()
+    if max_vol > min_vol:
+        vol_norm = (weekly_df['volume'] - min_vol) / (max_vol - min_vol)
+        weekly_df['volume_inv'] = 1.0 - vol_norm
+    else:
+        weekly_df['volume_inv'] = 0
+        
+    # Formula from PRD 2.0
+    weekly_df['risk_score'] = (0.5 * weekly_df['sentiment_inv']) + (0.3 * weekly_df['latency_norm']) + (0.2 * weekly_df['volume_inv'])
+    
+    # Round metrics for clean UI
+    weekly_df['risk_score'] = weekly_df['risk_score'].round(4)
+    weekly_df['mean_sentiment'] = weekly_df['mean_sentiment'].round(4)
+    weekly_df['median_latency'] = weekly_df['median_latency'].round(2)
+    
+    return weekly_df
+
+def detect_risk_phases(weekly_df: pd.DataFrame) -> pd.DataFrame:
+    """Label each week with a relationship phase based on risk score."""
+    def _phase(score):
+        if score < 0.3: return 'Honeymoon'
+        elif score < 0.6: return 'Stable'
+        elif score < 0.85: return 'Tension'
+        else: return 'Danger'
+    
+    if not weekly_df.empty:
+        weekly_df['phase'] = weekly_df['risk_score'].apply(_phase)
+    return weekly_df
+
+def calculate_power_dynamics(df: pd.DataFrame) -> dict:
+    """Calculate the Word Count ratio to establish Power Dynamics (V3.0)."""
+    if 'text' not in df.columns: return {}
+    
+    # Calculate rough word counts per sender
+    df['word_count'] = df['text'].astype(str).str.split().str.len()
+    counts = df.groupby('sender')['word_count'].sum().to_dict()
+    
+    me_words = int(counts.get('ME', 0))
+    partner_words = int(counts.get('PARTNER', 0))
+    
+    # Ratio: ME / PARTNER. If > 1, ME is dominating the conversation volume.
+    ratio = float(round(me_words / partner_words, 2)) if partner_words > 0 else 0.0
+    
+    return {
+        'me_word_count': me_words,
+        'partner_word_count': partner_words,
+        'power_ratio': ratio
+    }
+
+def calculate_affection_friction(df: pd.DataFrame) -> dict:
+    """Detect 'Burnout' via affirmative vs dismissive language trends (V3.0)."""
+    if 'text' not in df.columns: return {}
+    
+    affirmative = ['love', 'thanks', 'happy', 'we', 'miss', 'appreciate', 'glad', 'proud', 'beautiful', 'care']
+    dismissive = ['whatever', 'fine', 'okay', 'sure', 'k', 'ok', 'busy', 'tired', 'idk', 'anyway']
+    
+    text_lower = df['text'].astype(str).str.lower()
+    
+    # Count occurrences across the entire dataset
+    aff_count = text_lower.str.contains('|'.join(affirmative), regex=True).sum()
+    dis_count = text_lower.str.contains('|'.join(dismissive), regex=True).sum()
+    
+    return {
+        'affirmative_count': int(aff_count),
+        'dismissive_count': int(dis_count)
+    }
+
+def calculate_support_gap(df: pd.DataFrame) -> dict:
+    """Identify stress messages and measure partner's response quality (V4.0)."""
+    if 'text' not in df.columns or len(df) < 5: return {}
+    
+    stress_keywords = ['work', 'tired', 'sad', 'stressed', 'deadline', 'exhausted', 'unhappy', 'worry', 'anxious']
+    
+    # Identify messages from both sides containing stress words
+    df_temp = df.copy().sort_values('timestamp')
+    df_temp['is_stress'] = df_temp['text'].astype(str).str.lower().str.contains('|'.join(stress_keywords), regex=True)
+    
+    stress_indices = df_temp[df_temp['is_stress']].index
+    
+    support_results = {
+        'ME': {'stress_count': 0, 'support_received': 0},      # Me stressed, partner responds
+        'PARTNER': {'stress_count': 0, 'support_received': 0} # Partner stressed, me responds
+    }
+    
+    for idx in stress_indices:
+        sender = df_temp.at[idx, 'sender']
+        # Look for the immediate next message from the OTHER person
+        next_msgs = df_temp.iloc[df_temp.index.get_loc(idx)+1 : df_temp.index.get_loc(idx)+3]
+        
+        support_results[sender]['stress_count'] += 1
+        
+        for _, next_msg in next_msgs.iterrows():
+            if next_msg['sender'] != sender:
+                # If they responded within 2 hours, count as basic support
+                # (Future enhancement: check sentiment of the response)
+                support_results[sender]['support_received'] += 1
+                break
+                
+    return support_results
+
+def calculate_reengagement(df: pd.DataFrame) -> dict:
+    """Detect who reaches out first after a long silence (> 24h) (V4.0)."""
+    df = df.sort_values('timestamp').reset_index(drop=True)
+    if len(df) < 10: return {}
+    
+    # We already have latency_mins from calculate_latency
+    # Long silence = gap > 24 hours (1440 mins)
+    df['prev_ts'] = df['timestamp'].shift(1)
+    df['gap_hours'] = (df['timestamp'] - df['prev_ts']).dt.total_seconds() / 3600.0
+    
+    reengagements = df[df['gap_hours'] > 24]
+    counts = reengagements['sender'].value_counts().to_dict()
+    
+    return {
+        'me_reengagements': int(counts.get('ME', 0)),
+        'partner_reengagements': int(counts.get('PARTNER', 0))
+    }
+
+def calculate_linguistic_mirroring(df: pd.DataFrame) -> dict:
+    """Measure how frequently partners adopt each others vocabulary (V4.0)."""
+    if 'text' not in df.columns or len(df) < 100: return {}
+    
+    # Simplified approach: Look for rare punctuation/emoji habits or unique high-frequency words
+    # In a real app, this would use TF-IDF or Embedding distance
+    punctuation_habits = ['!!!', '...', '??', 'haha', 'lol', 'lmao']
+    
+    results = {}
+    text_lower = df['text'].astype(str).str.lower()
+    
+    for sender in ['ME', 'PARTNER']:
+        other = 'PARTNER' if sender == 'ME' else 'ME'
+        sender_text = " ".join(text_lower[df['sender'] == sender])
+        other_text = " ".join(text_lower[df['sender'] == other])
+        
+        mirror_score = 0
+        for habit in punctuation_habits:
+            if habit in sender_text and habit in other_text:
+                mirror_score += 1
+                
+        results[f"{sender}_mirroring"] = mirror_score
+        
+    return results
+
+def calculate_topic_mix(df: pd.DataFrame) -> dict:
+    """Categorize conversation into Logistics, Intimacy, Conflict, etc. (V4.0)."""
+    if 'text' not in df.columns: return {}
+    
+    categories = {
+        'Logistics': ['dinner', 'lunch', 'bill', 'home', 'work', 'done', 'todo', 'buy', 'shop', 'cleaning'],
+        'Intimacy': ['love', 'miss', 'baby', 'darling', 'honey', 'kiss', 'hug', 'beautiful', 'forever'],
+        'Conflict': ['sorry', 'why', 'fight', 'angry', 'stop', 'listen', 'mean', 'hurt'],
+        'External': ['friends', 'party', 'movie', 'news', 'gym', 'weather', 'job']
+    }
+    
+    text_lower = df['text'].astype(str).str.lower()
+    results = {}
+    
+    for cat, keywords in categories.items():
+        results[cat] = int(text_lower.str.contains('|'.join(keywords), regex=True).sum())
+        
+    return results
+
+def run_analytics_pipeline(df: pd.DataFrame, hf_url: str = "") -> dict:
+    """Runs the full analytics pipeline and returns a dict with weekly stats, emoji freq, and initiator ratio."""
+    df = calculate_latency(df)
+    df = apply_sentiment(df, hf_url=hf_url)
+    
+    # Phase 6: Extract enhanced features BEFORE privacy firewall
+    emoji_freq = calculate_emoji_frequency(df)
+    initiator_ratio = calculate_initiator_ratio(df.copy())
+    
+    # Phase 8 (V3.0): Power Dynamics & Burnout NLP
+    power_dynamics = calculate_power_dynamics(df)
+    affection_friction = calculate_affection_friction(df)
+    
+    # Phase 11 (V4.0): Advanced Personalization
+    support_gap = calculate_support_gap(df)
+    reengagement = calculate_reengagement(df)
+    mirroring = calculate_linguistic_mirroring(df)
+    topic_mix = calculate_topic_mix(df)
+    
+    # Privacy handling: text is needed for flashbacks in app.py, so we don't drop it here anymore.
+    # The app.py will handle the session storage and eventual purging.
+        
+    weekly_df = aggregate_weekly(df)
+    weekly_df = calculate_risk_score(weekly_df)
+    weekly_df = detect_risk_phases(weekly_df)
+    
+    # Format date for JSON
+    weekly_df['week_start'] = weekly_df['week_start'].dt.strftime('%Y-%m-%d')
+    
+    return {
+        'weekly': weekly_df.to_dict(orient='records'),
+        'emoji_freq': emoji_freq,
+        'initiator_ratio': initiator_ratio,
+        'power_dynamics': power_dynamics,
+        'affection_friction': affection_friction,
+        'support_gap': support_gap,
+        'reengagement': reengagement,
+        'mirroring': mirroring,
+        'topic_mix': topic_mix
+    }
