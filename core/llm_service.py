@@ -22,7 +22,8 @@ CRITICAL TONE & VOCABULARY GUIDELINES:
 3. NEVER use phrases like "The data shows", "According to the metrics", or "The analytics indicate". Instead use phrasing like "I noticed...", "It feels like...", or "There's a beautiful pattern where...".
 4. Speak directly to '{user}' using "you", "your connection", etc. Make it deeply personal and conversational, like you're sitting with them over coffee.
 5. KEEP EXPLANATIONS SIMPLE and HUMAN. Avoid overly poetic, complicated, or complex language. Talk to them normally, as an intelligent but accessible friend would.
-6. {tone_guidelines}
+6. YOU MUST WRITE YOUR ENTIRE RESPONSE IN THE REQUESTED OUTPUT LANGUAGE: {output_language}. If it is 'hinglish', use casual internet-style Roman Hindi mixed with English (e.g. 'Aise lag raha hai ki...', 'Super chill vibe hai', etc). If it's Hindi, write in pure Devanagari Hindi script. If English, keep it English.
+7. {tone_guidelines}
 
 Output a valid JSON object with these EXACT keys:
 {{
@@ -47,7 +48,7 @@ Output a valid JSON object with these EXACT keys:
 Return raw JSON ONLY. Do not use markdown blocks like ```json.
 """
 
-def build_prompt(stats_payload: dict, my_name: str, partner_name: str, connection_type: str, user_context: str = "") -> str:
+def build_prompt(stats_payload: dict, my_name: str, partner_name: str, connection_type: str, user_context: str = "", output_language: str = "english") -> str:
     """Safely converts the statistical payload to a JSON string prompt."""
     context = {
         "user": my_name,
@@ -83,6 +84,7 @@ def build_prompt(stats_payload: dict, my_name: str, partner_name: str, connectio
         partner=partner_name, 
         connection_type=connection_type, 
         user_context=user_context or "None provided.",
+        output_language=output_language.upper(),
         tone_guidelines=tone_guidelines
     )
     
@@ -153,7 +155,7 @@ def call_gemini(api_key: str, sys_prompt: str, data_prompt: str) -> dict:
     content = data['candidates'][0]['content']['parts'][0]['text'].strip()
     return json.loads(content)
 
-def generate_report(provider: str, api_key: str, stats_payload: dict, my_name: str, partner_name: str, connection_type: str, user_context: str = "") -> dict:
+def generate_report(provider: str, api_key: str, stats_payload: dict, my_name: str, partner_name: str, connection_type: str, user_context: str = "", output_language: str = "english") -> dict:
     """Main entrypoint for the analytics pipeline to get LLM insights."""
     if not api_key:
         return {
@@ -163,7 +165,7 @@ def generate_report(provider: str, api_key: str, stats_payload: dict, my_name: s
             "top_shareable_snippet": "API Key not provided."
         }
     
-    sys_prompt, prompt = build_prompt(stats_payload, my_name, partner_name, connection_type, user_context)
+    sys_prompt, prompt = build_prompt(stats_payload, my_name, partner_name, connection_type, user_context, output_language)
     
     try:
         p = provider.lower()
