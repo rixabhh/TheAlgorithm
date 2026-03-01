@@ -38,5 +38,5 @@ RUN chown -R 1000:1000 /app
 
 USER 1000
 
-# Run with gunicorn for production
-CMD ["gunicorn", "--bind", "0.0.0.0:7860", "--workers", "2", "--timeout", "300", "app:app"]
+# Run with gunicorn for production (1 worker, 4 threads to share in-memory session state)
+CMD ["gunicorn", "--bind", "0.0.0.0:7860", "--workers", "1", "--threads", "4", "--timeout", "300", "app:app"]
