@@ -220,3 +220,58 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// --- Spotify Wrapped Download Logic ---
+async function downloadWrappedCard() {
+    const report = window.llmReport || {};
+    const topicMix = window.topicMix || {};
+    const supportGap = window.supportGap || {};
+    const mirroring = window.mirroring || {};
+
+    // 1. Calculate values
+    const sortedTopics = Object.entries(topicMix).sort((a, b) => b[1] - a[1]);
+    const coreTopic = sortedTopics.length > 0 ? sortedTopics[0][0] : 'General';
+
+    const meSupport = supportGap['ME'] || { stress_count: 0, support_received: 0 };
+    const pSupport = supportGap['PARTNER'] || { stress_count: 0, support_received: 0 };
+    const totalStress = meSupport.stress_count + pSupport.stress_count;
+    const totalSupport = meSupport.support_received + pSupport.support_received;
+    const supportScore = totalStress > 0 ? Math.round((totalSupport / totalStress) * 100) + '%' : '--';
+
+    // 2. Populate the hidden card
+    document.getElementById('share-persona').textContent = report.relationship_persona || "The Mystery";
+    document.getElementById('share-topic').textContent = coreTopic;
+    document.getElementById('share-support').textContent = supportScore;
+    document.getElementById('share-snippet').textContent = report.top_shareable_snippet || "Just vibing.";
+
+    // 3. Unhide, Capture, and Re-hide
+    const container = document.getElementById('shareable-capture-container');
+    const card = document.getElementById('shareable-card');
+
+    // Move on-screen temporarily for exact rendering
+    container.style.left = '0px';
+    container.style.top = '0px';
+    container.style.zIndex = '-999';
+
+    try {
+        const canvas = await html2canvas(card, {
+            scale: 2, // High-res export
+            useCORS: true,
+            backgroundColor: '#111827' // match dark bg
+        });
+
+        // Trigger download
+        const link = document.createElement('a');
+        link.download = 'relationship-wrapped.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+
+    } catch (err) {
+        console.error("Failed to generate wrapped image:", err);
+        alert("Oops! Couldn't generate your wrapped image. Check console for details.");
+    } finally {
+        // Hide again
+        container.style.left = '-9999px';
+        container.style.top = '-9999px';
+        container.style.zIndex = 'auto';
+    }
+}
