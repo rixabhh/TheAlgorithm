@@ -76,69 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!data.length) return;
 
-    // 2. Prepare Chart Data
-    const labels = data.map(d => d.week_start);
-    const riskScores = data.map(d => Math.min(Math.max(d.risk_score, 0), 1));
-    const volumes = data.map(d => d.volume);
-    const latencies = data.map(d => d.median_latency);
-
-    Chart.defaults.color = 'rgba(255, 255, 255, 0.5)';
-    Chart.defaults.font.family = "'Inter', sans-serif";
-
-    // --- Risk Chart (Line) with Clickable Flashbacks ---
-    const riskCtx = document.getElementById('riskChart');
-    const riskChart = new Chart(riskCtx, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Emotional Intensity',
-                data: riskScores,
-                borderColor: '#f43f5e',
-                backgroundColor: 'rgba(244, 63, 94, 0.15)',
-                borderWidth: 3,
-                tension: 0.4,
-                fill: true,
-                pointBackgroundColor: '#f43f5e',
-                pointRadius: 4,
-                pointHoverRadius: 8
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            onClick: (evt, elements) => {
-                if (elements.length > 0) {
-                    const idx = elements[0].index;
-                    const week = labels[idx];
-                    showFlashback(week);
-                }
-            },
-            scales: {
-                y: { min: 0, max: 1, grid: { color: 'rgba(255,255,255,0.05)' }, border: { display: false } },
-                x: { grid: { display: false } }
-            }
-        }
-    });
-
-    // --- Volume & Latency as simple bars/lines ---
-    new Chart(document.getElementById('volumeChart'), {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{ label: 'Communication Frequency', data: volumes, backgroundColor: '#3b82f6', borderRadius: 4 }]
-        },
-        options: { responsive: true, maintainAspectRatio: false }
-    });
-
-    new Chart(document.getElementById('latencyChart'), {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [{ label: 'Response Rhythm', data: latencies, borderColor: '#10b981', borderWidth: 2, tension: 0.4 }]
-        },
-        options: { responsive: true, maintainAspectRatio: false }
-    });
+    // Removed raw chart code (riskChart, volumeChart, latencyChart) since we replaced them with text cards.
 
     // 3. Modals & Flashbacks
     async function showFlashback(week) {
@@ -242,6 +180,20 @@ async function downloadWrappedCard() {
     document.getElementById('share-topic').textContent = coreTopic;
     document.getElementById('share-support').textContent = supportScore;
     document.getElementById('share-snippet').textContent = report.top_shareable_snippet || "Just vibing.";
+    document.getElementById('share-predictive').textContent = report.predictive_path || "Walking the path together.";
+    document.getElementById('share-time-machine').textContent = report.time_machine_insights || "Building history.";
+
+    const nudgesEl = document.getElementById('share-nudges');
+    if (report.repair_tips && Array.isArray(report.repair_tips)) {
+        nudgesEl.innerHTML = report.repair_tips.map(tip => `
+            <div style="display: flex; gap: 1rem; align-items: start;">
+                <span style="color: #f472b6; font-weight: bold;">●</span>
+                <span>${tip}</span>
+            </div>
+        `).join('');
+    } else {
+        nudgesEl.innerHTML = `<span>Just keep doing what you're doing.</span>`;
+    }
 
     // 3. Unhide, Capture, and Re-hide
     const container = document.getElementById('shareable-capture-container');
