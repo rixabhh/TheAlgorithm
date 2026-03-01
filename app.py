@@ -87,7 +87,7 @@ def process_chat():
         full_df.sort_values('timestamp', inplace=True)
         
         # 3. Analytics & Privacy Drop
-        analytics_result = run_analytics_pipeline(full_df, hf_url=hf_url)
+        analytics_result = run_analytics_pipeline(full_df, hf_url=hf_url, connection_type=connection_type)
         
         if not analytics_result.get('weekly'):
             return jsonify({'error': 'Not enough data to form weekly statistics.'}), 400

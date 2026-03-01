@@ -366,16 +366,28 @@ def calculate_linguistic_mirroring(df: pd.DataFrame) -> dict:
         
     return results
 
-def calculate_topic_mix(df: pd.DataFrame) -> dict:
-    """Categorize conversation into Logistics, Intimacy, Conflict, etc. (V4.0)."""
+def calculate_topic_mix(df: pd.DataFrame, connection_type: str) -> dict:
+    """Categorize conversation dynamically based on connection type (V4.0)."""
     if 'text' not in df.columns: return {}
     
-    categories = {
-        'Logistics': ['dinner', 'lunch', 'bill', 'home', 'work', 'done', 'todo', 'buy', 'shop', 'cleaning'],
-        'Intimacy': ['love', 'miss', 'baby', 'darling', 'honey', 'kiss', 'hug', 'beautiful', 'forever'],
-        'Conflict': ['sorry', 'why', 'fight', 'angry', 'stop', 'listen', 'mean', 'hurt'],
-        'External': ['friends', 'party', 'movie', 'news', 'gym', 'weather', 'job']
-    }
+    # Base topics that apply to everything
+    logistics = ['dinner', 'lunch', 'bill', 'home', 'work', 'done', 'todo', 'buy', 'shop', 'cleaning']
+    external = ['friends', 'party', 'movie', 'news', 'gym', 'weather', 'job']
+    conflict = ['sorry', 'why', 'fight', 'angry', 'stop', 'listen', 'mean', 'hurt', 'annoyed']
+    
+    # Relationship-specific intimacy/bonding terms
+    if connection_type == 'romantic':
+        intimacy = ['love', 'miss', 'baby', 'darling', 'honey', 'kiss', 'hug', 'beautiful', 'forever']
+        categories = {'Logistics': logistics, 'Intimacy': intimacy, 'Conflict': conflict, 'External': external}
+    elif connection_type in ['friendship', 'casual', 'family']:
+        bonding = ['miss', 'love', 'haha', 'lol', 'fun', 'crazy', 'remember', 'bro', 'dude', 'bestie']
+        categories = {'Logistics': logistics, 'Bonding': bonding, 'Disagreement': conflict, 'External': external}
+    elif connection_type == 'professional':
+        collaboration = ['help', 'thanks', 'appreciate', 'great', 'good job', 'team', 'meeting', 'sync']
+        categories = {'Operations': logistics, 'Collaboration': collaboration, 'Blockers': conflict, 'External': external}
+    else:
+        # Default fallback
+        categories = {'Logistics': logistics, 'Bonding': ['miss', 'care', 'fun'], 'Conflict': conflict, 'External': external}
     
     text_lower = df['text'].astype(str).str.lower()
     results = {}
@@ -385,7 +397,7 @@ def calculate_topic_mix(df: pd.DataFrame) -> dict:
         
     return results
 
-def run_analytics_pipeline(df: pd.DataFrame, hf_url: str = "") -> dict:
+def run_analytics_pipeline(df: pd.DataFrame, hf_url: str = "", connection_type: str = "romantic") -> dict:
     """Runs the full analytics pipeline and returns a dict with weekly stats, emoji freq, and initiator ratio."""
     df = calculate_latency(df)
     df = apply_sentiment(df, hf_url=hf_url)
@@ -402,7 +414,7 @@ def run_analytics_pipeline(df: pd.DataFrame, hf_url: str = "") -> dict:
     support_gap = calculate_support_gap(df)
     reengagement = calculate_reengagement(df)
     mirroring = calculate_linguistic_mirroring(df)
-    topic_mix = calculate_topic_mix(df)
+    topic_mix = calculate_topic_mix(df, connection_type)
     
     # Privacy handling: text is needed for flashbacks in app.py, so we don't drop it here anymore.
     # The app.py will handle the session storage and eventual purging.

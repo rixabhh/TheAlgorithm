@@ -16,6 +16,9 @@ Data Dimensions:
 The context is: {connection_type}.
 User Context: {user_context}
 
+CRITICAL TONE & VOCABULARY GUIDELINES:
+{tone_guidelines}
+
 Output a valid JSON object with these EXACT keys:
 {{
   "dynamic_headline": "A short, evocative title for their current stage (e.g., 'The Honeymoon Peak', 'A Period of Mirroring').",
@@ -57,12 +60,25 @@ def build_prompt(stats_payload: dict, my_name: str, partner_name: str, connectio
         if isinstance(obj, np.ndarray): return obj.tolist()
         return str(obj)
 
-    # We dynamically inject names and connection type into the system prompt where needed
+    # Define relationship-specific tone guidelines to prevent romanticizing platonic chats
+    tone_guidelines = ""
+    ct = connection_type.lower()
+    if 'friend' in ct or 'casual' in ct:
+        tone_guidelines = "- Tone: Fun, platonic, buddy-like.\n- Vocabulary: Use words like 'Bonding', 'Camaraderie', 'Banter'. STRICTLY AVOID romantic terms like 'Intimacy', 'Passion', 'Romance', 'Honeymoon', or 'Lovers'."
+    elif 'professional' in ct or 'work' in ct:
+        tone_guidelines = "- Tone: Professional, analytical, team-oriented.\n- Vocabulary: Use words like 'Collaboration', 'Alignment', 'Sync', 'Operations'. STRICTLY AVOID any emotional/romantic terms."
+    elif 'family' in ct:
+        tone_guidelines = "- Tone: Warm, familial, supportive.\n- Vocabulary: Use words like 'Kinship', 'Care', 'Support'. STRICTLY AVOID romantic terms."
+    else:
+        tone_guidelines = "- Tone: Empathetic, deep, romantic.\n- Vocabulary: Terms like 'Intimacy', 'Passion', and 'Connection' are appropriate here."
+
+    # We dynamically inject names, connection type, and tone into the system prompt
     sys_prompt = SYSTEM_PROMPT.format(
         user=my_name, 
         partner=partner_name, 
         connection_type=connection_type, 
-        user_context=user_context or "None provided."
+        user_context=user_context or "None provided.",
+        tone_guidelines=tone_guidelines
     )
     
     return sys_prompt, f"Here is the relationship data:\n{json.dumps(context, indent=2, default=np_encoder)}"
