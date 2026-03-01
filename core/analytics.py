@@ -296,30 +296,35 @@ def calculate_support_gap(df: pd.DataFrame) -> dict:
     
     stress_keywords = ['work', 'tired', 'sad', 'stressed', 'deadline', 'exhausted', 'unhappy', 'worry', 'anxious']
     
-    # Identify messages from both sides containing stress words
-    df_temp = df.copy().sort_values('timestamp')
+    df_temp = df.copy().sort_values('timestamp').reset_index(drop=True)
     df_temp['is_stress'] = df_temp['text'].astype(str).str.lower().str.contains('|'.join(stress_keywords), regex=True)
     
-    stress_indices = df_temp[df_temp['is_stress']].index
-    
     support_results = {
-        'ME': {'stress_count': 0, 'support_received': 0},      # Me stressed, partner responds
-        'PARTNER': {'stress_count': 0, 'support_received': 0} # Partner stressed, me responds
+        'ME': {'stress_count': 0, 'support_received': 0},
+        'PARTNER': {'stress_count': 0, 'support_received': 0}
     }
     
-    for idx in stress_indices:
-        sender = df_temp.at[idx, 'sender']
-        # Look for the immediate next message from the OTHER person
-        next_msgs = df_temp.iloc[df_temp.index.get_loc(idx)+1 : df_temp.index.get_loc(idx)+3]
+    # State trackers for active stress
+    active_stress = {'ME': None, 'PARTNER': None}  # Stores timestamp of last stress msg
+    
+    for _, row in df_temp.iterrows():
+        sender = row['sender']
+        timestamp = row['timestamp']
         
-        support_results[sender]['stress_count'] += 1
-        
-        for _, next_msg in next_msgs.iterrows():
-            if next_msg['sender'] != sender:
-                # If they responded within 2 hours, count as basic support
-                # (Future enhancement: check sentiment of the response)
-                support_results[sender]['support_received'] += 1
-                break
+        # Did this person just send a stress message?
+        if row['is_stress']:
+            support_results[sender]['stress_count'] += 1
+            active_stress[sender] = timestamp
+            
+        # Did this person just respond to the OTHER person's stress message?
+        other_sender = 'PARTNER' if sender == 'ME' else 'ME'
+        if active_stress[other_sender] is not None:
+            # Check if response is within 2 hours
+            time_diff = (timestamp - active_stress[other_sender]).total_seconds() / 3600.0
+            if time_diff <= 2.0:
+                support_results[other_sender]['support_received'] += 1
+                # Clear their stress state so we don't double count
+                active_stress[other_sender] = None
                 
     return support_results
 
