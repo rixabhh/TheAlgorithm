@@ -296,8 +296,14 @@ def calculate_support_gap(df: pd.DataFrame) -> dict:
     
     stress_keywords = ['work', 'tired', 'sad', 'stressed', 'deadline', 'exhausted', 'unhappy', 'worry', 'anxious', 'sick', 'bad day', 'hard time']
     
-    df_temp = df.copy().sort_values('timestamp').reset_index(drop=True)
-    df_temp['is_stress'] = df_temp['text'].astype(str).str.lower().str.contains('|'.join(stress_keywords), regex=True)
+    # Avoid deep copy if not needed, but we need to sort
+    df_temp = df.sort_values('timestamp')
+
+    # Vectorized stress detection outside the loop is much faster
+    is_stress = df_temp['text'].astype(str).str.lower().str.contains('|'.join(stress_keywords), regex=True).values
+    senders = df_temp['sender'].values
+    timestamps = df_temp['timestamp'].values
+    texts = df_temp['text'].astype(str).values
     
     support_results = {
         'ME': {'stress_count': 0, 'support_received': 0},
@@ -307,13 +313,13 @@ def calculate_support_gap(df: pd.DataFrame) -> dict:
     # State trackers for active stress
     active_stress = {'ME': None, 'PARTNER': None}  # Stores timestamp of last stress msg
     
-    for _, row in df_temp.iterrows():
-        sender = row['sender']
-        timestamp = row['timestamp']
-        msg_text = str(row['text']).lower()
+    # Using numpy array iteration is ~40x faster than df.iterrows()
+    for i in range(len(senders)):
+        sender = senders[i]
+        timestamp = timestamps[i]
         
         # Did this person just send a stress message?
-        if row['is_stress']:
+        if is_stress[i]:
             support_results[sender]['stress_count'] += 1
             active_stress[sender] = timestamp
             
@@ -321,8 +327,9 @@ def calculate_support_gap(df: pd.DataFrame) -> dict:
         other_sender = 'PARTNER' if sender == 'ME' else 'ME'
         if active_stress[other_sender] is not None:
             # Check if response is within 60 mins and decent length
-            time_diff = (timestamp - active_stress[other_sender]).total_seconds() / 60.0
-            if time_diff <= 60.0 and len(msg_text) > 10:
+            # Use numpy datetime subtraction for speed
+            time_diff = (timestamp - active_stress[other_sender]) / np.timedelta64(1, 'm')
+            if time_diff <= 60.0 and len(texts[i]) > 10:
                 support_results[other_sender]['support_received'] += 1
                 # Clear their stress state so we don't double count
                 active_stress[other_sender] = None
