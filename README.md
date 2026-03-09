@@ -22,6 +22,8 @@ short_description: AI-powered relationship analyzer — privacy-first, BYOK.
 > **A privacy-first, AI-powered relationship analyzer.**
 > Upload your chat exports. Get deep behavioral insights, emotional analytics, and actionable coaching — all without your raw text ever leaving your machine.
 
+🚀 **Try it Live:** [thealgorithm.rixabh.workers.dev](https://thealgorithm.rixabh.workers.dev/)
+
 <p align="center">
 <img src="[https://img.shields.io/badge/Privacy-100%25%20Zero--Knowledge-22c55e?style=flat-square](https://img.shields.io/badge/Privacy-100%25%20Zero--Knowledge-22c55e?style=flat-square)" />
 <img src="[https://img.shields.io/badge/Platforms-WhatsApp%20%7C%20Telegram%20%7C%20Instagram%20%7C%20Discord-f43f5e?style=flat-square](https://img.shields.io/badge/Platforms-WhatsApp%20%7C%20Telegram%20%7C%20Instagram%20%7C%20Discord-f43f5e?style=flat-square)" />
