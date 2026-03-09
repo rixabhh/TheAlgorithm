@@ -58,5 +58,25 @@ jobs:
           git rm -rf --cached .
           git add -A
           git rm -f --cached static/favicon.png .gitattributes || true
+          
+          # Inject HF Config Block without affecting GitHub
+          cat << 'EOF' > hf_frontmatter.txt
+---
+title: The Algorithm
+emoji: 🧠
+colorFrom: pink
+colorTo: red
+sdk: docker
+app_port: 7860
+pinned: false
+license: mit
+short_description: AI-powered relationship analyzer — privacy-first, BYOK.
+---
+
+EOF
+          cat hf_frontmatter.txt README.md > README.md.new && mv README.md.new README.md
+          rm hf_frontmatter.txt
+          git add README.md
+
           git commit -m "deploy: push to HF Spaces"
           git push --force https://rixxabh:$HF_TOKEN@huggingface.co/spaces/rixxabh/the-algorithm hf-deploy:main
