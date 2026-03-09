@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
         nudgeContainer.innerHTML = report.repair_tips.map(tip => `
             <div class="flex gap-2 items-start bg-white/5 p-3 rounded-xl border border-white/5 hover:border-pink-500/30 transition-colors">
                 <span class="text-pink-400 font-bold">●</span>
-                <span>${tip}</span>
+                <span>${escapeHTML(tip)}</span>
             </div>
         `).join('');
     }
@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
         milestoneContainer.innerHTML = report.milestones.map(m => `
             <div class="flex items-center gap-3 border-l border-purple-500/30 pl-4 py-1">
                 <div class="w-2 h-2 rounded-full bg-purple-500 -ml-[21px]"></div>
-                <span>${m}</span>
+                <span>${escapeHTML(m)}</span>
             </div>
         `).join('');
     }
@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="flex flex-col ${m.sender === 'ME' ? 'items-end' : 'items-start'} space-y-1">
                     <span class="text-[10px] text-gray-500 uppercase">${m.sender === 'ME' ? 'You' : 'Partner'}</span>
                     <div class="px-4 py-2 rounded-2xl max-w-[90%] text-sm ${m.sender === 'ME' ? 'bg-brand-600 text-white rounded-tr-none' : 'bg-white/10 text-gray-100 rounded-tl-none border border-white/5'}">
-                        ${m.text}
+                        ${escapeHTML(m.text)}
                     </div>
                 </div>
             `).join('');
@@ -119,7 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const maxCount = items[0].count;
         el.innerHTML = items.map(item => `
             <div class="flex items-center gap-2">
-                <span class="text-lg w-6 text-center">${item.emoji}</span>
+                <span class="text-lg w-6 text-center">${escapeHTML(item.emoji)}</span>
                 <div class="flex-1 h-3 bg-dark-900 rounded-full overflow-hidden">
                     <div class="h-full rounded-full bg-gradient-to-r from-brand-500 to-pink-500" style="width: ${(item.count / maxCount) * 100}%"></div>
                 </div>
