@@ -46,7 +46,7 @@
         </div>
         <button id="settingsBtn"
             class="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/5"
-            title="API Settings">
+            title="API Settings" aria-label="Settings">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
@@ -134,12 +134,12 @@
 
                             <div class="grid grid-cols-2 gap-4">
                                 <div class="space-y-1">
-                                    <label class="text-sm font-medium text-gray-300 ml-1">Your Name</label>
+                                    <label for="myName" class="text-sm font-medium text-gray-300 ml-1">Your Name</label>
                                     <input type="text" id="myName" required placeholder="e.g. Rahul"
                                         class="w-full bg-dark-900/50 border border-white/10 rounded-lg px-3 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all text-sm">
                                 </div>
                                 <div class="space-y-1">
-                                    <label class="text-sm font-medium text-gray-300 ml-1">Partner's Name</label>
+                                    <label for="partnerName" class="text-sm font-medium text-gray-300 ml-1">Partner's Name</label>
                                     <input type="text" id="partnerName" required placeholder="e.g. Priya"
                                         class="w-full bg-dark-900/50 border border-white/10 rounded-lg px-3 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-500/50 focus:border-pink-500 transition-all text-sm">
                                 </div>
@@ -147,7 +147,7 @@
 
                             <div class="grid grid-cols-2 gap-4">
                                 <div class="space-y-1">
-                                    <label class="text-sm font-medium text-gray-300 ml-1">Connection Type</label>
+                                    <label for="connectionType" class="text-sm font-medium text-gray-300 ml-1">Connection Type</label>
                                     <div class="relative">
                                         <select id="connectionType"
                                             class="w-full bg-dark-900/50 border border-white/10 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all appearance-none cursor-pointer">
@@ -168,7 +168,7 @@
                                 </div>
 
                                 <div class="space-y-1">
-                                    <label class="text-sm font-medium text-gray-300 ml-1">Output Language</label>
+                                    <label for="outputLanguage" class="text-sm font-medium text-gray-300 ml-1">Output Language</label>
                                     <div class="relative">
                                         <select id="outputLanguage"
                                             class="w-full bg-dark-900/50 border border-white/10 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all appearance-none cursor-pointer">
@@ -188,7 +188,7 @@
                             </div>
 
                             <div class="space-y-1">
-                                <label class="text-sm font-medium text-gray-300 ml-1">Context Input (Optional)</label>
+                                <label for="userContext" class="text-sm font-medium text-gray-300 ml-1">Context Input (Optional)</label>
                                 <textarea id="userContext" rows="1"
                                     placeholder="e.g. 'We just moved to a new city' or 'My partner started a stressful job'"
                                     class="w-full bg-dark-900/50 border border-white/10 rounded-lg px-3 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all resize-none text-sm"></textarea>
@@ -199,13 +199,13 @@
                             <div
                                 class="flex items-center justify-between p-3 bg-dark-900/40 rounded-xl border border-white/5">
                                 <div class="flex flex-col">
-                                    <span class="text-sm font-medium text-gray-200">Sensitive Mode</span>
+                                    <label for="sensitiveMode" class="text-sm font-medium text-gray-200 cursor-pointer">Sensitive Mode</label>
                                     <span class="text-xs text-gray-500">Hides real names from the final report.</span>
                                 </div>
                                 <label class="relative inline-flex items-center cursor-pointer">
                                     <input type="checkbox" id="sensitiveMode" class="sr-only peer">
                                     <div
-                                        class="w-11 h-6 bg-dark-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-500">
+                                        class="w-11 h-6 bg-dark-800 peer-focus:outline-none peer-focus-visible:ring-2 peer-focus-visible:ring-brand-500 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-dark-950 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-500">
                                     </div>
                                 </label>
                             </div>
@@ -259,9 +259,9 @@
                             </div>
 
                             <!-- Drop Zone -->
-                            <div id="dropZone"
-                                class="border-2 border-dashed border-white/10 rounded-xl p-5 text-center hover:border-brand-500/50 hover:bg-white/[0.02] transition-all cursor-pointer group relative flex-grow flex flex-col items-center justify-center">
-                                <input type="file" id="chatFile" multiple accept=".txt,.html,.pdf,.json" class="hidden">
+                            <label id="dropZone" for="chatFile"
+                                class="border-2 border-dashed border-white/10 rounded-xl p-5 text-center hover:border-brand-500/50 hover:bg-white/[0.02] focus-within:ring-2 focus-within:ring-brand-500 transition-all cursor-pointer group relative flex-grow flex flex-col items-center justify-center">
+                                <input type="file" id="chatFile" multiple accept=".txt,.html,.pdf,.json" class="sr-only">
                                 <div
                                     class="w-12 h-12 rounded-full bg-white/5 mx-auto mb-2 flex items-center justify-center group-hover:scale-110 transition-transform">
                                     <svg class="w-7 h-7 text-brand-400" fill="none" stroke="currentColor"
@@ -362,15 +362,16 @@
 
     <!-- Settings Modal -->
     <div id="settingsModal"
+        role="dialog" aria-modal="true" aria-labelledby="settingsTitle"
         class="fixed inset-0 bg-dark-950/80 backdrop-blur-sm z-50 items-center justify-center hidden opacity-0 transition-opacity">
         <div class="glass-card w-full max-w-md rounded-2xl p-6 shadow-2xl relative transform scale-95 transition-transform"
             id="settingsContent">
-            <button id="closeSettings" class="absolute top-4 right-4 text-gray-400 hover:text-white"><svg
+            <button id="closeSettings" class="absolute top-4 right-4 text-gray-400 hover:text-white" aria-label="Close Settings"><svg
                     class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
                     </path>
                 </svg></button>
-            <h3 class="text-xl font-bold mb-6 text-white text-center">API Configuration <span
+            <h3 id="settingsTitle" class="text-xl font-bold mb-6 text-white text-center">API Configuration <span
                     class="block text-xs text-gray-400 font-normal mt-1">Bring Your Own Key (BYOK)</span></h3>
 
             <div class="space-y-4">

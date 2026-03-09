@@ -54,8 +54,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // Drag & Drop
-        dropZone.addEventListener('click', () => fileInput.click());
-
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
             dropZone.addEventListener(eventName, preventDefaults, false);
         });
