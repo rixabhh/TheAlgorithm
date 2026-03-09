@@ -77,5 +77,63 @@ docker build -t the-algorithm .
 docker run -p 7860:7860 the-algorithm
 ```
 
+## 🏗️ Architecture Flowchart
+
+```mermaid
+graph TD
+    A[User Uploads Chat] -->|Browser| B(Client-Side Scrubbing);
+    B -->|Sensitive Data Masked| C[Flask Server app.py];
+    C -->|Memory Buffer| D{Platform Parser};
+    D -->|WhatsApp| E[JSON Message Array];
+    D -->|Telegram| E;
+    D -->|Instagram| E;
+    D -->|Discord| E;
+    E --> F[Analytics Engine];
+    F -->|Raw Stats| G[LLM Service];
+    G -->|API Request| H((OpenAI / Anthropic / Gemini));
+    H -->|JSON Report| I[Dashboard UI];
+    I -->|User Session Ends| J((Data Destroyed Forever));
+    
+    classDef user fill:#8b5cf6,stroke:#fff,color:#fff
+    classDef secure fill:#22c55e,stroke:#fff,color:#fff
+    classDef danger fill:#f43f5e,stroke:#fff,color:#fff
+    
+    class A user;
+    class B,J secure;
+    class H danger;
+```
+
+## 📂 Project Structure
+
+```text
+TheAlgorithm/
+├── app.py                  # Main Flask application & routes
+├── core/
+│   ├── analytics.py        # Calculates conversation statistics
+│   ├── llm_service.py     # Handles external BYOK LLM API requests
+│   └── parsers.py          # Platform-specific chat parsers (WA, TG, IG, Discord)
+├── static/
+│   ├── css/style.css       # Tailwind & Glassmorphism design system
+│   ├── js/                 # Client-side UI logic and PII scrubbing
+│   └── fonts/              # Self-hosted fonts for privacy
+├── templates/
+│   ├── index.html          # Landing page & upload interface
+│   ├── dashboard.html      # Analytics & Insights display
+│   ├── instructions.html   # Export walkthroughs per platform
+│   └── privacy.html        # Detailed zero-knowledge policy
+├── .github/workflows/      # CI/CD and Hugging Face deployment Action
+└── requirements.txt        # Python dependencies
+```
+
+## 🤝 Contributors
+
+Contributions are completely welcome! Be it adding support for a new chat platform, improving the analytical models, or refining the UI.
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
 ## 📜 License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
