@@ -10,9 +10,33 @@ document.addEventListener('DOMContentLoaded', () => {
     const saveSettingsBtn = document.getElementById('saveSettingsBtn');
     const fileList = document.getElementById('fileList');
 
-    const turboBtn = document.getElementById('turboBtn');
-    const turboModal = document.getElementById('turboModal');
-    const closeTurbo = document.getElementById('closeTurbo');
+    // --- Trust Center Logic ---
+    const trustCenterBtn = document.getElementById('trustCenterBtn');
+    const trustCenterModal = document.getElementById('trustCenterModal');
+    const closeTrustCenter = document.getElementById('closeTrustCenter');
+    const understoodBtn = document.getElementById('understoodBtn');
+
+    if (trustCenterBtn && trustCenterModal) {
+        trustCenterBtn.addEventListener('click', () => {
+            trustCenterModal.classList.remove('hidden');
+            trustCenterModal.classList.add('flex');
+            setTimeout(() => {
+                trustCenterModal.classList.remove('opacity-0');
+                document.getElementById('trustCenterContent').classList.remove('scale-95');
+            }, 10);
+        });
+
+        const hideTrustCenter = () => {
+            trustCenterModal.classList.add('opacity-0');
+            document.getElementById('trustCenterContent').classList.add('scale-95');
+            setTimeout(() => {
+                trustCenterModal.classList.add('hidden');
+                trustCenterModal.classList.remove('flex');
+            }, 300);
+        };
+        closeTrustCenter.addEventListener('click', hideTrustCenter);
+        understoodBtn.addEventListener('click', hideTrustCenter);
+    }
 
     if (uploadForm) {
 
@@ -37,21 +61,27 @@ document.addEventListener('DOMContentLoaded', () => {
         closeSettings.addEventListener('click', hideSettings);
 
         // Load config
-        document.getElementById('apiKey').value = localStorage.getItem('api_key') || '';
-        document.getElementById('hfUrl').value = localStorage.getItem('hf_url') || '';
+        const apiKeyEl = document.getElementById('apiKey');
+        const hfUrlEl = document.getElementById('hfUrl');
+        const llmProviderEl = document.getElementById('llmProvider');
+
+        if (apiKeyEl) apiKeyEl.value = localStorage.getItem('api_key') || '';
+        if (hfUrlEl) hfUrlEl.value = localStorage.getItem('hf_url') || '';
         const savedProvider = localStorage.getItem('llm_provider');
-        if (savedProvider) document.getElementById('llmProvider').value = savedProvider;
+        if (savedProvider && llmProviderEl) llmProviderEl.value = savedProvider;
 
         // Save config
-        saveSettingsBtn.addEventListener('click', () => {
-            const key = document.getElementById('apiKey').value.trim();
-            const hfUrl = document.getElementById('hfUrl').value.trim();
-            const provider = document.getElementById('llmProvider').value;
-            localStorage.setItem('api_key', key);
-            localStorage.setItem('hf_url', hfUrl);
-            localStorage.setItem('llm_provider', provider);
-            hideSettings();
-        });
+        if (saveSettingsBtn) {
+            saveSettingsBtn.addEventListener('click', () => {
+                const key = apiKeyEl ? apiKeyEl.value.trim() : '';
+                const hfUrl = hfUrlEl ? hfUrlEl.value.trim() : '';
+                const provider = llmProviderEl ? llmProviderEl.value : 'openai';
+                localStorage.setItem('api_key', key);
+                localStorage.setItem('hf_url', hfUrl);
+                localStorage.setItem('llm_provider', provider);
+                hideSettings();
+            });
+        }
 
         // Drag & Drop
         dropZone.addEventListener('click', () => fileInput.click());
@@ -123,18 +153,71 @@ document.addEventListener('DOMContentLoaded', () => {
             formData.append('llm_provider', localStorage.getItem('llm_provider') || 'openai');
             formData.append('hf_url', localStorage.getItem('hf_url') || '');
 
-            Array.from(fileInput.files).forEach(file => {
-                formData.append('chat_files', file);
-            });
+            // PII Scrubbing Function
+            const scrubPII = async (file) => {
+                return new Promise((resolve, reject) => {
+                    // Only scrub text-based files (txt, html, json)
+                    if (!['text/plain', 'text/html', 'application/json'].includes(file.type) && !file.name.endsWith('.txt') && !file.name.endsWith('.html')) {
+                        return resolve(file); // Return original if not text
+                    }
 
-            // UI feedback
-            document.getElementById('analyzeBtn').classList.add('hidden');
-            document.getElementById('progressUI').classList.remove('hidden');
-            const statusText = document.getElementById('statusText');
-            const progressBar = document.getElementById('progressBar');
-            const estimatedTimeEl = document.getElementById('estimatedTime');
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        let text = e.target.result;
 
-            // Poll text and progress
+                        // Regex for Phone Numbers (International and US formats)
+                        const phoneRegex = /(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/g;
+                        // Regex for Email Addresses
+                        const emailRegex = /([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/g;
+
+                        text = text.replace(phoneRegex, '[PHONE_REDACTED]');
+                        text = text.replace(emailRegex, '[EMAIL_REDACTED]');
+
+                        // Create new file from scrubbed text
+                        const blob = new Blob([text], { type: file.type || 'text/plain' });
+                        // Create a new File object retaining the original name
+                        const scrubbedFile = new File([blob], file.name, { type: file.type || 'text/plain', lastModified: new Date().getTime() });
+                        resolve(scrubbedFile);
+                    };
+                    reader.onerror = (err) => reject(err);
+                    reader.readAsText(file);
+                });
+            };
+
+            // Process all files with the scrubber before sending
+            try {
+                // Determine if we need to show the scrubbing indicator
+                const indicator = document.getElementById('scrubbingIndicator');
+                if (fileInput.files.length > 0 && indicator) {
+                    indicator.classList.remove('hidden');
+                    indicator.classList.add('flex');
+                }
+
+                // Process files concurrently
+                const filePromises = Array.from(fileInput.files).map(file => scrubPII(file));
+                const scrubbedFiles = await Promise.all(filePromises);
+
+                scrubbedFiles.forEach(file => {
+                    formData.append('chat_files', file);
+                });
+
+                // Hide indicator if parsing is extremely fast
+                if (indicator) {
+                    setTimeout(() => {
+                        indicator.classList.add('hidden');
+                        indicator.classList.remove('flex');
+                    }, 1000);
+                }
+
+            } catch (err) {
+                console.error("Error scrubbing files:", err);
+                alert("An error occurred while locally preparing your files for upload.");
+                document.getElementById('analyzeBtn').classList.remove('hidden');
+                document.getElementById('progressUI').classList.add('hidden');
+                return;
+            }
+
+            // Polling and fetch call
             const steps = [
                 "Uploading files securely...",
                 "Running NLP Extractors...",
