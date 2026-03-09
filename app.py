@@ -27,6 +27,46 @@ GLOBAL_DATA_STORE = {}
 # Ensure upload directory exists
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
+# ── Security Headers ──
+@app.after_request
+def set_security_headers(response):
+    """Apply security headers to every response."""
+    # Content Security Policy — only allow resources from same origin + specific CDNs
+    response.headers['Content-Security-Policy'] = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' "
+            "https://cdn.tailwindcss.com "
+            "https://cdn.jsdelivr.net "
+            "https://html2canvas.hertzen.com; "
+        "style-src 'self' 'unsafe-inline'; "
+        "font-src 'self'; "
+        "img-src 'self' data: blob:; "
+        "connect-src 'self' "
+            "https://api.openai.com "
+            "https://api.anthropic.com "
+            "https://generativelanguage.googleapis.com "
+            "https://*.lit.ai; "
+        "frame-ancestors 'none'; "
+        "base-uri 'self'; "
+        "form-action 'self';"
+    )
+    # Prevent clickjacking
+    response.headers['X-Frame-Options'] = 'DENY'
+    # Prevent MIME sniffing
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    # Referrer policy — don't leak URLs
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    # Permissions policy — disable unnecessary browser features
+    response.headers['Permissions-Policy'] = 'camera=(), microphone=(), geolocation=()'
+
+    # No-cache on sensitive routes to prevent browser history leaking results
+    if request.path in ('/process', '/dashboard', '/flashback-messages'):
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+
+    return response
+
 def cleanup_uploads():
     """Delete all files in the uploads folder to maintain privacy."""
     folder = app.config['UPLOAD_FOLDER']
@@ -47,6 +87,10 @@ def index():
 @app.route('/instructions')
 def instructions():
     return render_template('instructions.html')
+
+@app.route('/privacy')
+def privacy():
+    return render_template('privacy.html')
 
 @app.route('/process', methods=['POST'])
 def process_chat():
