@@ -30,25 +30,53 @@
 
 <body class="text-gray-100 min-h-screen flex flex-col font-sans antialiased overflow-x-hidden">
 
-    <!-- Background Orbs -->
-    <div class="fixed inset-0 pointer-events-none z-0" aria-hidden="true">
-        <div class="orb-purple absolute -top-32 -left-32 w-[600px] h-[600px] rounded-full animate-float"></div>
-        <div class="orb-pink absolute top-10 right-[-120px] w-[500px] h-[500px] rounded-full"
-            style="animation: float 8s ease-in-out infinite 1s;"></div>
-        <div class="orb-blue absolute bottom-[-100px] left-1/3 w-[450px] h-[450px] rounded-full"
-            style="animation: float 10s ease-in-out infinite 2s;"></div>
-        <div class="orb-teal absolute top-1/2 right-1/4 w-[300px] h-[300px] rounded-full"></div>
-    </div>
+    <!-- Background: Soft gradient blurs + Geometric shapes matching Stitch design -->
+    <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true">
+        <!-- Soft ambient glows -->
+        <div class="absolute -top-20 -left-20 w-[500px] h-[500px] rounded-full opacity-60"
+            style="background: radial-gradient(circle, rgba(120,40,255,0.4) 0%, transparent 70%); animation: float 8s ease-in-out infinite;">
+        </div>
+        <div class="absolute top-[20%] right-[-80px] w-[400px] h-[400px] rounded-full opacity-50"
+            style="background: radial-gradient(circle, rgba(236,72,153,0.35) 0%, transparent 70%); animation: float 10s ease-in-out infinite 2s;">
+        </div>
+        <div class="absolute bottom-[-60px] left-[30%] w-[350px] h-[350px] rounded-full opacity-40"
+            style="background: radial-gradient(circle, rgba(59,130,246,0.3) 0%, transparent 70%);"></div>
 
-    <!-- Floating Decorative Emojis -->
-    <div class="fixed pointer-events-none z-0 inset-0" aria-hidden="true">
-        <span class="absolute left-6 top-[38%] text-2xl opacity-70 select-none animate-float"
-            style="filter: drop-shadow(0 0 8px rgba(251,113,133,0.5))">🧠</span>
-        <span class="absolute left-10 bottom-[28%] text-2xl opacity-60 select-none"
-            style="filter: drop-shadow(0 0 8px rgba(250,204,21,0.5)); animation: float 7s ease-in-out infinite 0.5s;">⚡</span>
-        <span class="absolute right-6 top-[30%] text-xl opacity-70 select-none"
-            style="filter: drop-shadow(0 0 6px rgba(52,211,153,0.5)); animation: float 9s ease-in-out infinite 1.5s;">🔒</span>
-        <span class="absolute right-14 bottom-[35%] text-lg opacity-50 select-none animate-pulse-glow">✨</span>
+        <!-- Geometric shapes — triangles, trapezoids, polygons -->
+        <!-- Large blue triangle, bottom-left -->
+        <div class="absolute bottom-[5%] left-[2%] w-[180px] h-[180px] opacity-70"
+            style="background: linear-gradient(135deg, #3b82f6, #6366f1); clip-path: polygon(50% 0%, 0% 100%, 100% 100%); filter: blur(1px); animation: float 12s ease-in-out infinite;">
+        </div>
+        <!-- Pink/magenta trapezoid, bottom-left offset -->
+        <div class="absolute bottom-[12%] left-[8%] w-[120px] h-[100px] opacity-60"
+            style="background: linear-gradient(135deg, #ec4899, #f43f5e); clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%); filter: blur(0.5px); animation: float 9s ease-in-out infinite 1s;">
+        </div>
+        <!-- Small teal triangle, left side -->
+        <div class="absolute top-[55%] left-[1%] w-[80px] h-[80px] opacity-50"
+            style="background: linear-gradient(135deg, #14b8a6, #06b6d4); clip-path: polygon(50% 0%, 0% 100%, 100% 100%); animation: float 7s ease-in-out infinite 0.5s;">
+        </div>
+
+        <!-- Purple diamond, right side -->
+        <div class="absolute top-[25%] right-[3%] w-[100px] h-[100px] opacity-55"
+            style="background: linear-gradient(135deg, #8b5cf6, #a855f7); clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); animation: float 11s ease-in-out infinite 1.5s;">
+        </div>
+        <!-- Small pink triangle, right side -->
+        <div class="absolute top-[60%] right-[5%] w-[70px] h-[70px] opacity-45"
+            style="background: linear-gradient(135deg, #f472b6, #ec4899); clip-path: polygon(50% 0%, 0% 100%, 100% 100%); animation: float 8s ease-in-out infinite 3s;">
+        </div>
+        <!-- Large blue-purple polygon, bottom-right -->
+        <div class="absolute bottom-[8%] right-[4%] w-[140px] h-[140px] opacity-50"
+            style="background: linear-gradient(135deg, #6366f1, #8b5cf6); clip-path: polygon(25% 0%, 100% 0%, 75% 100%, 0% 100%); filter: blur(1px); animation: float 10s ease-in-out infinite 2s;">
+        </div>
+
+        <!-- Tiny teal accent, top area -->
+        <div class="absolute top-[15%] left-[15%] w-[50px] h-[50px] opacity-40"
+            style="background: #14b8a6; clip-path: polygon(50% 0%, 0% 100%, 100% 100%); animation: float 6s ease-in-out infinite 1s;">
+        </div>
+        <!-- Tiny pink dot/triangle, mid-right -->
+        <div class="absolute top-[45%] right-[12%] w-[40px] h-[40px] opacity-35"
+            style="background: #f43f5e; clip-path: polygon(50% 0%, 0% 100%, 100% 100%); animation: float 7s ease-in-out infinite 2.5s;">
+        </div>
     </div>
 
     <!-- ===== HEADER ===== -->
