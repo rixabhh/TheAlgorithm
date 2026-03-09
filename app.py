@@ -13,32 +13,31 @@ from core.analytics import run_analytics_pipeline
 from core.llm_service import generate_report
 
 app = Flask(__name__)
-app.secret_key = 'super-secret-key-for-session-state' # Change in production
+# Load secret key from environment or use a random one for better security
+app.secret_key = os.environ.get('FLASK_SECRET_KEY', os.urandom(24).hex())
 app.config.update(
     UPLOAD_FOLDER=os.path.join(tempfile.gettempdir(), 'the_algorithm_uploads'),
     MAX_CONTENT_LENGTH=100 * 1024 * 1024, # 100 mb limit
-    SESSION_COOKIE_SAMESITE='None',
-    SESSION_COOKIE_SECURE=True
+    SESSION_COOKIE_SAMESITE='Lax',
+    SESSION_COOKIE_SECURE=os.environ.get('FLASK_ENV') == 'production'
 )
 
-# Simple server-side store to bypass 4KB session cookie limit
-GLOBAL_DATA_STORE = {}
+from collections import OrderedDict
+# Simple server-side store with a basic LRU-like capacity limit to prevent memory exhaustion
+class LimitedDict(OrderedDict):
+    def __init__(self, capacity):
+        self.capacity = capacity
+        super().__init__()
+    def __setitem__(self, key, value):
+        if key not in self and len(self) >= self.capacity:
+            self.popitem(last=False)
+        super().__setitem__(key, value)
+
+GLOBAL_DATA_STORE = LimitedDict(capacity=100) # Store up to 100 concurrent sessions
 
 # Ensure upload directory exists
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-def cleanup_uploads():
-    """Delete all files in the uploads folder to maintain privacy."""
-    folder = app.config['UPLOAD_FOLDER']
-    for filename in os.listdir(folder):
-        file_path = os.path.join(folder, filename)
-        try:
-            if os.path.isfile(file_path):
-                os.unlink(file_path)
-            elif os.path.isdir(file_path):
-                shutil.rmtree(file_path)
-        except Exception as e:
-            print(f"Failed to delete {file_path}. Reason: {e}")
 
 @app.route('/')
 def index():
@@ -53,6 +52,12 @@ def process_chat():
     if 'chat_files' not in request.files:
         return jsonify({'error': 'No file part'}), 400
     
+    import uuid
+    # Create a request-specific temporary directory for concurrency safety and privacy
+    request_id = str(uuid.uuid4())
+    request_upload_folder = os.path.join(app.config['UPLOAD_FOLDER'], request_id)
+    os.makedirs(request_upload_folder, exist_ok=True)
+
     files = request.files.getlist('chat_files')
     my_name = request.form.get('my_name', '').strip()
     partner_name = request.form.get('partner_name', '').strip()
@@ -61,6 +66,15 @@ def process_chat():
     user_context = request.form.get('user_context', '').strip()
     api_key = request.form.get('api_key', '').strip()
     hf_url = request.form.get('hf_url', '').strip()
+
+    # SSRF Mitigation: Validate hf_url
+    if hf_url:
+        from urllib.parse import urlparse
+        parsed_url = urlparse(hf_url)
+        if parsed_url.scheme not in ['http', 'https']:
+            return jsonify({'error': 'Invalid HF URL scheme. Must be http or https.'}), 400
+        # Optional: Add hostname allowlist if known
+
     provider = request.form.get('llm_provider', 'openai').strip()
     
     if not my_name or not partner_name:
@@ -69,11 +83,11 @@ def process_chat():
     saved_files = []
     
     try:
-        # 1. Save files temporarily
+        # 1. Save files temporarily in request-specific folder
         for file in files:
             if file and file.filename:
                 filename = secure_filename(file.filename)
-                filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                filepath = os.path.join(request_upload_folder, filename)
                 file.save(filepath)
                 saved_files.append(filepath)
                 
@@ -132,8 +146,12 @@ def process_chat():
         traceback.print_exc()
         return jsonify({'error': str(e)}), 500
     finally:
-        # Privacy Firewall: Always clean up files immediately after processing
-        cleanup_uploads()
+        # Privacy Firewall: Always clean up the request-specific folder immediately after processing
+        try:
+            if os.path.exists(request_upload_folder):
+                shutil.rmtree(request_upload_folder)
+        except Exception as e:
+            print(f"Failed to delete {request_upload_folder}. Reason: {e}")
 
 @app.route('/dashboard')
 def dashboard():
