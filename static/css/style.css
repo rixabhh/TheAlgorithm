@@ -145,6 +145,17 @@ select.field-input {
     cursor: pointer;
 }
 
+select.field-input option {
+    background: #1a1625;
+    color: #e5e7eb;
+}
+
+select.field-input option:checked,
+select.field-input option:hover {
+    background: #2d2640;
+    color: #fff;
+}
+
 /* ── Toggle Switch ── */
 input[type="checkbox"].toggle {
     display: none;
@@ -382,4 +393,126 @@ input:-webkit-autofill:active {
 
 .stagger-children>*:nth-child(4) {
     animation-delay: 0.2s;
+}
+
+/* ═══════════════════════════════════════════════
+   RESPONSIVE: Mobile & Tablet
+   ═══════════════════════════════════════════════ */
+
+/* Tablet */
+@media (max-width: 1024px) {
+    .feature-card {
+        padding: 1rem;
+    }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    html {
+        font-size: 14px;
+    }
+
+    /* Hide geometric shapes on mobile — they clutter small screens */
+    [style*="clip-path"] {
+        display: none !important;
+    }
+
+    /* Smaller orb glows on mobile */
+    .orb-purple,
+    .orb-pink,
+    .orb-blue,
+    .orb-teal {
+        transform: scale(0.5);
+        opacity: 0.4;
+    }
+
+    /* Reduce glass blur for performance */
+    .glass-card,
+    .card {
+        --glass-blur: 10px;
+        box-shadow: none;
+    }
+
+    /* Stack form panels */
+    .privacy-pill span:not(svg) {
+        display: none;
+    }
+
+    /* Tighter padding */
+    .modal-content {
+        margin: 1rem;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .dropzone {
+        min-height: 120px !important;
+        padding: 1.5rem !important;
+    }
+
+    .run-btn {
+        padding-top: 0.875rem;
+        padding-bottom: 0.875rem;
+        box-shadow: 0 0 15px rgba(192, 38, 211, 0.3);
+    }
+
+    /* Feature cards: 2-column on mobile */
+    .feature-card {
+        padding: 1rem;
+    }
+}
+
+/* Small mobile */
+@media (max-width: 480px) {
+    html {
+        font-size: 13px;
+    }
+
+    h1 {
+        font-size: 2rem !important;
+        line-height: 1.2 !important;
+    }
+
+    .privacy-pill {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.7rem;
+    }
+}
+
+/* ═══════════════════════════════════════════════
+   LOW-END DEVICES: Reduced Motion & Performance
+   ═══════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+
+    .animate-float,
+    .animate-pulse-glow,
+    .animate-fade-in-up,
+    .animate-shimmer {
+        animation: none !important;
+        opacity: 1 !important;
+    }
+
+    .hover-lift:hover {
+        transform: none;
+    }
+
+    /* Remove backdrop blur entirely for low-end */
+    .glass-card,
+    .card {
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        background: rgba(18, 16, 30, 0.95);
+    }
+
+    .modal-backdrop {
+        backdrop-filter: none;
+    }
 }
