@@ -1,4 +1,3 @@
-<!--
 ---
 title: The Algorithm
 emoji: 🧠
@@ -10,7 +9,7 @@ pinned: false
 license: mit
 short_description: AI-powered relationship analyzer — privacy-first, BYOK.
 ---
--->
+
 <p align="center">
 <img src="[https://img.shields.io/badge/python-3.11+-blue?style=for-the-badge&logo=python&logoColor=white](https://img.shields.io/badge/python-3.11+-blue?style=for-the-badge&logo=python&logoColor=white)" />
 <img src="[https://img.shields.io/badge/Flask-3.0+-black?style=for-the-badge&logo=flask&logoColor=white](https://img.shields.io/badge/Flask-3.0+-black?style=for-the-badge&logo=flask&logoColor=white)" />
