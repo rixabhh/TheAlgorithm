@@ -35,12 +35,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 300);
         };
         closeTrustCenter.addEventListener('click', hideTrustCenter);
+        closeTrustCenter.addEventListener('click', hideTrustCenter);
         understoodBtn.addEventListener('click', hideTrustCenter);
     }
 
-    if (uploadForm) {
-
-        // Settings Modal
+    // Settings Modal
+    if (settingsBtn && settingsModal) {
         settingsBtn.addEventListener('click', () => {
             settingsModal.classList.remove('hidden');
             settingsModal.classList.add('flex');
