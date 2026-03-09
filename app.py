@@ -46,12 +46,10 @@ def set_security_headers(response):
             "https://api.anthropic.com "
             "https://generativelanguage.googleapis.com "
             "https://*.lit.ai; "
-        "frame-ancestors 'none'; "
         "base-uri 'self'; "
         "form-action 'self';"
     )
-    # Prevent clickjacking
-    response.headers['X-Frame-Options'] = 'DENY'
+    # Prevent clickjacking is removed to allow Hugging Face Spaces iframe embedding
     # Prevent MIME sniffing
     response.headers['X-Content-Type-Options'] = 'nosniff'
     # Referrer policy — don't leak URLs
