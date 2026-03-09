@@ -23,7 +23,7 @@ short_description: AI-powered relationship analyzer — privacy-first, BYOK.
 > Upload your chat exports. Get deep behavioral insights, emotional analytics, and actionable coaching — all without your raw text ever leaving your machine.
 
 <p align="center">
-<img src="[https://img.shields.io/badge/Privacy-100%25%20Local%20NLP-22c55e?style=flat-square](https://img.shields.io/badge/Privacy-100%25%20Local%20NLP-22c55e?style=flat-square)" />
+<img src="[https://img.shields.io/badge/Privacy-100%25%20Zero--Knowledge-22c55e?style=flat-square](https://img.shields.io/badge/Privacy-100%25%20Zero--Knowledge-22c55e?style=flat-square)" />
 <img src="[https://img.shields.io/badge/Platforms-WhatsApp%20%7C%20Telegram%20%7C%20Instagram%20%7C%20Discord-f43f5e?style=flat-square](https://img.shields.io/badge/Platforms-WhatsApp%20%7C%20Telegram%20%7C%20Instagram%20%7C%20Discord-f43f5e?style=flat-square)" />
 <img src="[https://img.shields.io/badge/LLM-BYOK%20(OpenAI%20%7C%20Anthropic%20%7C%20Gemini)-8b5cf6?style=flat-square](https://img.shields.io/badge/LLM-BYOK%20(OpenAI%20%7C%20Anthropic%20%7C%20Gemini)-8b5cf6?style=flat-square)" />
 </p>
@@ -35,7 +35,7 @@ short_description: AI-powered relationship analyzer — privacy-first, BYOK.
 | Feature | Description |
 | --- | --- |
 | 🛡️ **Zero-Knowledge Architecture** | Phone numbers and email addresses are cryptographically scrubbed **inside your browser** before the file is even uploaded. |
-| 🔐 **Absolute Privacy** | All NLP processing (sentiment analysis, latency, power dynamics) runs **locally on your hardware** purely in RAM. |
+| 🔐 **Absolute Privacy** | All NLP processing (sentiment analysis, latency, power dynamics) runs **securely** purely in RAM. |
 | 🤖 **BYOK LLM Coaching** | Bring Your Own Key — connect OpenAI (GPT-4o), Anthropic (Claude 3.5), or Google (Gemini 2.5 Flash) for personalized narrative reports and coaching nudges. |
 | 🌍 **Hinglish Support** | Uses a quantized multilingual XLM-RoBERTa model fine-tuned for code-mixed and multilingual chat. |
 | 📊 **Deep Analytics** | Emotional Journey, Communication Flow, Response Synchrony, Power Dynamics, Affection vs. Friction, Emoji Analysis, Initiator Balance, and more. |
