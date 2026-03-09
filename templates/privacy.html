@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy | The Algorithm</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 400: '#fb7185', 500: '#f43f5e', 600: '#e11d48' },
+                        dark: { 800: '#1f2937', 900: '#111827', 950: '#030712' }
+                    },
+                    fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'] }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+    <link href="{{ url_for('static', filename='fonts/inter.css') }}" rel="stylesheet">
+</head>
+
+<body class="text-gray-100 min-h-screen flex flex-col font-sans antialiased">
+    <!-- Background Orbs -->
+    <div class="fixed inset-0 pointer-events-none z-0" aria-hidden="true">
+        <div class="orb-purple absolute -top-32 -left-32 w-[600px] h-[600px] rounded-full animate-float"></div>
+        <div class="orb-pink absolute top-10 right-[-120px] w-[500px] h-[500px] rounded-full"
+            style="animation: float 8s ease-in-out infinite 1s;"></div>
+    </div>
+
+    <!-- Header -->
+    <header
+        class="w-full py-4 px-6 flex items-center justify-between relative z-50 border-b border-white/5 backdrop-blur-md bg-black/20 sticky top-0">
+        <a href="/" class="flex items-center gap-2.5 flex-shrink-0 group">
+            <div
+                class="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/30 group-hover:scale-105 transition-transform">
+                <img src="{{ url_for('static', filename='favicon.png') }}" alt="A" class="w-5 h-5 rounded object-cover">
+            </div>
+            <span class="font-bold text-white text-base tracking-tight">The Algorithm</span>
+        </a>
+    </header>
+
+    <main class="flex-grow relative z-10 px-4 py-12 md:py-20 max-w-3xl mx-auto w-full">
+        <div class="space-y-8 animate-fade-in-up">
+            <div class="text-center space-y-4 mb-12">
+                <h1 class="text-4xl md:text-5xl font-black tracking-tight text-white mb-4">
+                    Strictly <span class="gradient-text">Private.</span>
+                </h1>
+                <p class="text-gray-400 text-base md:text-lg">
+                    We built The Algorithm with a paranoid-level focus on your security. Your chats belong to you.
+                </p>
+            </div>
+
+            <div class="glass-card rounded-[2rem] p-8 md:p-10 space-y-8 shadow-2xl border-white/10">
+                <section class="space-y-3">
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <span class="text-emerald-400">1.</span> Client-Side Anonymization
+                    </h2>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        If you enable "Sensitive Mode", our JavaScript redacts phone numbers, emails, and full names
+                        directly in your browser <strong>before the file ever leaves your device</strong>. The server
+                        only sees masked generic labels like `[PARTNER]` or `[USER]`.
+                    </p>
+                </section>
+
+                <section class="space-y-3">
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <span class="text-blue-400">2.</span> Pure RAM Processing
+                    </h2>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        We intentionally refuse to use a database. When you upload a chat, it is parsed instantly in
+                        active memory (RAM). We <strong>never save your chat file to disk</strong>, and we never
+                        associate it with a user account because there are no accounts.
+                    </p>
+                </section>
+
+                <section class="space-y-3">
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <span class="text-pink-400">3.</span> Aggressive File Deletion
+                    </h2>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        The millisecond your analysis finishes, a strict Python `finally` block executes. This
+                        guarantees that all temporary memory associated with your session is permanently destroyed. If
+                        you refresh the page, the data is gone forever.
+                    </p>
+                </section>
+
+                <section class="space-y-3">
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <span class="text-purple-400">4.</span> Safe LLM Analytics
+                    </h2>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        Your raw, line-by-line chat logs are <strong>never</strong> blindly forwarded to OpenAI,
+                        Anthropic, or Google. Our Python backend processes the chats locally and sends only an
+                        anonymous, numerical statistical payload (e.g., "User A speaks 55% of the time, sentiment is
+                        positive") to the LLM to generate the final coaching report.
+                    </p>
+                </section>
+
+                <section class="space-y-3">
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <span class="text-yellow-400">5.</span> Self-Hosted & Non-Tracking
+                    </h2>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        We block third-party trackers. Our fonts are self-hosted to prevent Google from tracking your
+                        IP, our security headers (CSP) block unauthorized external scripts, and we use zero analytical
+                        trackers like Google Analytics or Meta Pixels. You are invisible here.
+                    </p>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="py-8 text-center text-xs text-gray-600 relative z-10">
+        <p>Your secrets are safe here. Built open-source.</p>
+    </footer>
+
+</body>
+
+</html>
