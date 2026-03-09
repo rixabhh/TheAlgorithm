@@ -34,7 +34,8 @@ short_description: AI-powered relationship analyzer — privacy-first, BYOK.
 
 | Feature | Description |
 | --- | --- |
-| 🔐 **Absolute Privacy** | All NLP processing (sentiment analysis, latency, power dynamics) runs **locally on your hardware**. Raw chat text is never sent to any external service. |
+| 🛡️ **Zero-Knowledge Architecture** | Phone numbers and email addresses are cryptographically scrubbed **inside your browser** before the file is even uploaded. |
+| 🔐 **Absolute Privacy** | All NLP processing (sentiment analysis, latency, power dynamics) runs **locally on your hardware** purely in RAM. |
 | 🤖 **BYOK LLM Coaching** | Bring Your Own Key — connect OpenAI (GPT-4o), Anthropic (Claude 3.5), or Google (Gemini 2.5 Flash) for personalized narrative reports and coaching nudges. |
 | 🌍 **Hinglish Support** | Uses a quantized multilingual XLM-RoBERTa model fine-tuned for code-mixed and multilingual chat. |
 | 📊 **Deep Analytics** | Emotional Journey, Communication Flow, Response Synchrony, Power Dynamics, Affection vs. Friction, Emoji Analysis, Initiator Balance, and more. |
@@ -192,9 +193,14 @@ uvicorn app:app --host 0.0.0.0 --port 8000
 
 ```text
 ┌─────────────────────────────────────────┐
-│            YOUR MACHINE                 │
+│            YOUR BROWSER                 │
 │                                         │
-│  Chat File → Parser → NLP Engine        │
+│  Chat File → Client-Side PII Scrubber   │
+│                (Removes Emails, Phones) │
+│                        ↓                │
+│            YOUR MACHINE (SERVER)        │
+│                                         │
+│  Scrubbed File → Parser → NLP Engine    │
 │                ↓                        │
 │        Statistical Summary              │
 │         (no raw text)                   │
@@ -212,6 +218,7 @@ uvicorn app:app --host 0.0.0.0 --port 8000
 
 ```
 
+* **Personal Identifiable Information (PII)** is scrubbed in your browser before upload.
 * **Raw text** never leaves your machine.
 * **Uploaded files** are deleted instantly from local storage after processing.
 * **API keys** are stored securely in your browser's `localStorage`.
