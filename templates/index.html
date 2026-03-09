@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Algorithm | Relationship Analyzer</title>
+    <meta name="description"
+        content="Upload your chat history and get deep behavioral insights, emotional analytics, and AI coaching — securely and privately.">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -12,554 +14,650 @@
             theme: {
                 extend: {
                     colors: {
-                        brand: {
-                            400: '#fb7185',
-                            500: '#f43f5e',
-                            600: '#e11d48',
-                        },
-                        dark: {
-                            800: '#1f2937',
-                            900: '#111827',
-                            950: '#030712'
-                        }
-                    }
+                        brand: { 400: '#fb7185', 500: '#f43f5e', 600: '#e11d48' },
+                        dark: { 800: '#1f2937', 900: '#111827', 950: '#030712' }
+                    },
+                    fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'] }
                 }
             }
         }
     </script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            background: #08080f;
+        }
+
+        /* Card glass effect */
+        .card {
+            background: rgba(18, 16, 30, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+        }
+
+        /* Input styles */
+        .field-input {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #e5e7eb;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 13px;
+            width: 100%;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .field-input:focus {
+            border-color: rgba(139, 92, 246, 0.5);
+        }
+
+        .field-input::placeholder {
+            color: #6b7280;
+        }
+
+        select.field-input {
+            appearance: none;
+            cursor: pointer;
+        }
+
+        /* Toggle */
+        input[type="checkbox"].toggle {
+            display: none;
+        }
+
+        .toggle-track {
+            width: 40px;
+            height: 22px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 99px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+
+        .toggle-track::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 16px;
+            height: 16px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.2s;
+        }
+
+        input[type="checkbox"].toggle:checked+.toggle-track {
+            background: #8b5cf6;
+        }
+
+        input[type="checkbox"].toggle:checked+.toggle-track::after {
+            transform: translateX(18px);
+        }
+
+        /* Orb glows */
+        .orb-purple {
+            background: radial-gradient(circle, rgba(120, 40, 255, 0.35) 0%, transparent 70%);
+        }
+
+        .orb-pink {
+            background: radial-gradient(circle, rgba(236, 72, 153, 0.25) 0%, transparent 70%);
+        }
+
+        .orb-blue {
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.2) 0%, transparent 70%);
+        }
+
+        .orb-teal {
+            background: radial-gradient(circle, rgba(20, 184, 166, 0.15) 0%, transparent 70%);
+        }
+
+        /* Dashed drop zone */
+        .dropzone {
+            border: 1.5px dashed rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        .dropzone:hover,
+        .dropzone.dragover {
+            border-color: rgba(168, 85, 247, 0.5);
+            background: rgba(168, 85, 247, 0.04);
+        }
+
+        /* Run Button gradient */
+        .run-btn {
+            background: linear-gradient(90deg, #c026d3 0%, #7c3aed 50%, #db2777 100%);
+            box-shadow: 0 0 30px rgba(192, 38, 211, 0.4);
+        }
+
+        .run-btn:hover {
+            box-shadow: 0 0 45px rgba(192, 38, 211, 0.6);
+            filter: brightness(1.1);
+        }
+
+        /* Privacy Center pill */
+        .privacy-pill {
+            background: rgba(139, 92, 246, 0.12);
+            border: 1px solid rgba(139, 92, 246, 0.4);
+            border-radius: 99px;
+        }
+
+        /* Modal fade */
+        .modal-backdrop {
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
+        }
+
+        .modal-content {
+            background: #110f1e;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* Connection type icon prefixed select */
+        .select-wrap {
+            position: relative;
+        }
+
+        .select-wrap .prefix-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .select-wrap select {
+            padding-left: 32px;
+        }
+
+        .select-wrap .chevron {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+        }
+
+        /* API key section */
+        .apikey-section {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 10px;
+        }
+    </style>
 </head>
 
-<body class="bg-[#0a0a0f] text-gray-100 font-sans min-h-screen flex flex-col antialiased overflow-x-hidden">
+<body class="text-gray-100 min-h-screen flex flex-col font-sans antialiased overflow-x-hidden">
 
-    <!-- Background Orbs / Color Blobs -->
-    <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        <div class="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full bg-purple-600/20 blur-[120px]"></div>
-        <div class="absolute top-20 right-[-100px] w-[400px] h-[400px] rounded-full bg-pink-500/15 blur-[100px]"></div>
-        <div class="absolute bottom-0 left-1/3 w-[350px] h-[350px] rounded-full bg-blue-600/15 blur-[120px]"></div>
-        <div class="absolute top-1/2 right-1/4 w-[200px] h-[200px] rounded-full bg-emerald-500/10 blur-[80px]"></div>
+    <!-- Background Orbs -->
+    <div class="fixed inset-0 pointer-events-none z-0" aria-hidden="true">
+        <div class="orb-purple absolute -top-32 -left-32 w-[600px] h-[600px] rounded-full"></div>
+        <div class="orb-pink absolute top-10 right-[-120px] w-[500px] h-[500px] rounded-full"></div>
+        <div class="orb-blue absolute bottom-[-100px] left-1/3 w-[450px] h-[450px] rounded-full"></div>
+        <div class="orb-teal absolute top-1/2 right-1/4 w-[300px] h-[300px] rounded-full"></div>
     </div>
 
-    <!-- Header -->
+    <!-- Floating Decorative Emojis -->
+    <div class="fixed pointer-events-none z-0 inset-0" aria-hidden="true">
+        <span class="absolute left-6 top-[38%] text-2xl opacity-70 select-none"
+            style="filter: drop-shadow(0 0 8px rgba(251,113,133,0.5))">🧠</span>
+        <span class="absolute left-10 bottom-[28%] text-2xl opacity-60 select-none"
+            style="filter: drop-shadow(0 0 8px rgba(250,204,21,0.5))">⚡</span>
+        <span class="absolute right-6 top-[30%] text-xl opacity-70 select-none"
+            style="filter: drop-shadow(0 0 6px rgba(52,211,153,0.5))">🔒</span>
+        <span class="absolute right-14 bottom-[35%] text-lg opacity-50 select-none">✨</span>
+    </div>
+
+    <!-- ===== HEADER ===== -->
     <header
-        class="w-full py-4 px-8 flex justify-between items-center border-b border-white/5 backdrop-blur-md sticky top-0 z-50 bg-black/20">
-        <div class="flex items-center gap-3">
-            <img src="{{ url_for('static', filename='favicon.png', _external=True) }}" alt="The Algorithm"
-                class="w-8 h-8 rounded-full shadow-lg shadow-brand-500/20">
-            <h1
-                class="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-gray-100 to-gray-400">
-                The Algorithm</h1>
+        class="w-full py-3 px-6 flex items-center justify-between relative z-50 border-b border-white/5 backdrop-blur-md bg-black/20 sticky top-0">
+        <!-- Logo -->
+        <div class="flex items-center gap-2.5 flex-shrink-0">
+            <div
+                class="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
+                <img src="{{ url_for('static', filename='favicon.png') }}" alt="A" class="w-5 h-5 rounded object-cover">
+            </div>
+            <span class="font-bold text-white text-base tracking-tight">The Algorithm</span>
         </div>
+
         <!-- Center Nav -->
-        <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-gray-400">
-            <a href="#features" class="hover:text-white transition-colors">Features</a>
+        <nav
+            class="hidden md:flex items-center gap-8 text-sm text-gray-400 font-medium absolute left-1/2 -translate-x-1/2">
+            <a href="#" class="hover:text-white transition-colors">Features</a>
             <a href="/instructions" class="hover:text-white transition-colors">How it Works</a>
             <a href="https://github.com/rixabhh/TheAlgorithm" target="_blank"
-                class="hover:text-white transition-colors">Open Source</a>
+                class="hover:text-white transition-colors">Pricing</a>
         </nav>
-        <div class="flex items-center gap-4">
+
+        <!-- Right actions -->
+        <div class="flex items-center gap-3">
             <button type="button" id="trustCenterBtn"
-                class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 transition-colors cursor-pointer group shadow-lg shadow-emerald-500/10">
-                <svg class="w-4 h-4 text-emerald-400 group-hover:scale-110 transition-transform" fill="none"
-                    stroke="currentColor" viewBox="0 0 24 24">
+                class="privacy-pill flex items-center gap-2 px-4 py-1.5 text-sm text-purple-300 font-medium hover:bg-purple-500/20 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
-                    </path>
+                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
-                <span class="text-xs font-semibold text-emerald-300">Privacy Center</span>
+                Privacy Center
             </button>
             <button id="settingsBtn"
-                class="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/5"
+                class="text-gray-500 hover:text-white p-2 rounded-lg hover:bg-white/5 transition-colors"
                 title="API Settings" aria-label="Settings">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
-                    </path>
+                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
             </button>
         </div>
     </header>
 
-    <!-- Main Content: Full-Width Vertical Layout -->
-    <main class="flex-grow px-6 py-6 lg:py-8 relative z-10">
-        <div class="max-w-6xl mx-auto space-y-6">
+    <!-- ===== MAIN ===== -->
+    <main class="flex-grow relative z-10 px-4 py-6 md:py-8">
+        <div class="max-w-5xl mx-auto space-y-6">
 
-            <!-- ===== HERO SECTION ===== -->
-            <section class="text-center space-y-3">
-                <p class="text-xs font-semibold text-brand-400 uppercase tracking-widest">Relationship Intelligence</p>
-                <h2 class="text-3xl md:text-4xl lg:text-5xl font-black tracking-tight leading-[1.1]">
-                    Decode Your
-                    <span
-                        class="text-transparent bg-clip-text bg-gradient-to-r from-brand-500 via-pink-500 to-purple-500">Connection.</span>
+            <!-- Hero -->
+            <section class="text-center space-y-3 py-2">
+                <h2 class="text-4xl md:text-5xl lg:text-[3.4rem] font-black tracking-tight leading-tight text-white">
+                    Decode Your <span
+                        class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-fuchsia-400 to-pink-400">Connection.</span>
                 </h2>
-                <p class="text-gray-400 text-base max-w-lg mx-auto">Upload your chat history. Get deep behavioral
-                    insights, emotional analytics, and AI coaching — securely and privately.</p>
-
-                <!-- Feature Pills Row -->
-                <div class="flex flex-wrap justify-center gap-2 pt-1">
-                    <div
-                        class="flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-                        <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
-                            </path>
-                        </svg>
-                        <span class="text-xs font-semibold text-emerald-300">Secure & Private</span>
-                    </div>
-                    <div
-                        class="flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20">
-                        <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z">
-                            </path>
-                        </svg>
-                        <span class="text-xs font-semibold text-blue-300">Multi-Platform</span>
-                    </div>
-                    <div
-                        class="flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/20">
-                        <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z">
-                            </path>
-                        </svg>
-                        <span class="text-xs font-semibold text-purple-300">AI Coaching</span>
-                    </div>
-                    <div
-                        class="flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/20">
-                        <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                        </svg>
-                        <span class="text-xs font-semibold text-amber-300">Lightning Fast</span>
-                    </div>
-                </div>
+                <p class="text-gray-400 text-sm max-w-md mx-auto leading-relaxed">
+                    Upload your chat history for deep behavioral insights, emotional analytics,<br>
+                    and personalized AI coaching — securely and privately.
+                </p>
             </section>
 
-            <!-- ===== TWO-CARD LAYOUT ===== -->
+            <!-- Two-Panel Form -->
             <form id="uploadForm">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
 
-                    <!-- CARD 1: Configuration -->
-                    <div class="glass-card rounded-2xl p-5 shadow-2xl relative overflow-hidden">
-                        <div
-                            class="absolute inset-0 bg-gradient-to-br from-brand-500/10 to-transparent pointer-events-none">
-                        </div>
-                        <div class="relative z-10 space-y-4">
-                            <div class="flex items-center gap-2 mb-1">
-                                <svg class="w-5 h-5 text-brand-400" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4">
-                                    </path>
-                                </svg>
-                                <h3 class="text-lg font-bold text-white">Configuration</h3>
-                            </div>
+                    <!-- LEFT: Configuration -->
+                    <div class="card rounded-2xl p-5 space-y-4">
+                        <h3 class="text-base font-semibold text-white flex items-center gap-2">
+                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                            </svg>
+                            Configuration
+                        </h3>
 
-                            <div class="grid grid-cols-2 gap-4">
-                                <div class="space-y-1">
-                                    <label for="myName" class="text-sm font-medium text-gray-300 ml-1">Your Name</label>
-                                    <div class="relative">
-                                        <div class="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                                            <svg class="w-4 h-4 text-brand-400" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z">
-                                                </path>
-                                            </svg>
-                                        </div>
-                                        <input type="text" id="myName" required placeholder="e.g. Rahul"
-                                            class="w-full bg-dark-900/50 border border-white/10 rounded-lg pl-9 pr-3 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all text-sm">
-                                    </div>
-                                </div>
-                                <div class="space-y-1">
-                                    <label for="partnerName" class="text-sm font-medium text-gray-300 ml-1">Partner's
-                                        Name</label>
-                                    <div class="relative">
-                                        <div class="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                                            <svg class="w-4 h-4 text-pink-400" fill="currentColor" viewBox="0 0 24 24">
-                                                <path
-                                                    d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                                            </svg>
-                                        </div>
-                                        <input type="text" id="partnerName" required placeholder="e.g. Priya"
-                                            class="w-full bg-dark-900/50 border border-white/10 rounded-lg pl-9 pr-3 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-500/50 focus:border-pink-500 transition-all text-sm">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-2 gap-4">
-                                <div class="space-y-1">
-                                    <label for="connectionType"
-                                        class="text-sm font-medium text-gray-300 ml-1">Connection Type</label>
-                                    <div class="relative">
-                                        <select id="connectionType"
-                                            class="w-full bg-dark-900/50 border border-white/10 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all appearance-none cursor-pointer">
-                                            <option value="romantic" selected>Romantic Partner</option>
-                                            <option value="friendship">Close Friend</option>
-                                            <option value="professional">Professional / Work</option>
-                                            <option value="family">Family Member</option>
-                                            <option value="casual">Casual Acquaintance</option>
-                                        </select>
-                                        <div
-                                            class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-400">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M19 9l-7 7-7-7"></path>
-                                            </svg>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="space-y-1">
-                                    <label for="outputLanguage" class="text-sm font-medium text-gray-300 ml-1">Output
-                                        Language</label>
-                                    <div class="relative">
-                                        <select id="outputLanguage"
-                                            class="w-full bg-dark-900/50 border border-white/10 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all appearance-none cursor-pointer">
-                                            <option value="english" selected>English</option>
-                                            <option value="hinglish">Hinglish (WhatsApp Lang)</option>
-                                            <option value="hindi">Hindi</option>
-                                        </select>
-                                        <div
-                                            class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-400">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M19 9l-7 7-7-7"></path>
-                                            </svg>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
+                        <!-- Names row -->
+                        <div class="grid grid-cols-2 gap-3">
                             <div class="space-y-1">
-                                <label for="userContext" class="text-sm font-medium text-gray-300 ml-1">Context Input
-                                    (Optional)</label>
+                                <label class="text-xs font-medium text-gray-400">Your Name</label>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-2.5 flex items-center pointer-events-none">
+                                        <svg class="w-3.5 h-3.5 text-blue-400" fill="currentColor" viewBox="0 0 24 24">
+                                            <path
+                                                d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" />
+                                        </svg>
+                                    </span>
+                                    <input type="text" id="myName" required placeholder="e.g. Rahul"
+                                        class="field-input pl-8">
+                                </div>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-xs font-medium text-gray-400">Partner's Name</label>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-2.5 flex items-center pointer-events-none">
+                                        <svg class="w-3.5 h-3.5 text-pink-400" fill="currentColor" viewBox="0 0 24 24">
+                                            <path
+                                                d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                                        </svg>
+                                    </span>
+                                    <input type="text" id="partnerName" required placeholder="e.g. Priya"
+                                        class="field-input pl-8">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Connection Type + Output Language -->
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="space-y-1">
+                                <label class="text-xs font-medium text-gray-400">Connection Type</label>
+                                <div class="select-wrap">
+                                    <span class="prefix-icon">
+                                        <svg class="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                                        </svg>
+                                    </span>
+                                    <select id="connectionType" class="field-input">
+                                        <option value="romantic" selected>Romantic Partner</option>
+                                        <option value="friendship">Close Friend</option>
+                                        <option value="professional">Professional / Work</option>
+                                        <option value="family">Family Member</option>
+                                        <option value="casual">Casual Acquaintance</option>
+                                    </select>
+                                    <span class="chevron">
+                                        <svg class="w-3 h-3 text-gray-500" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-xs font-medium text-gray-400">Output Language</label>
+                                <div class="select-wrap">
+                                    <span class="prefix-icon">
+                                        <svg class="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+                                        </svg>
+                                    </span>
+                                    <select id="outputLanguage" class="field-input">
+                                        <option value="english" selected>English</option>
+                                        <option value="hinglish">Hinglish (WhatsApp Lang)</option>
+                                        <option value="hindi">Hindi</option>
+                                    </select>
+                                    <span class="chevron">
+                                        <svg class="w-3 h-3 text-gray-500" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Context Input -->
+                        <div class="space-y-1">
+                            <label class="text-xs font-medium text-gray-400">Context Input (Optional)</label>
+                            <div class="relative">
+                                <span class="absolute top-2.5 left-2.5 pointer-events-none">
+                                    <svg class="w-3.5 h-3.5 text-gray-600" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    </svg>
+                                </span>
                                 <textarea id="userContext" rows="1"
                                     placeholder="e.g. 'We just moved to a new city' or 'My partner started a stressful job'"
-                                    class="w-full bg-dark-900/50 border border-white/10 rounded-lg px-3 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all resize-none text-sm"></textarea>
-                                <p class="text-[10px] text-gray-500 ml-1 mt-1">Providing context helps the AI deliver a
-                                    more accurate emotional analysis.</p>
+                                    class="field-input pl-8 resize-none"
+                                    style="padding-top: 8px; padding-bottom: 8px;"></textarea>
                             </div>
+                        </div>
 
-                            <div
-                                class="flex items-center justify-between p-3 bg-dark-900/40 rounded-xl border border-white/5">
-                                <div class="flex flex-col">
-                                    <label for="sensitiveMode"
-                                        class="text-sm font-medium text-gray-200 cursor-pointer">Sensitive Mode</label>
-                                    <span class="text-xs text-gray-500">Hides real names from the final report.</span>
+                        <!-- Sensitive Mode -->
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2.5">
+                                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                                <div>
+                                    <p class="text-sm text-gray-300 font-medium">Sensitive Mode</p>
+                                    <p class="text-[11px] text-gray-600">Hides real names from the final report.</p>
                                 </div>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" id="sensitiveMode" class="sr-only peer">
-                                    <div
-                                        class="w-11 h-6 bg-dark-800 peer-focus:outline-none peer-focus-visible:ring-2 peer-focus-visible:ring-brand-500 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-dark-950 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-500">
-                                    </div>
-                                </label>
                             </div>
+                            <label class="cursor-pointer flex items-center">
+                                <input type="checkbox" id="sensitiveMode" class="toggle sr-only peer">
+                                <div class="toggle-track">
+                                    <input type="checkbox" id="sensitiveModeInner" class="toggle peer">
+                                </div>
+                            </label>
+                        </div>
 
-                            <!-- API Key Info -->
-                            <div
-                                class="bg-dark-900/50 border border-brand-500/30 rounded-xl p-4 relative overflow-hidden">
-                                <div
-                                    class="absolute inset-0 bg-gradient-to-r from-brand-500/5 to-transparent pointer-events-none">
-                                </div>
-                                <div class="flex items-start gap-3 relative z-10">
-                                    <svg class="w-5 h-5 text-brand-400 flex-shrink-0 mt-0.5" fill="none"
-                                        stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z">
-                                        </path>
-                                    </svg>
-                                    <div class="w-full">
-                                        <div class="flex items-center justify-between mb-1">
-                                            <p class="text-sm font-medium text-gray-200">API Key Required</p>
-                                            <button type="button"
-                                                onclick="document.getElementById('settingsBtn').click()"
-                                                class="text-xs bg-white/10 hover:bg-white/20 text-white px-2.5 py-1 rounded-md transition-colors">⚙️
-                                                Configure</button>
-                                        </div>
-                                        <p class="text-xs text-gray-400 mb-2">An AI API key is needed for insights. Your
-                                            chats are processed securely first.</p>
-                                        <a href="/instructions#api-keys"
-                                            class="text-xs text-brand-400 hover:text-brand-300 font-medium underline inline-flex items-center gap-1">
-                                            How to get a free API Key →
-                                        </a>
-                                    </div>
-                                </div>
+                        <!-- API Key Section -->
+                        <div class="apikey-section px-3 py-2.5 flex items-center gap-2 justify-between">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <svg class="w-4 h-4 text-brand-400 flex-shrink-0" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                                </svg>
+                                <span class="text-xs font-medium text-gray-300 truncate">API Key Required</span>
+                            </div>
+                            <div class="flex items-center gap-2 flex-shrink-0">
+                                <button type="button" onclick="document.getElementById('settingsBtn').click()"
+                                    class="text-xs bg-white/10 hover:bg-white/15 text-white px-2.5 py-1 rounded-md transition-colors font-medium">
+                                    Configure
+                                </button>
+                                <a href="/instructions#api-keys"
+                                    class="text-xs text-brand-400 hover:text-brand-300 transition-colors whitespace-nowrap">
+                                    How to get a free API Key →
+                                </a>
                             </div>
                         </div>
                     </div>
 
-                    <!-- CARD 2: Upload & Run -->
-                    <div class="glass-card rounded-2xl p-5 shadow-2xl relative overflow-hidden flex flex-col">
-                        <div
-                            class="absolute inset-0 bg-gradient-to-br from-pink-500/5 to-transparent pointer-events-none">
-                        </div>
-                        <div class="relative z-10 flex flex-col flex-grow space-y-4">
-                            <div class="flex items-center gap-2 mb-1">
-                                <svg class="w-5 h-5 text-pink-400" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
-                                </svg>
-                                <h3 class="text-lg font-bold text-white">Upload Chat Export</h3>
-                            </div>
+                    <!-- RIGHT: Upload -->
+                    <div class="card rounded-2xl p-5 flex flex-col gap-4">
+                        <h3 class="text-base font-semibold text-white flex items-center gap-2">
+                            <svg class="w-4 h-4 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                            </svg>
+                            Upload Chat Export
+                        </h3>
 
-                            <!-- Drop Zone -->
-                            <label id="dropZone" for="chatFile"
-                                class="border-2 border-dashed border-white/10 rounded-xl p-5 text-center hover:border-brand-500/50 hover:bg-white/[0.02] focus-within:ring-2 focus-within:ring-brand-500 transition-all cursor-pointer group relative flex-grow flex flex-col items-center justify-center">
-                                <input type="file" id="chatFile" multiple accept=".txt,.html,.pdf,.json"
-                                    class="sr-only">
-                                <div
-                                    class="w-12 h-12 rounded-full bg-white/5 mx-auto mb-2 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                    <svg class="w-7 h-7 text-brand-400" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
-                                    </svg>
-                                </div>
-                                <p class="text-base font-semibold text-gray-200 mb-1">Click to upload or drag & drop</p>
-                                <p class="text-sm text-gray-500 mb-3">WhatsApp · Telegram · Instagram · Discord · PDF
-                                </p>
-                                <div id="fileList" class="mt-2 text-sm text-pink-400 font-medium hidden"></div>
-                        </div>
-
-                        <!-- How to Export Chats - Prominent Link -->
-                        <a href="/instructions#whatsapp"
-                            class="flex items-center gap-3 p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 hover:bg-blue-500/15 transition-all group">
+                        <!-- Drop Zone -->
+                        <label id="dropZone" for="chatFile"
+                            class="dropzone flex-grow flex flex-col items-center justify-center p-8 text-center cursor-pointer group min-h-[160px]">
+                            <input type="file" id="chatFile" multiple accept=".txt,.html,.pdf,.json" class="sr-only">
                             <div
-                                class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                                <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor"
+                                class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
+                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
-                                    </path>
+                                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                                 </svg>
                             </div>
-                            <div>
-                                <p class="text-sm font-semibold text-white">How to Export Chats</p>
-                                <p class="text-xs text-gray-400">Step-by-step guide for WhatsApp, Telegram,
-                                    Instagram & Discord</p>
+                            <p class="text-sm font-medium text-gray-300 mb-1">Click to upload or drag &amp; drop.</p>
+                            <p class="text-xs text-gray-600">WhatsApp · Telegram · Instagram · Discord · PDF</p>
+                            <div id="fileList" class="mt-2 text-xs text-pink-400 font-medium hidden"></div>
+                        </label>
+
+                        <!-- How to Export -->
+                        <a href="/instructions#whatsapp"
+                            class="flex items-center gap-3 p-3 rounded-xl bg-blue-500/8 border border-white/6 hover:bg-blue-500/12 transition-all group">
+                            <div
+                                class="w-8 h-8 rounded-full bg-blue-500/15 flex items-center justify-center flex-shrink-0">
+                                <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
                             </div>
-                            <svg class="w-4 h-4 text-gray-400 ml-auto" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7">
-                                </path>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-xs font-semibold text-gray-200">How to Export Chats</p>
+                                <p class="text-[11px] text-gray-500 truncate">Step-by-step guide for WhatsApp, Telegram,
+                                    Instagram &amp; Discord.</p>
+                            </div>
+                            <svg class="w-4 h-4 text-gray-600 flex-shrink-0 group-hover:text-gray-400 transition-colors"
+                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 5l7 7-7 7" />
                             </svg>
                         </a>
 
-                        <!-- Run Button -->
-                        <button type="submit" id="analyzeBtn"
-                            class="w-full bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-500 hover:to-brand-400 text-white font-semibold py-4 rounded-xl shadow-[0_0_20px_rgba(244,63,94,0.3)] hover:shadow-[0_0_30px_rgba(244,63,94,0.5)] transition-all flex items-center justify-center gap-2">
-                            <span>Run The Algorithm</span>
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                            </svg>
-                        </button>
-
-                        <!-- Pre-upload Indicator -->
+                        <!-- PII Scrubbing Indicator -->
                         <div id="scrubbingIndicator"
-                            class="hidden flex items-center justify-center gap-2 text-xs text-emerald-400 font-medium py-1">
-                            <svg class="w-4 h-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            class="hidden items-center gap-2 text-xs text-emerald-400 font-medium px-1">
+                            <svg class="w-3.5 h-3.5 animate-pulse" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z">
-                                </path>
+                                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                             </svg>
-                            <span>Local PII Scrubbing Active</span>
+                            <span>Local PII Scrubbing Active...</span>
                         </div>
 
-                        <div id="progressUI" class="hidden flex-col items-center gap-3 mt-2">
-                            <div class="w-full h-2 bg-dark-900 rounded-full overflow-hidden">
+                        <!-- Run Button -->
+                        <button type="submit" id="analyzeBtn"
+                            class="run-btn w-full text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2.5 transition-all text-sm">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                            Run The Algorithm
+                        </button>
+
+                        <!-- Progress UI -->
+                        <div id="progressUI" class="hidden flex-col gap-2">
+                            <div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
                                 <div id="progressBar"
-                                    class="h-full bg-gradient-to-r from-brand-500 to-pink-500 transition-all duration-300"
+                                    class="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-300"
                                     style="width: 0%"></div>
                             </div>
-                            <div class="flex justify-between w-full text-xs text-gray-400">
-                                <span id="statusText">Initializing local NLP engine...</span>
+                            <div class="flex justify-between text-[11px] text-gray-500">
+                                <span id="statusText">Initializing...</span>
                                 <span id="estimatedTime">Est: ~30s</span>
                             </div>
                         </div>
                     </div>
-                </div>
 
-        </div>
-        </form>
+                </div>
+            </form>
 
-        <!-- Footer Trust Badge -->
-        <div class="flex flex-col items-center gap-3 pt-4 pb-4">
-            <div class="flex items-center gap-3">
-                <div class="flex -space-x-2">
-                    <div
-                        class="w-8 h-8 rounded-full bg-gradient-to-br from-brand-500 to-pink-500 border-2 border-dark-950 flex items-center justify-center text-[10px] font-bold">
-                        R</div>
-                    <div
-                        class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 border-2 border-dark-950 flex items-center justify-center text-[10px] font-bold">
-                        A</div>
-                    <div
-                        class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-violet-500 border-2 border-dark-950 flex items-center justify-center text-[10px] font-bold">
-                        K</div>
-                </div>
-                <div>
-                    <p class="text-xs text-gray-400">Open Source & Community Driven</p>
-                    <p class="text-[10px] text-gray-600">Built with ❤️ for people who care about their
-                        relationships.</p>
-                </div>
+            <!-- Footer -->
+            <div class="flex items-center justify-center gap-2 pt-2 pb-2 text-xs text-gray-600">
+                <span>Open Source &amp; Community Driven. Built with</span>
+                <span class="text-pink-500">❤️</span>
+                <span>for people who care about their relationships.</span>
             </div>
-            <p class="text-xs text-gray-600 flex items-center gap-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
-                    </path>
-                </svg>
-                Zero-Knowledge Architecture: Text is erased instantaneously.
-            </p>
-        </div>
 
         </div>
     </main>
 
-    <!-- Settings Modal -->
+    <!-- ===== SETTINGS MODAL ===== -->
     <div id="settingsModal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle"
-        class="fixed inset-0 bg-dark-950/80 backdrop-blur-sm z-50 items-center justify-center hidden opacity-0 transition-opacity">
-        <div class="glass-card w-full max-w-md rounded-2xl p-6 shadow-2xl relative transform scale-95 transition-transform"
-            id="settingsContent">
-            <button id="closeSettings" class="absolute top-4 right-4 text-gray-400 hover:text-white"
-                aria-label="Close Settings"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
-                    </path>
-                </svg></button>
-            <h3 id="settingsTitle" class="text-xl font-bold mb-6 text-white text-center">API Configuration <span
-                    class="block text-xs text-gray-400 font-normal mt-1">Bring Your Own Key (BYOK)</span></h3>
-
+        class="fixed inset-0 modal-backdrop z-50 items-center justify-center hidden opacity-0 transition-opacity duration-200">
+        <div id="settingsContent"
+            class="modal-content w-full max-w-md rounded-2xl p-6 shadow-2xl relative transform scale-95 transition-transform duration-200">
+            <button id="closeSettings" class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors"
+                aria-label="Close">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            <h3 id="settingsTitle" class="text-lg font-bold mb-1 text-white">API Configuration</h3>
+            <p class="text-xs text-gray-500 mb-6">Bring Your Own Key (BYOK)</p>
             <div class="space-y-4">
-                <div class="space-y-1">
+                <div class="space-y-1.5">
                     <label class="text-sm font-medium text-gray-300">Provider</label>
-                    <select id="llmProvider"
-                        class="w-full bg-dark-900 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-brand-500">
+                    <select id="llmProvider" class="field-input">
                         <option value="openai">OpenAI (GPT-4o)</option>
                         <option value="anthropic">Anthropic (Claude 3.5)</option>
                         <option value="gemini">Google (Gemini 2.5 Flash)</option>
                     </select>
                 </div>
-                <div class="space-y-1">
+                <div class="space-y-1.5">
                     <label class="text-sm font-medium text-gray-300">API Key</label>
-                    <input type="password" id="apiKey" placeholder="sk-..."
-                        class="w-full bg-dark-900 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:border-brand-500 transition-all">
-                    <p class="text-xs text-brand-400 mt-1">Stored securely in your browser's sessionStorage.</p>
+                    <input type="password" id="apiKey" placeholder="sk-..." class="field-input">
+                    <p class="text-xs text-purple-400 mt-1">Stored securely in your browser's sessionStorage.</p>
                 </div>
-
-                <div class="space-y-1 mt-4 border-t border-white/10 pt-4">
-                    <label class="text-sm font-medium text-gray-300">Lightning Studio API URL (Optional)</label>
-                    <input type="text" id="hfUrl" placeholder="https://xxxx-8000.lit.ai/analyze"
-                        class="w-full bg-dark-900 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:border-brand-500 transition-all">
-                    <p class="text-xs text-brand-400 mt-1">Deploy the `cloud_api` folder to Lightning AI and paste your
-                        URL here for 50x faster NLP processing.</p>
+                <div class="space-y-1.5 border-t border-white/8 pt-4">
+                    <label class="text-sm font-medium text-gray-300">Lightning Studio API URL <span
+                            class="text-gray-600">(Optional)</span></label>
+                    <input type="text" id="hfUrl" placeholder="https://xxxx-8000.lit.ai/analyze" class="field-input">
+                    <p class="text-xs text-gray-600 mt-1">Deploy the cloud_api folder to Lightning AI and paste your URL
+                        here for 50x faster NLP.</p>
                 </div>
-
                 <button id="saveSettingsBtn"
-                    class="w-full bg-white/10 hover:bg-white/20 text-white font-medium py-2.5 rounded-lg transition-colors mt-2">Save
-                    Configuration</button>
+                    class="w-full bg-white/8 hover:bg-white/12 text-white font-medium py-2.5 rounded-lg transition-colors mt-2 text-sm">
+                    Save Configuration
+                </button>
             </div>
         </div>
     </div>
 
-    <!-- Trust Center Modal -->
+    <!-- ===== TRUST CENTER MODAL ===== -->
     <div id="trustCenterModal"
-        class="fixed inset-0 bg-dark-950/80 backdrop-blur-sm z-50 items-center justify-center hidden opacity-0 transition-opacity">
-        <div class="glass-card w-full max-w-lg rounded-2xl p-6 shadow-2xl relative transform scale-95 transition-transform"
-            id="trustCenterContent">
-            <button id="closeTrustCenter" class="absolute top-4 right-4 text-gray-400 hover:text-white"><svg
-                    class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
-                    </path>
-                </svg></button>
+        class="fixed inset-0 modal-backdrop z-50 items-center justify-center hidden opacity-0 transition-opacity duration-200">
+        <div id="trustCenterContent"
+            class="modal-content w-full max-w-lg rounded-2xl p-7 shadow-2xl relative transform scale-95 transition-transform duration-200">
+            <button id="closeTrustCenter"
+                class="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
 
-            <div class="flex flex-col items-center mb-6">
+            <div class="flex flex-col items-center text-center mb-6">
                 <div
-                    class="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center mb-3">
+                    class="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-3">
                     <svg class="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z">
-                        </path>
+                            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                     </svg>
                 </div>
-                <h3 class="text-2xl font-bold text-white text-center">Zero-Knowledge Privacy</h3>
-                <p class="text-sm text-gray-400 text-center mt-1">Your conversations belong to you. Here's how we
-                    protect them.</p>
+                <h3 class="text-xl font-bold text-white">Zero-Knowledge Privacy</h3>
+                <p class="text-sm text-gray-500 mt-1">Your conversations belong to you. Here's how we protect them.</p>
             </div>
 
-            <div class="space-y-5">
-                <div class="flex items-start gap-4 p-4 rounded-xl bg-dark-900/50 border border-white/5">
-                    <div class="mt-1 p-2 rounded-lg bg-emerald-500/10 text-emerald-400">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="space-y-4">
+                <div class="flex items-start gap-3 p-4 rounded-xl bg-white/3 border border-white/6">
+                    <div class="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 flex-shrink-0 mt-0.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1">
-                            </path>
+                                d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                         </svg>
                     </div>
                     <div>
-                        <h4 class="text-white font-semibold mb-1">1. Local PII Scrubbing</h4>
-                        <p class="text-xs text-gray-400/90 leading-relaxed">Before your file ever leaves your device,
-                            our JavaScript engine replaces all phone numbers and email addresses with standard
-                            placeholders right inside your browser.</p>
+                        <h4 class="text-sm font-semibold text-white mb-1">1. Local PII Scrubbing</h4>
+                        <p class="text-xs text-gray-500 leading-relaxed">Before your file leaves your device, our
+                            JavaScript engine replaces all phone numbers and emails with placeholders — right in your
+                            browser.</p>
                     </div>
                 </div>
-
-                <div class="flex items-start gap-4 p-4 rounded-xl bg-dark-900/50 border border-white/5">
-                    <div class="mt-1 p-2 rounded-lg bg-blue-500/10 text-blue-400">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="flex items-start gap-3 p-4 rounded-xl bg-white/3 border border-white/6">
+                    <div class="p-1.5 rounded-lg bg-blue-500/10 text-blue-400 flex-shrink-0 mt-0.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4">
-                            </path>
+                                d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
                         </svg>
                     </div>
                     <div>
-                        <h4 class="text-white font-semibold mb-1">2. No Databases. Pure RAM.</h4>
-                        <p class="text-xs text-gray-400/90 leading-relaxed">Our servers never write your chat file to a
-                            disk or a database. The text is parsed completely in active memory (RAM) and mathematically
-                            converted to statistics.</p>
+                        <h4 class="text-sm font-semibold text-white mb-1">2. No Databases. Pure RAM.</h4>
+                        <p class="text-xs text-gray-500 leading-relaxed">Our servers never write your chat file to disk.
+                            The text is parsed completely in active memory (RAM) and converted to statistics.</p>
                     </div>
                 </div>
-
-                <div class="flex items-start gap-4 p-4 rounded-xl bg-dark-900/50 border border-white/5">
-                    <div class="mt-1 p-2 rounded-lg bg-pink-500/10 text-pink-400">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="flex items-start gap-3 p-4 rounded-xl bg-white/3 border border-white/6">
+                    <div class="p-1.5 rounded-lg bg-pink-500/10 text-pink-400 flex-shrink-0 mt-0.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
-                            </path>
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
                     </div>
                     <div>
-                        <h4 class="text-white font-semibold mb-1">3. Instant Deletion</h4>
-                        <p class="text-xs text-gray-400/90 leading-relaxed">The millisecond the analysis completes, a
-                            Python `finally` block aggressively deletes all temporary session files. We keep zero logs
-                            of your conversations.</p>
+                        <h4 class="text-sm font-semibold text-white mb-1">3. Instant Deletion</h4>
+                        <p class="text-xs text-gray-500 leading-relaxed">The millisecond analysis completes, a Python
+                            `finally` block aggressively deletes all temporary session files. Zero logs of your
+                            conversations.</p>
                     </div>
                 </div>
-
-                <div class="flex items-start gap-4 p-4 rounded-xl bg-dark-900/50 border border-white/5">
-                    <div class="mt-1 p-2 rounded-lg bg-amber-500/10 text-amber-400">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="flex items-start gap-3 p-4 rounded-xl bg-white/3 border border-white/6">
+                    <div class="p-1.5 rounded-lg bg-amber-500/10 text-amber-400 flex-shrink-0 mt-0.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
-                            </path>
+                                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                         </svg>
                     </div>
                     <div>
-                        <h4 class="text-white font-semibold mb-1">4. Safe LLM Usage</h4>
-                        <p class="text-xs text-gray-400/90 leading-relaxed">Your raw chat logs are NEVER sent to OpenAI,
-                            Anthropic, or Gemini. The LLM only receives an anonymous statistical payload (e.g. "Volume:
-                            50, Sentiment: 0.8") to generate the coaching report.</p>
+                        <h4 class="text-sm font-semibold text-white mb-1">4. Safe LLM Usage</h4>
+                        <p class="text-xs text-gray-500 leading-relaxed">Your raw chat logs are NEVER sent to OpenAI,
+                            Anthropic, or Gemini. The AI only receives anonymous statistical payload to generate the
+                            coaching report.</p>
                     </div>
                 </div>
             </div>
 
             <button id="understoodBtn"
-                class="w-full bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 text-emerald-400 font-semibold py-3 rounded-xl transition-colors mt-6">
+                class="w-full border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/15 text-emerald-400 font-semibold py-3 rounded-xl transition-colors mt-6 text-sm">
                 I Understand
             </button>
         </div>
