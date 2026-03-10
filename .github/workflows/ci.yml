@@ -56,15 +56,22 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
           
+          # Create a clean orphan branch with no history
+          # This ensures we don't accidentally push historical binary files.
+          git checkout --orphan hf-deploy
+          git rm -rf --cached .
+          
+          # Add current files
+          git add -A
+          
           # Hugging Face Spaces rejects binary files in git pushes.
-          # We must remove it from the commit we send to HF.
-          # The Dockerfile already contains a curl command to download it during build.
-          git checkout -b hf-deploy
+          # Remove binaries from staging before we make the commit.
           git rm --cached static/favicon.png || true
           git rm --cached .gitattributes || true
-          git commit -m "deploy: HF sync (Run $GITHUB_RUN_NUMBER) - removed binaries"
           
-          # Use a dedicated remote for Hugging Face to avoid confusion
+          git commit -m "deploy: HF sync (Run $GITHUB_RUN_NUMBER)"
+          
+          # Use a dedicated remote for Hugging Face
           git remote add hf https://rixxabh:${{ secrets.HF_TOKEN }}@huggingface.co/spaces/rixxabh/the-algorithm
           
           echo "Initiating forced push to Hugging Face Space..."
