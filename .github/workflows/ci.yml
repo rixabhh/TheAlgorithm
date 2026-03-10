@@ -46,6 +46,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          lfs: true
 
       - name: Push to Hugging Face Spaces
         env:
@@ -57,6 +58,9 @@ jobs:
           
           # Use a dedicated remote for Hugging Face to avoid confusion
           git remote add hf https://rixxabh:${{ secrets.HF_TOKEN }}@huggingface.co/spaces/rixxabh/the-algorithm
+          
+          # Disable the check for complete local LFS objects before pushing
+          git config lfs.allowincompletepush true
           
           # We are already on the current commit, so we can just push it
           # HF Spaces usually look at the 'main' branch
