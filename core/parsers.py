@@ -1,22 +1,27 @@
 import os
 import re
+import sys
 import unicodedata
 import pandas as pd
-from datetime import datetime
-from bs4 import BeautifulSoup
 import pdfplumber
 import json
+
+
+# Precompute translation table for invisible Unicode characters
+# Categories: Cf (format), Cc (control), Zl (line separator), Zp (paragraph separator)
+_STRIP_CHARS = "".join(
+    chr(i) for i in range(sys.maxunicode + 1)
+    if chr(i) not in ('\n', '\r', '\t')
+    and unicodedata.category(chr(i)) in ('Cf', 'Cc', 'Zl', 'Zp')
+)
+_STRIP_TABLE = str.maketrans('', '', _STRIP_CHARS)
 
 
 def sanitize_text(text: str) -> str:
     """Strip invisible Unicode characters (LTR/RTL marks, zero-width spaces, BOM, etc.)
     that messaging apps embed in exports. Applied universally before any parser touches the text."""
-    # Remove Unicode categories: Cf (format), Cc (control except \n \r \t), Zl/Zp (line/paragraph sep)
-    return ''.join(
-        ch for ch in text
-        if ch in ('\n', '\r', '\t')
-        or unicodedata.category(ch) not in ('Cf', 'Cc', 'Zl', 'Zp')
-    )
+    # Optimization: Use str.translate for O(N) performance vs O(N*M) character-level loop
+    return text.translate(_STRIP_TABLE)
 
 def standardize_entities(df: pd.DataFrame, my_name: str, partner_name: str) -> pd.DataFrame:
     """
