@@ -54,32 +54,8 @@ jobs:
           set -ex
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
-          git checkout --orphan hf-deploy
-          git rm -rf --cached .
-          git add -A
-          git rm -f --cached static/favicon.png .gitattributes || true
           
-          # Inject HF Config Block without affecting GitHub
-          cat << 'EOF' > hf_frontmatter.txt
----
-title: The Algorithm
-emoji: 🧠
-colorFrom: pink
-colorTo: red
-sdk: docker
-app_port: 7860
-pinned: false
-license: mit
-short_description: AI-powered relationship analyzer — privacy-first, BYOK.
----
-
-EOF
-          cat hf_frontmatter.txt README.md > README.md.new && mv README.md.new README.md
-          rm hf_frontmatter.txt
-          git add README.md
-
-          git commit -m "deploy: push to HF Spaces (Run $GITHUB_RUN_NUMBER - $(date))"
-          git log -n 1
-          
-          echo "Initiating push to Hugging Face..."
-          git push --force --verbose https://rixxabh:$HF_TOKEN@huggingface.co/spaces/rixxabh/the-algorithm HEAD:main 2>&1
+          # Add HF Config Block to README temporarily if needed (but it's better to keep it permanent)
+          # For now, let's just push main
+          echo "Initiating direct push of main branch to Hugging Face..."
+          git push --force --verbose https://rixxabh:$HF_TOKEN@huggingface.co/spaces/rixxabh/the-algorithm main:main

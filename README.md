@@ -1,3 +1,15 @@
+---
+title: The Algorithm
+emoji: 🧠
+colorFrom: pink
+colorTo: red
+sdk: docker
+app_port: 7860
+pinned: false
+license: mit
+short_description: AI-powered relationship analyzer — privacy-first, BYOK.
+---
+
 <div align="center">
   <img src="static/favicon.png" width="120" alt="The Algorithm Logo" style="border-radius: 1rem; margin-bottom: 2rem;" />
 
