@@ -1,4 +1,5 @@
 import os
+from urllib.parse import urlparse
 import pandas as pd
 import numpy as np
 from transformers import pipeline
@@ -32,6 +33,22 @@ def get_sentiment_pipeline():
         print("Model loaded successfully.")
     return sentiment_pipeline
 
+def validate_cloud_url(url: str) -> bool:
+    """
+    Validates that the provided cloud GPU URL is secure and matches the allowed domain.
+    Prevents SSRF by enforcing HTTPS and restricting to *.lit.ai.
+    """
+    if not url:
+        return False
+    try:
+        parsed = urlparse(url)
+        # Enforce HTTPS and restrict to Lightning AI domain (*.lit.ai)
+        if parsed.scheme == 'https' and parsed.netloc.endswith('.lit.ai'):
+            return True
+        return False
+    except Exception:
+        return False
+
 def calculate_latency(df: pd.DataFrame) -> pd.DataFrame:
     df = df.sort_values('timestamp').reset_index(drop=True)
     df['prev_sender'] = df['sender'].shift(1)
@@ -59,6 +76,10 @@ def apply_sentiment(df: pd.DataFrame, hf_url: str = "") -> pd.DataFrame:
     sentiment_scores = []
     
     if hf_url:
+        # 🛡️ Sentinel: Validate URL to prevent SSRF
+        if not validate_cloud_url(hf_url):
+            raise ValueError("Security Error: Invalid cloud GPU URL. Must be a secure https://*.lit.ai endpoint.")
+
         print(f"Offloading sentiment analysis of {len(partner_msgs)} messages to Cloud GPU...")
         import requests
         import concurrent.futures
@@ -156,15 +177,21 @@ def apply_sentiment(df: pd.DataFrame, hf_url: str = "") -> pd.DataFrame:
     return df
 
 def aggregate_weekly(df: pd.DataFrame) -> pd.DataFrame:
-    # Anchor to Monday
-    df['week_start'] = df['timestamp'].dt.to_period('W').apply(lambda r: r.start_time)
+    # Anchor to Monday - Vectorized
+    df['week_start'] = df['timestamp'].dt.to_period('W').dt.start_time
     
-    # Aggregate
-    weekly = df.groupby('week_start').apply(lambda g: pd.Series({
-        'volume': len(g),
-        'median_latency': g['latency_mins'].median(),
-        'mean_sentiment': g.loc[g['sender'] == 'PARTNER', 'sentiment'].mean()
-    })).reset_index()
+    # Pre-calculate filtered sentiment for vectorized aggregation
+    df['_partner_sent'] = df['sentiment'].where(df['sender'] == 'PARTNER')
+
+    # Aggregate using vectorized .agg() instead of slow .apply()
+    weekly = df.groupby('week_start').agg(
+        volume=('sentiment', 'size'),
+        median_latency=('latency_mins', 'median'),
+        mean_sentiment=('_partner_sent', 'mean')
+    ).reset_index()
+
+    # Clean up temporary column
+    df.drop(columns=['_partner_sent'], inplace=True)
     
     weekly.fillna({'median_latency': 0, 'mean_sentiment': 0}, inplace=True)
     return weekly
@@ -174,15 +201,15 @@ def calculate_emoji_frequency(df: pd.DataFrame) -> dict:
     result = {}
     for sender in ['ME', 'PARTNER']:
         mask = df['sender'] == sender
-        all_text = ' '.join(df.loc[mask, 'text'].astype(str).tolist())
-        emojis = [c for c in all_text if emoji.is_emoji(c)]
-        counts = Counter(emojis).most_common(10)
+        # Memory-efficient: Use generator to avoid creating a massive intermediate string/list
+        emojis_gen = (c for text in df.loc[mask, 'text'].astype(str) for c in text if emoji.is_emoji(c))
+        counts = Counter(emojis_gen).most_common(10)
         result[sender] = [{'emoji': e, 'count': c} for e, c in counts]
     return result
 
 def calculate_initiator_ratio(df: pd.DataFrame) -> dict:
     """Count conversation initiations. An initiation = message after a >=4 hour gap."""
-    df = df.sort_values('timestamp').reset_index(drop=True)
+    # Optimization: DF is already sorted by calculate_latency at the start of the pipeline
     if len(df) < 2:
         return {'me_initiations': 0, 'partner_initiations': 0, 'me_ratio': 0.0}
     
@@ -256,8 +283,8 @@ def calculate_power_dynamics(df: pd.DataFrame) -> dict:
     """Calculate the Word Count ratio to establish Power Dynamics (V3.0)."""
     if 'text' not in df.columns: return {}
     
-    # Calculate rough word counts per sender
-    df['word_count'] = df['text'].astype(str).str.split().str.len()
+    # Optimization: Use str.count for faster vectorized word counting
+    df['word_count'] = df['text'].astype(str).str.count(r'\S+')
     counts = df.groupby('sender')['word_count'].sum().to_dict()
     
     me_words = int(counts.get('ME', 0))
@@ -296,8 +323,8 @@ def calculate_support_gap(df: pd.DataFrame) -> dict:
     
     stress_keywords = ['work', 'tired', 'sad', 'stressed', 'deadline', 'exhausted', 'unhappy', 'worry', 'anxious', 'sick', 'bad day', 'hard time']
     
-    # Avoid deep copy if not needed, but we need to sort
-    df_temp = df.sort_values('timestamp')
+    # Optimization: Use input df directly as it is already sorted
+    df_temp = df
 
     # Vectorized stress detection outside the loop is much faster
     is_stress = df_temp['text'].astype(str).str.lower().str.contains('|'.join(stress_keywords), regex=True).values
@@ -338,7 +365,7 @@ def calculate_support_gap(df: pd.DataFrame) -> dict:
 
 def calculate_reengagement(df: pd.DataFrame) -> dict:
     """Detect who reaches out first after a long silence (> 24h) (V4.0)."""
-    df = df.sort_values('timestamp').reset_index(drop=True)
+    # Optimization: DF is already sorted
     if len(df) < 10: return {}
     
     # We already have latency_mins from calculate_latency

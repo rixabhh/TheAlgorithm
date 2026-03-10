@@ -16,6 +16,33 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeTrustCenter = document.getElementById('closeTrustCenter');
     const understoodBtn = document.getElementById('understoodBtn');
 
+    // Shared modal helpers
+    const hideTrustCenter = () => {
+        trustCenterModal.classList.add('opacity-0');
+        document.getElementById('trustCenterContent').classList.add('scale-95');
+        setTimeout(() => {
+            trustCenterModal.classList.add('hidden');
+            trustCenterModal.classList.remove('flex');
+        }, 300);
+    };
+
+    const hideSettings = () => {
+        settingsModal.classList.add('opacity-0');
+        document.getElementById('settingsContent').classList.add('scale-95');
+        setTimeout(() => {
+            settingsModal.classList.add('hidden');
+            settingsModal.classList.remove('flex');
+        }, 300);
+    };
+
+    // Close modals on Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            if (trustCenterModal && !trustCenterModal.classList.contains('hidden')) hideTrustCenter();
+            if (settingsModal && !settingsModal.classList.contains('hidden')) hideSettings();
+        }
+    });
+
     if (trustCenterBtn && trustCenterModal) {
         trustCenterBtn.addEventListener('click', () => {
             trustCenterModal.classList.remove('hidden');
@@ -26,15 +53,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 10);
         });
 
-        const hideTrustCenter = () => {
-            trustCenterModal.classList.add('opacity-0');
-            document.getElementById('trustCenterContent').classList.add('scale-95');
-            setTimeout(() => {
-                trustCenterModal.classList.add('hidden');
-                trustCenterModal.classList.remove('flex');
-            }, 300);
-        };
-        closeTrustCenter.addEventListener('click', hideTrustCenter);
         closeTrustCenter.addEventListener('click', hideTrustCenter);
         understoodBtn.addEventListener('click', hideTrustCenter);
     }
@@ -50,14 +68,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 10);
         });
 
-        const hideSettings = () => {
-            settingsModal.classList.add('opacity-0');
-            document.getElementById('settingsContent').classList.add('scale-95');
-            setTimeout(() => {
-                settingsModal.classList.add('hidden');
-                settingsModal.classList.remove('flex');
-            }, 300);
-        };
         closeSettings.addEventListener('click', hideSettings);
 
         // Load config
@@ -82,16 +92,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 hideSettings();
             });
         }
+    }
 
-        // Drag & Drop
+    // Drag & Drop
+    if (dropZone) {
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, preventDefaults, false);
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+            }, false);
         });
-
-        function preventDefaults(e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
 
         ['dragenter', 'dragover'].forEach(eventName => {
             dropZone.addEventListener(eventName, () => dropZone.classList.add('border-brand-500', 'bg-white/[0.05]'), false);
@@ -101,30 +111,35 @@ document.addEventListener('DOMContentLoaded', () => {
             dropZone.addEventListener(eventName, () => dropZone.classList.remove('border-brand-500', 'bg-white/[0.05]'), false);
         });
 
-        dropZone.addEventListener('drop', handleDrop, false);
-
-        function handleDrop(e) {
+        dropZone.addEventListener('drop', (e) => {
             const dt = e.dataTransfer;
             const files = dt.files;
             fileInput.files = files;
             updateFileList();
-        }
+        }, false);
+    }
 
+    if (fileInput) {
         fileInput.addEventListener('change', updateFileList);
+    }
 
-        function updateFileList() {
-            if (fileInput.files.length > 0) {
-                fileList.classList.remove('hidden');
-                const names = Array.from(fileInput.files).map(f => f.name).join(', ');
-                fileList.textContent = `Selected: ${names}`;
-            } else {
-                fileList.classList.add('hidden');
-            }
+    function updateFileList() {
+        if (fileInput && fileInput.files.length > 0) {
+            fileList.classList.remove('hidden');
+            const names = Array.from(fileInput.files).map(f => f.name).join(', ');
+            fileList.textContent = `Selected: ${names}`;
+        } else if (fileList) {
+            fileList.classList.add('hidden');
         }
+    }
 
-        // Form Submission
+    // Form Submission
+    if (uploadForm) {
         uploadForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            const originalBtnContent = analyzeBtn.innerHTML;
 
             if (fileInput.files.length === 0) {
                 alert('Please select at least one chat export file.');
@@ -136,6 +151,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert('An AI API Key is required to run the analysis. Please click the Settings gear icon ⚙️ in the top right to configure your API key first. (e.g. Google Gemini 2.5 Flash is quick to set up!)');
                 return;
             }
+
+            // Disable button and show loading state
+            analyzeBtn.disabled = true;
+            analyzeBtn.innerHTML = `
+                <svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Processing...
+            `;
+            analyzeBtn.classList.add('opacity-80', 'cursor-not-allowed');
 
             const formData = new FormData();
             formData.append('my_name', document.getElementById('myName').value);
@@ -284,14 +310,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     const err = await response.json();
                     alert(`Error: ${err.error}`);
-                    document.getElementById('analyzeBtn').classList.remove('hidden');
+                    analyzeBtn.disabled = false;
+                    analyzeBtn.innerHTML = originalBtnContent;
+                    analyzeBtn.classList.remove('opacity-80', 'cursor-not-allowed', 'hidden');
                     document.getElementById('progressUI').classList.add('hidden');
                 }
             } catch (error) {
                 clearInterval(stepInterval);
                 clearInterval(timeInterval);
                 alert('Network Error. Ensure backend is running.');
-                document.getElementById('analyzeBtn').classList.remove('hidden');
+                analyzeBtn.disabled = false;
+                analyzeBtn.innerHTML = originalBtnContent;
+                analyzeBtn.classList.remove('opacity-80', 'cursor-not-allowed', 'hidden');
                 document.getElementById('progressUI').classList.add('hidden');
             }
         });
