@@ -238,10 +238,29 @@ def get_highlights():
     connection_type = GLOBAL_DATA_STORE[data_id].get('connection_type', 'romantic')
     
     # Filter messages that are reasonably substantial, not just media/links, and not tiny reactions
+    system_phrases = [
+        "missed voice call", 
+        "missed video call", 
+        "end-to-end encrypted", 
+        "tap for more info", 
+        "message was deleted", 
+        "deleted this message", 
+        "image omitted", 
+        "video omitted", 
+        "audio omitted", 
+        "sticker omitted", 
+        "gif omitted",
+        "contact card omitted"
+    ]
+    
     valid_msgs = []
     for m in all_msgs:
         t = str(m.get('text', '')).strip()
-        if len(t) > 15 and len(t) < 150 and not t.startswith('<Media') and 'http' not in t:
+        t_lower = t.lower()
+        
+        is_sys_msg = any(sys_phrase in t_lower for sys_phrase in system_phrases)
+        
+        if len(t) > 15 and len(t) < 150 and not t.startswith('<Media') and 'http' not in t and not is_sys_msg:
             valid_msgs.append(m)
             
     if not valid_msgs:
