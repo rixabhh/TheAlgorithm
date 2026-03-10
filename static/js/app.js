@@ -154,14 +154,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Disable button and show loading state
             analyzeBtn.disabled = true;
-            analyzeBtn.innerHTML = `
-                <svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Processing...
-            `;
-            analyzeBtn.classList.add('opacity-80', 'cursor-not-allowed');
+            analyzeBtn.classList.add('hidden');
+
             const progressUI = document.getElementById('progressUI');
             progressUI.classList.remove('hidden');
             progressUI.classList.add('flex');
@@ -262,8 +256,11 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (err) {
                 console.error("Error scrubbing files:", err);
                 alert("An error occurred while locally preparing your files for upload.");
-                document.getElementById('analyzeBtn').classList.remove('hidden');
-                document.getElementById('progressUI').classList.add('hidden');
+                analyzeBtn.classList.remove('hidden');
+                analyzeBtn.innerHTML = originalBtnContent;
+                analyzeBtn.disabled = false;
+                progressUI.classList.add('hidden');
+                progressUI.classList.remove('flex');
                 return;
             }
 
@@ -281,20 +278,26 @@ document.addEventListener('DOMContentLoaded', () => {
             let stepIdx = 0;
             let timeRemaining = 25; // Rough estimate for an average chat
 
+            const statusText = document.getElementById('statusText');
+            const progressBar = document.getElementById('progressBar');
+            const estimatedTime = document.getElementById('estimatedTime');
+
             const stepInterval = setInterval(() => {
-                if (stepIdx < steps.length) {
+                if (stepIdx < steps.length && statusText) {
                     statusText.textContent = steps[stepIdx];
-                    progressBar.style.width = `${((stepIdx + 1) / steps.length) * 100}%`;
+                    if (progressBar) progressBar.style.width = `${((stepIdx + 1) / steps.length) * 100}%`;
                     stepIdx++;
                 }
             }, 2500); // 2.5s per step visual
 
             const timeInterval = setInterval(() => {
                 timeRemaining--;
-                if (timeRemaining > 0) {
-                    estimatedTime.textContent = `Est: ~${timeRemaining}s`;
-                } else {
-                    estimatedTime.textContent = "Almost done...";
+                if (estimatedTime) {
+                    if (timeRemaining > 0) {
+                        estimatedTime.textContent = `Est: ~${timeRemaining}s`;
+                    } else {
+                        estimatedTime.textContent = "Almost done...";
+                    }
                 }
             }, 1000);
 
