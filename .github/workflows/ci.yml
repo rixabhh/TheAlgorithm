@@ -56,13 +56,16 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
           
+          # Hugging Face Spaces rejects binary files in git pushes.
+          # We must remove it from the commit we send to HF.
+          # The Dockerfile already contains a curl command to download it during build.
+          git checkout -b hf-deploy
+          git rm --cached static/favicon.png || true
+          git rm --cached .gitattributes || true
+          git commit -m "deploy: HF sync (Run $GITHUB_RUN_NUMBER) - removed binaries"
+          
           # Use a dedicated remote for Hugging Face to avoid confusion
           git remote add hf https://rixxabh:${{ secrets.HF_TOKEN }}@huggingface.co/spaces/rixxabh/the-algorithm
           
-          # Disable the check for complete local LFS objects before pushing
-          git config lfs.allowincompletepush true
-          
-          # We are already on the current commit, so we can just push it
-          # HF Spaces usually look at the 'main' branch
           echo "Initiating forced push to Hugging Face Space..."
-          git push --force hf HEAD:main
+          git push --force hf hf-deploy:main
