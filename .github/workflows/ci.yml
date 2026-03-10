@@ -79,4 +79,4 @@ EOF
           git add README.md
 
           git commit -m "deploy: push to HF Spaces"
-          git push --force https://rixabhh:$HF_TOKEN@huggingface.co/spaces/rixabhh/the-algorithm hf-deploy:main
+          git push --force https://rixxabh:$HF_TOKEN@huggingface.co/spaces/rixxabh/the-algorithm hf-deploy:main
