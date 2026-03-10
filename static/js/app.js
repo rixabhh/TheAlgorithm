@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const hfUrlEl = document.getElementById('hfUrl');
         const llmProviderEl = document.getElementById('llmProvider');
 
-        if (apiKeyEl) apiKeyEl.value = sessionStorage.getItem('api_key') || '';
+        if (apiKeyEl) apiKeyEl.value = sessionStorage.getItem('_llm_token') ? atob(sessionStorage.getItem('_llm_token')) : '';
         if (hfUrlEl) hfUrlEl.value = localStorage.getItem('hf_url') || '';
         const savedProvider = localStorage.getItem('llm_provider');
         if (savedProvider && llmProviderEl) llmProviderEl.value = savedProvider;
@@ -86,7 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const key = apiKeyEl ? apiKeyEl.value.trim() : '';
                 const hfUrl = hfUrlEl ? hfUrlEl.value.trim() : '';
                 const provider = llmProviderEl ? llmProviderEl.value : 'openai';
-                sessionStorage.setItem('api_key', key);
+                sessionStorage.setItem('_llm_token', btoa(key));
                 localStorage.setItem('hf_url', hfUrl);
                 localStorage.setItem('llm_provider', provider);
                 hideSettings();
@@ -146,7 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            const apiKey = sessionStorage.getItem('api_key') || '';
+            const apiKey = sessionStorage.getItem('_llm_token') ? atob(sessionStorage.getItem('_llm_token')) : '';
             if (!apiKey) {
                 alert('An AI API Key is required to run the analysis. Please click the Settings gear icon ⚙️ in the top right to configure your API key first. (e.g. Google Gemini 2.5 Flash is quick to set up!)');
                 return;
@@ -176,7 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const isSensitive = document.getElementById('sensitiveMode')?.checked || false;
             localStorage.setItem('sensitiveMode', isSensitive);
 
-            formData.append('api_key', sessionStorage.getItem('api_key') || '');
+            formData.append('api_key', apiKey);
             formData.append('llm_provider', localStorage.getItem('llm_provider') || 'openai');
             formData.append('hf_url', localStorage.getItem('hf_url') || '');
 

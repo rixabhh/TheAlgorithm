@@ -143,7 +143,13 @@ def process_chat():
                 
         if not dfs:
             if parsing_errors:
-                return jsonify({'error': parsing_errors[0]}), 400
+                err_str = str(parsing_errors[0])
+                safe_err = "A file format error or name mismatch occurred."
+                if "Name Mismatch" in err_str:
+                    safe_err = "Name Mismatch: The provided names do not match the chat data."
+                elif "format" in err_str.lower():
+                    safe_err = "Unsupported file format."
+                return jsonify({'error': safe_err}), 400
             return jsonify({'error': 'Could not extract any valid messages from the provided files.'}), 400
             
         full_df = pd.concat(dfs, ignore_index=True)
