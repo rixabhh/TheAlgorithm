@@ -170,7 +170,8 @@ def process_chat():
         GLOBAL_DATA_STORE[session_id] = {
             'stats': analytics_result,
             'report': report,
-            'messages': flashback_df.to_dict(orient='records')
+            'messages': flashback_df.to_dict(orient='records'),
+            'connection_type': connection_type
         }
         session['data_id'] = session_id
         
@@ -219,6 +220,55 @@ def get_flashback():
         return jsonify(messages_in_week[:8])
     except:
         return jsonify([])
+
+@app.route('/highlights')
+def get_highlights():
+    import random
+    data_id = session.get('data_id')
+    if not data_id or data_id not in GLOBAL_DATA_STORE:
+        return jsonify({'highlights': []})
+        
+    all_msgs = GLOBAL_DATA_STORE[data_id].get('messages', [])
+    connection_type = GLOBAL_DATA_STORE[data_id].get('connection_type', 'romantic')
+    
+    # Filter messages that are reasonably substantial, not just media/links, and not tiny reactions
+    valid_msgs = []
+    for m in all_msgs:
+        t = str(m.get('text', '')).strip()
+        if len(t) > 15 and len(t) < 150 and not t.startswith('<Media') and 'http' not in t:
+            valid_msgs.append(m)
+            
+    if not valid_msgs:
+        return jsonify({'highlights': []})
+        
+    # Sample up to 5 highlights
+    sample_size = min(5, len(valid_msgs))
+    sampled = random.sample(valid_msgs, sample_size)
+    
+    highlights = []
+    for msg in sampled:
+        sender_label = "You" if msg.get('sender') == 'ME' else "Partner"
+        
+        # Contextual titles based on connection type
+        titles = ["A Memory"]
+        if connection_type == 'romantic':
+             titles = ["A Sweet Moment", "Looking Back", "A Spark", "Connection Highlight"]
+        elif connection_type == 'friend':
+             titles = ["A Fun Memory", "Vibes", "Remember This?", "Friendship Highlight"]
+        elif connection_type == 'professional':
+             titles = ["Collaboration Note", "Discussion Point", "Key Exchange"]
+             
+        title = random.choice(titles)
+        
+        highlights.append({
+            'title': title,
+            'sender': sender_label,
+            'text': msg.get('text', ''),
+            'timestamp': msg.get('timestamp', '')
+        })
+        
+    return jsonify({'highlights': highlights, 'connection_type': connection_type})
+
 
 if __name__ == '__main__':
     debug_mode = os.environ.get('FLASK_DEBUG', 'False').lower() in ['true', '1', 't']

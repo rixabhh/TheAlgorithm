@@ -217,3 +217,90 @@ async function downloadWrappedCard() {
         container.style.zIndex = 'auto';
     }
 }
+
+// --- Contextual Highlights Popup Logic ---
+async function initHighlights() {
+    const toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) return;
+
+    try {
+        const resp = await fetch('/highlights');
+        const data = await resp.json();
+        const highlights = data.highlights;
+        const connectionType = data.connection_type || 'romantic';
+
+        if (!highlights || highlights.length === 0) return;
+
+        // Contextual styling based on connection type
+        let accentColor = 'border-brand-500/50 from-brand-500/10 to-transparent shadow-brand-500/20'; // Romantic Default
+        let iconHtml = '❤️';
+
+        if (connectionType === 'friend') {
+            accentColor = 'border-blue-500/50 from-blue-500/10 to-transparent shadow-blue-500/20';
+            iconHtml = '🤝';
+        } else if (connectionType === 'professional') {
+            accentColor = 'border-emerald-500/50 from-emerald-500/10 to-transparent shadow-emerald-500/20';
+            iconHtml = '💼';
+        } else if (connectionType === 'family') {
+            accentColor = 'border-purple-500/50 from-purple-500/10 to-transparent shadow-purple-500/20';
+            iconHtml = '🏠';
+        }
+
+        let currentIndex = 0;
+
+        const showNextHighlight = () => {
+            if (currentIndex >= highlights.length) {
+                currentIndex = 0; // loop back or end. Let's loop back.
+            }
+
+            const item = highlights[currentIndex];
+            currentIndex++;
+
+            // Create toast element
+            const toast = document.createElement('div');
+            toast.className = `glass-card p-4 rounded-2xl border ${accentColor} shadow-lg backdrop-blur-md transform transition-all duration-700 translate-y-10 opacity-0 min-w-[300px] max-w-sm pointer-events-auto`;
+
+            toast.innerHTML = `
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-bold text-gray-300 uppercase tracking-widest flex items-center gap-1">
+                        ${iconHtml} ${escapeHTML(item.title)}
+                    </span>
+                    <span class="text-[10px] text-gray-500">${escapeHTML(item.timestamp.split(' ')[0])}</span>
+                </div>
+                <div class="text-sm text-gray-100 italic">"${escapeHTML(item.text)}"</div>
+                <div class="mt-2 text-right text-[10px] text-gray-400 font-semibold">— ${escapeHTML(item.sender)}</div>
+            `;
+
+            toastContainer.appendChild(toast);
+
+            // Animate in
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-10', 'opacity-0');
+            });
+
+            // Animate out and remove after 6 seconds
+            setTimeout(() => {
+                toast.classList.add('translate-y-10', 'opacity-0');
+                setTimeout(() => {
+                    toast.remove();
+                }, 700); // Wait for transition to finish
+            }, 6000);
+        };
+
+        // Start showing highlights after a slight initial delay
+        setTimeout(() => {
+            showNextHighlight();
+            // Continue showing a new one every 8 seconds
+            setInterval(showNextHighlight, 8000);
+        }, 3000);
+
+    } catch (e) {
+        console.error("Failed to load highlights:", e);
+    }
+}
+
+// Initialize highlights after everything else
+document.addEventListener('DOMContentLoaded', () => {
+    // Delay initialization slightly to let the heavy dashboard charts render first
+    setTimeout(initHighlights, 1500);
+});
