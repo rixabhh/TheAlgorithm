@@ -55,15 +55,10 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
           
-          # Create a clean orphan branch with no history
-          git checkout --orphan hf-deploy
-          git rm -rf --cached .
-          git add -A
+          # Use a dedicated remote for Hugging Face to avoid confusion
+          git remote add hf https://rixxabh:${{ secrets.HF_TOKEN }}@huggingface.co/spaces/rixxabh/the-algorithm
           
-          # Binary files like favicon might need specialized handling if HF rejects them, 
-          # but usually it's fine if they are small. Leaving for now.
-          
-          git commit -m "deploy: push to HF Spaces (Run $GITHUB_RUN_NUMBER)"
-          
+          # We are already on the current commit, so we can just push it
+          # HF Spaces usually look at the 'main' branch
           echo "Initiating forced push to Hugging Face Space..."
-          git push --force --verbose https://rixxabh:$HF_TOKEN@huggingface.co/spaces/rixxabh/the-algorithm hf-deploy:main
+          git push --force hf HEAD:main
