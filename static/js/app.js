@@ -162,6 +162,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 Processing...
             `;
             analyzeBtn.classList.add('opacity-80', 'cursor-not-allowed');
+            const progressUI = document.getElementById('progressUI');
+            progressUI.classList.remove('hidden');
+            progressUI.classList.add('flex');
 
             const formData = new FormData();
             formData.append('my_name', document.getElementById('myName').value);
