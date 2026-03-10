@@ -13,12 +13,15 @@ from core.analytics import run_analytics_pipeline
 from core.llm_service import generate_report
 
 app = Flask(__name__)
-app.secret_key = 'super-secret-key-for-session-state' # Change in production
+# 🛡️ Sentinel: Secure secret key using environment variable with a robust random fallback
+app.secret_key = os.environ.get('FLASK_SECRET_KEY', os.urandom(32).hex())
+
 app.config.update(
     UPLOAD_FOLDER=os.path.join(tempfile.gettempdir(), 'the_algorithm_uploads'),
     MAX_CONTENT_LENGTH=100 * 1024 * 1024, # 100 mb limit
     SESSION_COOKIE_SAMESITE='None',
-    SESSION_COOKIE_SECURE=True
+    SESSION_COOKIE_SECURE=True,
+    SESSION_COOKIE_HTTPONLY=True  # 🛡️ Sentinel: Prevent XSS session hijacking
 )
 
 # Simple server-side store to bypass 4KB session cookie limit

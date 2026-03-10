@@ -1,0 +1,3 @@
+## 2025-05-14 - [Pandas GroupBy & Memory Optimization]
+**Learning:** The analytics pipeline suffered from $O(N_{weeks} \times \text{Python overhead})$ bottlenecks in `aggregate_weekly` due to `.apply()` on GroupBy objects, and significant memory spikes in `calculate_emoji_frequency` caused by massive intermediate string/list allocations ($O(N_{chars})$).
+**Action:** Replace GroupBy `.apply()` with vectorized `.agg()` using temporary masked columns. Use generator expressions for character-level iteration in emoji detection to maintain a flat memory profile regardless of input size. Ensure pipeline-wide sorting awareness to remove redundant $O(N \log N)$ operations.
