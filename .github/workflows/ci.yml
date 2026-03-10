@@ -78,5 +78,5 @@ EOF
           rm hf_frontmatter.txt
           git add README.md
 
-          git commit -m "deploy: push to HF Spaces"
+          git commit -m "deploy: push to HF Spaces (Run $GITHUB_RUN_NUMBER - $(date))"
           git push --force https://rixxabh:$HF_TOKEN@huggingface.co/spaces/rixxabh/the-algorithm hf-deploy:main
