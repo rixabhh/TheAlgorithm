@@ -228,7 +228,7 @@ class Parsers:
 
     @staticmethod
     def parse_json(file_path: str) -> pd.DataFrame:
-        """Determines if JSON is Instagram or Discord and parses accordingly."""
+        """Determines if JSON is Instagram, Discord, or Telegram and parses accordingly."""
         with open(file_path, 'r', encoding='utf-8') as f:
             try:
                 data = json.loads(sanitize_text(f.read()))
@@ -236,12 +236,20 @@ class Parsers:
                 print(f"JSON Parse Error: {e}")
                 return pd.DataFrame()
 
+        # Telegram JSON Detection
+        if isinstance(data, dict) and data.get('type') == 'personal_chat' and 'messages' in data:
+            return Parsers._parse_telegram_json(data)
+        elif isinstance(data, dict) and 'about' in data and 'chats' in data and 'list' in data['chats']:
+            chats = data['chats']['list']
+            if chats and 'messages' in chats[0]:
+                return Parsers._parse_telegram_json(chats[0])
+
         # Instagram Detection (Participants + Messages key)
         if isinstance(data, dict) and 'messages' in data and 'participants' in data:
             return Parsers._parse_instagram(data)
         
         # Discord Detection (List of messages with 'Timestamp', 'Contents')
-        if isinstance(data, list) and len(data) > 0 and 'Timestamp' in data[0]:
+        if isinstance(data, list) and len(data) > 0 and ('Timestamp' in data[0] or 'timestamp' in data[0]):
             return Parsers._parse_discord_native(data)
         
         # DiscordChatExporter JSON detection
@@ -280,12 +288,32 @@ class Parsers:
     def _parse_discord_native(data: list) -> pd.DataFrame:
         messages = []
         for msg in data:
-            ts = msg.get('Timestamp')
-            text = msg.get('Contents')
+            ts = msg.get('Timestamp') or msg.get('timestamp')
+            text = msg.get('Contents') or msg.get('content')
             if ts and text:
                 messages.append({
                     'timestamp': pd.to_datetime(ts),
                     'sender': 'DISCORD_USER',
+                    'text': text
+                })
+        return pd.DataFrame(messages)
+
+    @staticmethod
+    def _parse_telegram_json(data: dict) -> pd.DataFrame:
+        messages = []
+        for msg in data.get('messages', []):
+            if msg.get('type') != 'message': continue
+            sender = msg.get('from', 'UNKNOWN')
+            text = msg.get('text', '')
+            if isinstance(text, list):
+                # Telegram sometimes uses a list of text entities
+                text = "".join([t if isinstance(t, str) else t.get('text', '') for t in text])
+            
+            ts = msg.get('date') or msg.get('timestamp')
+            if ts and text:
+                messages.append({
+                    'timestamp': pd.to_datetime(ts),
+                    'sender': sender,
                     'text': text
                 })
         return pd.DataFrame(messages)

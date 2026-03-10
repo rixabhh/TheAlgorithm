@@ -168,8 +168,31 @@ document.addEventListener('DOMContentLoaded', () => {
                         // Regex for Email Addresses
                         const emailRegex = /([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/g;
 
-                        text = text.replace(phoneRegex, '[PHONE_REDACTED]');
-                        text = text.replace(emailRegex, '[EMAIL_REDACTED]');
+                        if (file.type === 'application/json' || file.name.endsWith('.json')) {
+                            try {
+                                const jsonObj = JSON.parse(text);
+                                const recurse = (obj) => {
+                                    if (typeof obj === 'string') {
+                                        return obj.replace(phoneRegex, '[PHONE_REDACTED]').replace(emailRegex, '[EMAIL_REDACTED]');
+                                    } else if (Array.isArray(obj)) {
+                                        return obj.map(recurse);
+                                    } else if (obj !== null && typeof obj === 'object') {
+                                        const newObj = {};
+                                        for (let key in obj) {
+                                            newObj[key] = recurse(obj[key]);
+                                        }
+                                        return newObj;
+                                    }
+                                    return obj;
+                                };
+                                text = JSON.stringify(recurse(jsonObj));
+                            } catch (e) {
+                                console.warn("JSON scrub failed, preserving formatting to prevent data loss.", e);
+                            }
+                        } else {
+                            text = text.replace(phoneRegex, '[PHONE_REDACTED]');
+                            text = text.replace(emailRegex, '[EMAIL_REDACTED]');
+                        }
 
                         // Create new file from scrubbed text
                         const blob = new Blob([text], { type: file.type || 'text/plain' });
@@ -240,9 +263,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const timeInterval = setInterval(() => {
                 timeRemaining--;
                 if (timeRemaining > 0) {
-                    estimatedTimeEl.textContent = `Est: ~${timeRemaining}s`;
+                    estimatedTime.textContent = `Est: ~${timeRemaining}s`;
                 } else {
-                    estimatedTimeEl.textContent = "Almost done...";
+                    estimatedTime.textContent = "Almost done...";
                 }
             }, 1000);
 
