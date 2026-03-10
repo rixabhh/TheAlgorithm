@@ -1,4 +1,5 @@
 import os
+from urllib.parse import urlparse
 import pandas as pd
 import numpy as np
 from transformers import pipeline
@@ -32,6 +33,22 @@ def get_sentiment_pipeline():
         print("Model loaded successfully.")
     return sentiment_pipeline
 
+def validate_cloud_url(url: str) -> bool:
+    """
+    Validates that the provided cloud GPU URL is secure and matches the allowed domain.
+    Prevents SSRF by enforcing HTTPS and restricting to *.lit.ai.
+    """
+    if not url:
+        return False
+    try:
+        parsed = urlparse(url)
+        # Enforce HTTPS and restrict to Lightning AI domain (*.lit.ai)
+        if parsed.scheme == 'https' and parsed.netloc.endswith('.lit.ai'):
+            return True
+        return False
+    except Exception:
+        return False
+
 def calculate_latency(df: pd.DataFrame) -> pd.DataFrame:
     df = df.sort_values('timestamp').reset_index(drop=True)
     df['prev_sender'] = df['sender'].shift(1)
@@ -59,6 +76,10 @@ def apply_sentiment(df: pd.DataFrame, hf_url: str = "") -> pd.DataFrame:
     sentiment_scores = []
     
     if hf_url:
+        # 🛡️ Sentinel: Validate URL to prevent SSRF
+        if not validate_cloud_url(hf_url):
+            raise ValueError("Security Error: Invalid cloud GPU URL. Must be a secure https://*.lit.ai endpoint.")
+
         print(f"Offloading sentiment analysis of {len(partner_msgs)} messages to Cloud GPU...")
         import requests
         import concurrent.futures
