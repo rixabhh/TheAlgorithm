@@ -124,6 +124,7 @@ def process_chat():
              
         # 2. Parse Files Concurrently
         dfs = []
+        parsing_errors = []
         with ThreadPoolExecutor(max_workers=min(32, len(saved_files) + 4)) as executor:
             # Submit all parsing tasks
             future_to_filepath = {executor.submit(process_file, fp, my_name, partner_name): fp for fp in saved_files}
@@ -134,9 +135,12 @@ def process_chat():
                     if not df.empty:
                         dfs.append(df)
                 except Exception as exc:
+                    parsing_errors.append(str(exc))
                     print(f"File parsing generated an exception: {exc}")
                 
         if not dfs:
+            if parsing_errors:
+                return jsonify({'error': parsing_errors[0]}), 400
             return jsonify({'error': 'Could not extract any valid messages from the provided files.'}), 400
             
         full_df = pd.concat(dfs, ignore_index=True)
