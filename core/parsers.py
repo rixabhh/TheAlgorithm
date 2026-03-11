@@ -115,7 +115,11 @@ def standardize_entities(df: pd.DataFrame, my_name: str, partner_name: str) -> p
     
     # Filter and Normalize
     df = df[df['sender_mapped'].isin(['ME', 'PARTNER'])].copy()
-    df['sender'] = df['sender_mapped']
+
+    # Performance Optimization (V5.0): Convert sender to categorical dtype.
+    # This reduces RAM usage and speeds up grouping/filtering by using integers internally.
+    df['sender'] = df['sender_mapped'].astype('category')
+
     df.drop(columns=['sender_mapped'], inplace=True)
     return df
 
