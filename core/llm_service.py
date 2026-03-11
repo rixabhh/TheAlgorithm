@@ -168,36 +168,63 @@ def call_xai(api_key: str, sys_prompt: str, data_prompt: str) -> dict:
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json"
     }
-    payload = {
-        "model": "grok-2", # Using 'grok-2' as standard alias for latest
-        "messages": [
-            {"role": "system", "content": sys_prompt},
-            {"role": "user", "content": data_prompt}
-        ],
-        "temperature": 0.7
-    }
     
-    try:
-        resp = requests.post(url, headers=headers, json=payload, timeout=45)
-        if resp.status_code != 200:
-            print(f"XAI Error ({resp.status_code}): {resp.text}")
-            resp.raise_for_status()
+    # Try grok-2 first, fallback to grok-beta
+    models_to_try = ["grok-2", "grok-beta"]
+    last_error = None
+
+    for model_id in models_to_try:
+        payload = {
+            "model": model_id,
+            "messages": [
+                {"role": "system", "content": sys_prompt},
+                {"role": "user", "content": data_prompt}
+            ],
+            "temperature": 0.7
+        }
+        
+        try:
+            resp = requests.post(url, headers=headers, json=payload, timeout=60)
+            if resp.status_code == 200:
+                data = resp.json()
+                content = data['choices'][0]['message']['content'].strip()
+                
+                # Robust JSON extraction
+                if "{" in content:
+                    import re
+                    # Find first { and last }
+                    match = re.search(r'(\{.*\})', content, re.DOTALL)
+                    if match:
+                        content = match.group(1)
+                
+                try:
+                    return json.loads(content)
+                except json.JSONDecodeError as je:
+                    print(f"XAI JSON Parse Error: {je}. Raw content head: {content[:100]}")
+                    raise ValueError(f"Grok returned invalid JSON: {str(je)[:50]}")
             
-        data = resp.json()
-        content = data['choices'][0]['message']['content'].strip()
-        
-        # Grok likes to wrap JSON in markdown blocks sometimes
-        if content.startswith("```"):
-            # Find first { and last }
-            import re
-            match = re.search(r'(\{.*\})', content, re.DOTALL)
-            if match:
-                content = match.group(1)
-        
-        return json.loads(content)
-    except Exception as e:
-        print(f"Detailed call_xai failure: {e}")
-        raise e
+            # If we get here, status was not 200
+            error_text = resp.text
+            print(f"XAI Attempt ({model_id}) Failed: {resp.status_code} - {error_text}")
+            last_error = f"HTTP {resp.status_code}: {error_text}"
+            
+            # If it's a 404 (model not found), try the next model
+            if resp.status_code == 404:
+                continue
+            else:
+                # For other errors (401, 400), don't bother retrying
+                raise ValueError(f"XAI API Error: {last_error}")
+
+        except requests.exceptions.Timeout:
+            last_error = "Request timed out"
+            continue
+        except Exception as e:
+            last_error = str(e)
+            if model_id == models_to_try[-1]:
+                raise e
+            continue
+
+    raise ValueError(f"All Grok models failed. Last error: {last_error}")
 
 def generate_report(provider: str, api_key: str, stats_payload: dict, my_name: str, partner_name: str, connection_type: str, user_context: str = "", output_language: str = "english") -> dict:
     """Main entrypoint for the analytics pipeline to get LLM insights."""
@@ -224,10 +251,13 @@ def generate_report(provider: str, api_key: str, stats_payload: dict, my_name: s
         else:
             raise ValueError(f"Unknown provider: {provider}")
     except Exception as e:
-        print(f"LLM API Error: {e}")
+        err_msg = str(e)
+        print(f"LLM API Error: {err_msg}")
+        # Return a summarized version to the pulse_summary so the user sees it in the UI
+        display_err = err_msg if len(err_msg) < 100 else err_msg[:97] + "..."
         return {
-            "pulse_summary": f"Error contacting {provider} API",
-            "time_machine_insights": str(e),
-            "predictive_path": "Ensure your API key has credits and is valid.",
-            "top_shareable_snippet": "Error."
+            "pulse_summary": f"Error: {display_err}",
+            "time_machine_insights": f"The {provider} API returned an error: {err_msg}",
+            "predictive_path": "Please verify your API key, credits, and internet connection.",
+            "top_shareable_snippet": f"{provider} Error."
         }
