@@ -87,25 +87,29 @@ jobs:
           # Poll every 15 seconds for up to 40 times (10 minutes)
           for i in {1..40}; do
             RESPONSE=$(curl -s https://huggingface.co/api/spaces/$SPACE_ID)
-            STATE=$(echo $RESPONSE | jq -r '.runtime.stage')
+            STATE=$(echo $RESPONSE | jq -r '.runtime.stage' | tr '[:lower:]' '[:upper:]')
             
             echo "Attempt $i: Current HF Space State: $STATE"
             
-            if [ "$STATE" == "RUNNING" ]; then
-              echo "✅ Deployment Successful! Space is live."
-              exit 0
-            elif [[ "$STATE" == "RUNNING_BUILDING" || "$STATE" == "BUILDING" || "$STATE" == "STARTING" || "$STATE" == "QUEUED" || "$STATE" == "RUNNING_APP_STARTING" || "$STATE" == "INITIALIZING" ]]; then
-              echo "...waiting for deployment to complete..."
-              sleep 15
-            else
-              echo "❌ Deployment failed or entered unexpected state: $STATE"
-              echo "Fetching Build Logs..."
-              curl -s -H "Authorization: Bearer $HF_TOKEN" https://huggingface.co/api/spaces/$SPACE_ID/logs/build | tail -n 50
-              echo ""
-              echo "Fetching Container Logs..."
-              curl -s -H "Authorization: Bearer $HF_TOKEN" https://huggingface.co/api/spaces/$SPACE_ID/logs/run | tail -n 50
-              exit 1
-            fi
+            case $STATE in
+              "RUNNING")
+                echo "✅ Deployment Successful! Space is live."
+                exit 0
+                ;;
+              "BUILDING"|"RUNNING_BUILDING"|"STARTING"|"RUNNING_APP_STARTING"|"INITIALIZING"|"QUEUED")
+                echo "...waiting for deployment to complete..."
+                sleep 15
+                ;;
+              *)
+                echo "❌ Deployment failed or unexpected state: $STATE"
+                echo "Fetching Build Logs (10s snapshot)..."
+                timeout 10s curl -s -N -H "Authorization: Bearer $HF_TOKEN" https://huggingface.co/api/spaces/$SPACE_ID/logs/build | tail -n 50 || true
+                echo ""
+                echo "Fetching Container Logs (10s snapshot)..."
+                timeout 10s curl -s -N -H "Authorization: Bearer $HF_TOKEN" https://huggingface.co/api/spaces/$SPACE_ID/logs/run | tail -n 50 || true
+                exit 1
+                ;;
+            esac
           done
           
           echo "⚠️ Deployment timed out after 10 minutes."
