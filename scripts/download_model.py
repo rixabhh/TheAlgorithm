@@ -9,8 +9,10 @@ MODEL_NAME = "cardiffnlp/twitter-xlm-roberta-base-sentiment"
 MODEL_DIR = os.environ.get("MODEL_DIR", "/app/models/sentiment")
 
 print(f"Downloading {MODEL_NAME} to {MODEL_DIR}...")
-tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-model = AutoModelForSequenceClassification.from_pretrained(MODEL_NAME)
+# 🛡️ Sentinel: Pin model revision for supply chain integrity
+REVISION = "f2f1202"
+tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, revision=REVISION)
+model = AutoModelForSequenceClassification.from_pretrained(MODEL_NAME, revision=REVISION)
 
 tokenizer.save_pretrained(MODEL_DIR)
 model.save_pretrained(MODEL_DIR)

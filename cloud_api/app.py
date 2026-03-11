@@ -59,8 +59,9 @@ async def analyze_sentiment(payload: TextPayload):
         return {"scores": sentiment_scores}
         
     except Exception as e:
+        # 🛡️ Sentinel: Mask internal exceptions to prevent information disclosure
         print(f"Error during GPU inference: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="An internal error occurred during GPU inference.")
 
 @app.get("/")
 async def root():
