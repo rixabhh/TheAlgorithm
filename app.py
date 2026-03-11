@@ -5,6 +5,7 @@ import tempfile
 from flask import Flask, render_template, request, jsonify, session
 from werkzeug.utils import secure_filename
 import traceback
+import secrets
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # Local Modules
@@ -26,6 +27,14 @@ app.config.update(
 
 # Simple server-side store to bypass 4KB session cookie limit
 GLOBAL_DATA_STORE = {}
+
+# 🛡️ Sentinel: Strict file extension allowlist
+ALLOWED_EXTENSIONS = {'txt', 'html', 'json', 'pdf'}
+
+def allowed_file(filename):
+    """Check if the uploaded file has a permitted extension."""
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # Ensure upload directory exists
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
@@ -68,19 +77,6 @@ def set_security_headers(response):
 
     return response
 
-def cleanup_uploads():
-    """Delete all files in the uploads folder to maintain privacy."""
-    folder = app.config['UPLOAD_FOLDER']
-    for filename in os.listdir(folder):
-        file_path = os.path.join(folder, filename)
-        try:
-            if os.path.isfile(file_path):
-                os.unlink(file_path)
-            elif os.path.isdir(file_path):
-                shutil.rmtree(file_path)
-        except Exception as e:
-            print(f"Failed to delete {file_path}. Reason: {e}")
-
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -113,83 +109,84 @@ def process_chat():
 
     saved_files = []
     
-    try:
-        # 1. Save files temporarily
-        for file in files:
-            if file and file.filename:
-                filename = secure_filename(file.filename)
-                filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                file.save(filepath)
-                saved_files.append(filepath)
+    # 🛡️ Sentinel: Use TemporaryDirectory for per-request isolation and automatic cleanup
+    with tempfile.TemporaryDirectory() as upload_dir:
+        try:
+            # 1. Save files temporarily
+            for file in files:
+                if file and file.filename:
+                    if not allowed_file(file.filename):
+                        return jsonify({'error': f"File type not allowed: {file.filename}"}), 400
+                    filename = secure_filename(file.filename)
+                    filepath = os.path.join(upload_dir, filename)
+                    file.save(filepath)
+                    saved_files.append(filepath)
+
+            if not saved_files:
+                 return jsonify({'error': 'No valid files uploaded'}), 400
+
+            # 2. Parse Files Concurrently
+            dfs = []
+            parsing_errors = []
+            with ThreadPoolExecutor(max_workers=min(32, len(saved_files) + 4)) as executor:
+                # Submit all parsing tasks
+                future_to_filepath = {executor.submit(process_file, fp, my_name, partner_name): fp for fp in saved_files}
                 
-        if not saved_files:
-             return jsonify({'error': 'No valid files uploaded'}), 400
-             
-        # 2. Parse Files Concurrently
-        dfs = []
-        parsing_errors = []
-        with ThreadPoolExecutor(max_workers=min(32, len(saved_files) + 4)) as executor:
-            # Submit all parsing tasks
-            future_to_filepath = {executor.submit(process_file, fp, my_name, partner_name): fp for fp in saved_files}
+                for future in as_completed(future_to_filepath):
+                    try:
+                        df = future.result()
+                        if not df.empty:
+                            dfs.append(df)
+                    except Exception as exc:
+                        parsing_errors.append(str(exc))
+                        print(f"File parsing generated an exception: {exc}")
+
+            if not dfs:
+                if parsing_errors:
+                    err_str = str(parsing_errors[0])
+                    safe_err = "A file format error or name mismatch occurred."
+                    if "Name Mismatch" in err_str:
+                        safe_err = "Name Mismatch: The provided names do not match the chat data."
+                    elif "format" in err_str.lower():
+                        safe_err = "Unsupported file format."
+                    return jsonify({'error': safe_err}), 400
+                return jsonify({'error': 'Could not extract any valid messages from the provided files.'}), 400
+
+            full_df = pd.concat(dfs, ignore_index=True)
+            full_df.sort_values('timestamp', inplace=True)
             
-            for future in as_completed(future_to_filepath):
-                try:
-                    df = future.result()
-                    if not df.empty:
-                        dfs.append(df)
-                except Exception as exc:
-                    parsing_errors.append(str(exc))
-                    print(f"File parsing generated an exception: {exc}")
+            # 3. Analytics & Privacy Drop
+            analytics_result = run_analytics_pipeline(full_df, hf_url=hf_url, connection_type=connection_type)
+
+            if not analytics_result.get('weekly'):
+                return jsonify({'error': 'Not enough data to form weekly statistics.'}), 400
                 
-        if not dfs:
-            if parsing_errors:
-                err_str = str(parsing_errors[0])
-                safe_err = "A file format error or name mismatch occurred."
-                if "Name Mismatch" in err_str:
-                    safe_err = "Name Mismatch: The provided names do not match the chat data."
-                elif "format" in err_str.lower():
-                    safe_err = "Unsupported file format."
-                return jsonify({'error': safe_err}), 400
-            return jsonify({'error': 'Could not extract any valid messages from the provided files.'}), 400
+            # 4. LLM Generation - Pass the entire analytics payload, not just weekly stats
+            report = generate_report(provider, api_key, analytics_result, my_name, partner_name, connection_type, user_context, output_language)
             
-        full_df = pd.concat(dfs, ignore_index=True)
-        full_df.sort_values('timestamp', inplace=True)
-        
-        # 3. Analytics & Privacy Drop
-        analytics_result = run_analytics_pipeline(full_df, hf_url=hf_url, connection_type=connection_type)
-        
-        if not analytics_result.get('weekly'):
-            return jsonify({'error': 'Not enough data to form weekly statistics.'}), 400
+            # 5. Store in Global Data Store (Session cookies are limited to 4KB)
+            # 🛡️ Sentinel: Replace uuid with cryptographically secure token
+            session_id = secrets.token_urlsafe(16)
             
-        # 4. LLM Generation - Pass the entire analytics payload, not just weekly stats
-        report = generate_report(provider, api_key, analytics_result, my_name, partner_name, connection_type, user_context, output_language)
-        
-        # 5. Store in Global Data Store (Session cookies are limited to 4KB)
-        import uuid
-        session_id = str(uuid.uuid4())
-        
-        # Store df for flashbacks (privacy: only for duration of session)
-        # We only need text, sender, timestamp
-        flashback_df = full_df[['timestamp', 'sender', 'text']].copy()
-        flashback_df['timestamp'] = flashback_df['timestamp'].dt.strftime('%Y-%m-%d %H:%M:%S')
-        
-        GLOBAL_DATA_STORE[session_id] = {
-            'stats': analytics_result,
-            'report': report,
-            'messages': flashback_df.to_dict(orient='records'),
-            'connection_type': connection_type
-        }
-        session['data_id'] = session_id
-        
-        return jsonify({'message': 'Processing completed successfully'})
-        
-    except Exception as e:
-        print(f"Server Error: {e}")
-        traceback.print_exc()
-        return jsonify({'error': 'An internal server error occurred while processing your request.'}), 500
-    finally:
-        # Privacy Firewall: Always clean up files immediately after processing
-        cleanup_uploads()
+            # Store df for flashbacks (privacy: only for duration of session)
+            # We only need text, sender, timestamp
+            flashback_df = full_df[['timestamp', 'sender', 'text']].copy()
+            flashback_df['timestamp'] = flashback_df['timestamp'].dt.strftime('%Y-%m-%d %H:%M:%S')
+
+            GLOBAL_DATA_STORE[session_id] = {
+                'stats': analytics_result,
+                'report': report,
+                'messages': flashback_df.to_dict(orient='records'),
+                'connection_type': connection_type
+            }
+            session['data_id'] = session_id
+
+            return jsonify({'message': 'Processing completed successfully'})
+
+        except Exception as e:
+            print(f"Server Error: {e}")
+            traceback.print_exc()
+            return jsonify({'error': 'An internal server error occurred while processing your request.'}), 500
 
 @app.route('/dashboard')
 def dashboard():

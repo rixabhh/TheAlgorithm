@@ -134,8 +134,12 @@ def call_anthropic(api_key: str, sys_prompt: str, data_prompt: str) -> dict:
     return json.loads(content)
 
 def call_gemini(api_key: str, sys_prompt: str, data_prompt: str) -> dict:
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
-    headers = {"Content-Type": "application/json"}
+    # 🛡️ Sentinel: Move API key from URL to header to prevent exposure in logs
+    url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
+    headers = {
+        "Content-Type": "application/json",
+        "x-goog-api-key": api_key
+    }
     
     # Gemini requires system instructions differently
     payload = {
