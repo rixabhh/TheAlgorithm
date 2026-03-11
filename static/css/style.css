@@ -157,8 +157,16 @@ select.field-input option:hover {
 }
 
 /* ── Toggle Switch ── */
-input[type="checkbox"].toggle {
-    display: none;
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
 }
 
 .toggle-track {
@@ -192,6 +200,11 @@ input[type="checkbox"].toggle:checked+.toggle-track::after {
     transform: translateX(18px);
 }
 
+input[type="checkbox"].toggle:focus-visible+.toggle-track {
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.4);
+    outline: 2px solid transparent;
+}
+
 /* ── Dropzone ── */
 .dropzone {
     border: 1.5px dashed rgba(255, 255, 255, 0.12);
@@ -216,6 +229,11 @@ input[type="checkbox"].toggle:checked+.toggle-track::after {
     box-shadow: 0 0 50px rgba(192, 38, 211, 0.6);
     filter: brightness(1.1);
     transform: translateY(-1px);
+}
+
+.run-btn:focus-visible {
+    outline: 2px solid white;
+    outline-offset: 2px;
 }
 
 /* ── Privacy Pill ── */
