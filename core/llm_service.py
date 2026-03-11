@@ -169,17 +169,35 @@ def call_xai(api_key: str, sys_prompt: str, data_prompt: str) -> dict:
         "Content-Type": "application/json"
     }
     payload = {
-        "model": "grok-2-1212", # Using latest Grok-2 as default
+        "model": "grok-2", # Using 'grok-2' as standard alias for latest
         "messages": [
             {"role": "system", "content": sys_prompt},
             {"role": "user", "content": data_prompt}
         ],
         "temperature": 0.7
     }
-    resp = requests.post(url, headers=headers, json=payload, timeout=30)
-    resp.raise_for_status()
-    content = resp.json()['choices'][0]['message']['content'].strip()
-    return json.loads(content)
+    
+    try:
+        resp = requests.post(url, headers=headers, json=payload, timeout=45)
+        if resp.status_code != 200:
+            print(f"XAI Error ({resp.status_code}): {resp.text}")
+            resp.raise_for_status()
+            
+        data = resp.json()
+        content = data['choices'][0]['message']['content'].strip()
+        
+        # Grok likes to wrap JSON in markdown blocks sometimes
+        if content.startswith("```"):
+            # Find first { and last }
+            import re
+            match = re.search(r'(\{.*\})', content, re.DOTALL)
+            if match:
+                content = match.group(1)
+        
+        return json.loads(content)
+    except Exception as e:
+        print(f"Detailed call_xai failure: {e}")
+        raise e
 
 def generate_report(provider: str, api_key: str, stats_payload: dict, my_name: str, partner_name: str, connection_type: str, user_context: str = "", output_language: str = "english") -> dict:
     """Main entrypoint for the analytics pipeline to get LLM insights."""
