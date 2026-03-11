@@ -281,11 +281,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const statusText = document.getElementById('statusText');
             const progressBar = document.getElementById('progressBar');
             const estimatedTime = document.getElementById('estimatedTime');
+            const progressBarContainer = document.getElementById('progressBarContainer');
 
             const stepInterval = setInterval(() => {
                 if (stepIdx < steps.length && statusText) {
                     statusText.textContent = steps[stepIdx];
-                    if (progressBar) progressBar.style.width = `${((stepIdx + 1) / steps.length) * 100}%`;
+                    const percent = ((stepIdx + 1) / steps.length) * 100;
+                    if (progressBar) progressBar.style.width = `${percent}%`;
+                    if (progressBarContainer) progressBarContainer.setAttribute('aria-valuenow', Math.round(percent));
                     stepIdx++;
                 }
             }, 2500); // 2.5s per step visual
@@ -309,9 +312,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 clearInterval(stepInterval);
                 clearInterval(timeInterval);
-                progressBar.style.width = '100%';
 
                 if (response.ok) {
+                    if (progressBar) progressBar.style.width = '100%';
+                    if (progressBarContainer) progressBarContainer.setAttribute('aria-valuenow', 100);
                     window.location.href = '/dashboard';
                 } else {
                     const err = await response.json();
