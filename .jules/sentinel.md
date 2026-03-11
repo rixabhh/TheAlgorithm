@@ -12,3 +12,8 @@
 **Vulnerability:** File type allowlist was missing, and a shared global upload directory used manual cleanup, creating race conditions and DoS risks in multi-threaded environments.
 **Learning:** Shared resources in concurrent web handlers are inherently prone to interference. A user's cleanup logic could delete another user's files during the window between upload and parsing.
 **Prevention:** Always use `tempfile.TemporaryDirectory` within a `with` block for per-request filesystem isolation. This guarantees atomic cleanup and eliminates cross-request race conditions.
+
+## 2026-03-11 - [DoS via Memory Exhaustion and Information Disclosure]
+**Vulnerability:** Unbounded in-memory session storage (`GLOBAL_DATA_STORE`) and raw exception leakage in public API endpoints.
+**Learning:** Using global dictionaries for session data without an eviction policy creates a trivial DoS vector where repeated requests can exhaust server RAM. Returning `str(e)` in API responses can leak internal stack traces or environment specifics.
+**Prevention:** Implement a strict FIFO eviction policy (e.g., max 100 entries) for in-memory stores. Always mask internal errors with generic messages in production-facing `HTTPException` details. Additionally, enforce input length limits (e.g., 2,000 chars for context) and pin model revisions to ensure supply chain integrity.
