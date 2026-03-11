@@ -76,3 +76,35 @@ jobs:
           
           echo "Initiating forced push to Hugging Face Space..."
           git push --force hf hf-deploy:main
+
+      - name: Monitor Deployment Status
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          SPACE_ID="rixxabh/the-algorithm"
+          echo "Monitoring deployment for $SPACE_ID..."
+          
+          # Poll every 15 seconds for up to 40 times (10 minutes)
+          for i in {1..40}; do
+            RESPONSE=$(curl -s https://huggingface.co/api/spaces/$SPACE_ID)
+            STATE=$(echo $RESPONSE | jq -r '.runtime.stage')
+            
+            echo "Attempt $i: Current HF Space State: $STATE"
+            
+            if [ "$STATE" == "RUNNING" ]; then
+              echo "✅ Deployment Successful! Space is live."
+              exit 0
+            elif [[ "$STATE" == "RUNNING_BUILDING" || "$STATE" == "BUILDING" || "$STATE" == "STARTING" || "$STATE" == "QUEUED" ]]; then
+              echo "...waiting for deployment to complete..."
+              sleep 15
+            else
+              echo "❌ Deployment failed or entered unexpected state: $STATE"
+              echo "Fetching logs..."
+              # Fetching last 100 lines of logs
+              curl -s -H "Authorization: Bearer $HF_TOKEN" https://huggingface.co/api/spaces/$SPACE_ID/logs | tail -n 100
+              exit 1
+            fi
+          done
+          
+          echo "⚠️ Deployment timed out after 10 minutes."
+          exit 1
