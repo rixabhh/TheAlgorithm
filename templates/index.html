@@ -260,18 +260,20 @@
                         <!-- Sensitive Mode -->
                         <label class="flex items-center justify-between cursor-pointer group">
                             <div class="flex items-center gap-2.5">
-                                <svg class="w-4 h-4 text-gray-500 group-hover:text-gray-400 transition-colors" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
+                                <svg class="w-4 h-4 text-gray-500 group-hover:text-gray-400 transition-colors"
+                                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                 </svg>
                                 <div>
                                     <p class="text-sm text-gray-300 font-medium">Sensitive Mode</p>
-                                    <p id="sensitiveModeDesc" class="text-[11px] text-gray-600">Hides real names from the final report.</p>
+                                    <p id="sensitiveModeDesc" class="text-[11px] text-gray-600">Hides real names from
+                                        the final report.</p>
                                 </div>
                             </div>
                             <div class="relative">
-                                <input type="checkbox" id="sensitiveMode" class="toggle sr-only" aria-describedby="sensitiveModeDesc">
+                                <input type="checkbox" id="sensitiveMode" class="toggle sr-only"
+                                    aria-describedby="sensitiveModeDesc">
                                 <div class="toggle-track"></div>
                             </div>
                         </label>
@@ -371,7 +373,8 @@
 
                         <!-- Progress UI -->
                         <div id="progressUI" class="hidden flex-col gap-2">
-                            <div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progressBarContainer">
+                            <div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden" role="progressbar"
+                                aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progressBarContainer">
                                 <div id="progressBar"
                                     class="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-300"
                                     style="width: 0%"></div>
@@ -440,7 +443,7 @@
                         </div>
                         <h3 class="text-sm font-bold text-white">AI Coaching</h3>
                         <p class="text-xs text-gray-500 leading-relaxed">Multi-provider LLM insights from GPT-4o,
-                            Claude, or Gemini. Personalized relationship guidance, not generic advice.</p>
+                            Claude, Gemini, or Grok. Personalized relationship guidance, not generic advice.</p>
                     </div>
                 </div>
             </section>
@@ -475,6 +478,7 @@
                         <option value="openai">OpenAI (GPT-4o)</option>
                         <option value="anthropic">Anthropic (Claude 3.5)</option>
                         <option value="gemini">Google (Gemini 2.5 Flash)</option>
+                        <option value="grok">xAI (Grok-2)</option>
                     </select>
                 </div>
                 <div class="space-y-1.5">
@@ -573,7 +577,8 @@
                     <div>
                         <h4 class="text-sm font-semibold text-white mb-1">4. Safe LLM Usage</h4>
                         <p class="text-xs text-gray-500 leading-relaxed">Your raw chat logs are NEVER sent to OpenAI,
-                            Anthropic, or Gemini. The AI only receives anonymous statistical payload to generate the
+                            Anthropic, Gemini, or xAI. The AI only receives anonymous statistical payload to generate
+                            the
                             coaching report.</p>
                     </div>
                 </div>
