@@ -57,6 +57,7 @@ def set_security_headers(response):
             "https://api.openai.com "
             "https://api.anthropic.com "
             "https://generativelanguage.googleapis.com "
+            "https://api.x.ai "
             "https://*.lit.ai; "
         "base-uri 'self'; "
         "form-action 'self';"

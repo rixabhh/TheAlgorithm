@@ -161,6 +161,26 @@ def call_gemini(api_key: str, sys_prompt: str, data_prompt: str) -> dict:
     content = data['candidates'][0]['content']['parts'][0]['text'].strip()
     return json.loads(content)
 
+def call_xai(api_key: str, sys_prompt: str, data_prompt: str) -> dict:
+    """xAI (Grok) is OpenAI-compatible."""
+    url = "https://api.x.ai/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "model": "grok-2-1212", # Using latest Grok-2 as default
+        "messages": [
+            {"role": "system", "content": sys_prompt},
+            {"role": "user", "content": data_prompt}
+        ],
+        "temperature": 0.7
+    }
+    resp = requests.post(url, headers=headers, json=payload, timeout=30)
+    resp.raise_for_status()
+    content = resp.json()['choices'][0]['message']['content'].strip()
+    return json.loads(content)
+
 def generate_report(provider: str, api_key: str, stats_payload: dict, my_name: str, partner_name: str, connection_type: str, user_context: str = "", output_language: str = "english") -> dict:
     """Main entrypoint for the analytics pipeline to get LLM insights."""
     if not api_key:
@@ -181,6 +201,8 @@ def generate_report(provider: str, api_key: str, stats_payload: dict, my_name: s
             return call_anthropic(api_key, sys_prompt, prompt)
         elif p == 'gemini':
             return call_gemini(api_key, sys_prompt, prompt)
+        elif p == 'grok' or p == 'xai':
+            return call_xai(api_key, sys_prompt, prompt)
         else:
             raise ValueError(f"Unknown provider: {provider}")
     except Exception as e:
