@@ -383,25 +383,33 @@ def calculate_reengagement(df: pd.DataFrame) -> dict:
 
 def calculate_linguistic_mirroring(df: pd.DataFrame) -> dict:
     """Measure how frequently partners adopt each others vocabulary (V4.0)."""
-    if 'text' not in df.columns or len(df) < 100: return {}
+    if 'text' not in df.columns or len(df) < 100:
+        return {}
     
     # Simplified approach: Look for rare punctuation/emoji habits or unique high-frequency words
-    # In a real app, this would use TF-IDF or Embedding distance
     punctuation_habits = ['!!!', '...', '??', 'haha', 'lol', 'lmao']
     
     results = {}
+    # Optimization: Use vectorized .str.contains().any() to avoid massive string joins
+    # Joining 100k messages into one string causes major memory spikes and slow search.
     text_lower = df['text'].astype(str).str.lower()
     
+    # Pre-calculate habit presence for each sender using vectorized operations
+    habit_presence = {}
+    for sender in ['ME', 'PARTNER']:
+        sender_mask = df['sender'] == sender
+        sender_msgs = text_lower[sender_mask]
+        habit_presence[sender] = {
+            habit: sender_msgs.str.contains(habit, regex=False).any()
+            for habit in punctuation_habits
+        }
+
     for sender in ['ME', 'PARTNER']:
         other = 'PARTNER' if sender == 'ME' else 'ME'
-        sender_text = " ".join(text_lower[df['sender'] == sender])
-        other_text = " ".join(text_lower[df['sender'] == other])
-        
-        mirror_score = 0
-        for habit in punctuation_habits:
-            if habit in sender_text and habit in other_text:
-                mirror_score += 1
-                
+        mirror_score = sum(
+            1 for habit in punctuation_habits
+            if habit_presence[sender][habit] and habit_presence[other][habit]
+        )
         results[f"{sender}_mirroring"] = mirror_score
         
     return results
