@@ -94,7 +94,7 @@ jobs:
             if [ "$STATE" == "RUNNING" ]; then
               echo "✅ Deployment Successful! Space is live."
               exit 0
-            elif [[ "$STATE" == "RUNNING_BUILDING" || "$STATE" == "BUILDING" || "$STATE" == "STARTING" || "$STATE" == "QUEUED" ]]; then
+            elif [[ "$STATE" == "RUNNING_BUILDING" || "$STATE" == "BUILDING" || "$STATE" == "STARTING" || "$STATE" == "QUEUED" || "$STATE" == "RUNNING_APP_STARTING" || "$STATE" == "INITIALIZING" ]]; then
               echo "...waiting for deployment to complete..."
               sleep 15
             else
