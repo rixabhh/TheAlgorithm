@@ -99,9 +99,11 @@ jobs:
               sleep 15
             else
               echo "❌ Deployment failed or entered unexpected state: $STATE"
-              echo "Fetching logs..."
-              # Fetching last 100 lines of logs
-              curl -s -H "Authorization: Bearer $HF_TOKEN" https://huggingface.co/api/spaces/$SPACE_ID/logs | tail -n 100
+              echo "Fetching Build Logs..."
+              curl -s -H "Authorization: Bearer $HF_TOKEN" https://huggingface.co/api/spaces/$SPACE_ID/logs/build | tail -n 50
+              echo ""
+              echo "Fetching Container Logs..."
+              curl -s -H "Authorization: Bearer $HF_TOKEN" https://huggingface.co/api/spaces/$SPACE_ID/logs/run | tail -n 50
               exit 1
             fi
           done
