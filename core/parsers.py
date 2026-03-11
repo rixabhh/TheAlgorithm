@@ -6,17 +6,39 @@ from datetime import datetime
 from bs4 import BeautifulSoup
 import pdfplumber
 import json
+import sys
+
+# Performance Optimization (V5.0): Use str.translate with a precomputed mapping
+# table for high-speed text sanitization instead of character-level generator loops.
+_CONTROL_CATEGORIES = ('Cf', 'Cc', 'Zl', 'Zp')
+_KEEP_CHARS = ('\n', '\r', '\t')
+_CONTROL_CHARS = ''.join(
+    chr(i) for i in range(sys.maxunicode + 1)
+    if unicodedata.category(chr(i)) in _CONTROL_CATEGORIES
+    and chr(i) not in _KEEP_CHARS
+)
+_SANITIZATION_TABLE = str.maketrans('', '', _CONTROL_CHARS)
+
+# Pre-compiled Regex Patterns for Core Parsers (V5.0 Optimization)
+# Moving regexes to module-level avoids redundant re.compile calls in ThreadPoolExecutor
+WA_MSG_PATTERN = re.compile(
+    r'^\[?(?P<date>\d{1,2}[/-]\d{1,2}[/-]\d{2,4})[,\s]+(?P<time>\d{1,2}:\d{2}(?::\d{2})?(?:\s*[apAp][mM])?)\]?[\s-]+(?P<sender>[^:]+):\s+(?P<text>.*)$'
+)
+WA_SYS_PATTERN = re.compile(
+    r'^\[?(?P<date>\d{1,2}[/-]\d{1,2}[/-]\d{2,4})[,\s]+(?P<time>\d{1,2}:\d{2}(?::\d{2})?(?:\s*[apAp][mM])?)\]?[\s-]+(?P<sys_msg>Messages and calls are end-to-end encrypted.*|.*changed their phone number|.*joined using an invite link|.*left|.*changed the subject to|.*changed the group description|.*You deleted this message.*)$'
+)
+
+TG_DATE_PATTERN = re.compile(r'class="pull_right date details" title="([^"]+)"')
+TG_DATE_FALLBACK_PATTERN = re.compile(r'class="date" title="([^"]+)"')
+TG_SENDER_PATTERN = re.compile(r'<div class="from_name">\s*([^<]+)\s*</div>')
+TG_TEXT_PATTERN = re.compile(r'<div class="text"[^>]*>(.*?)</div>', re.DOTALL)
+TG_MEDIA_PATTERN = re.compile(r'<div class="media_wrap[^>]*>.*?<div class="title">\s*([^<]+)\s*</div>.*?<div class="status">\s*([^<]+)\s*</div>', re.DOTALL)
 
 
 def sanitize_text(text: str) -> str:
     """Strip invisible Unicode characters (LTR/RTL marks, zero-width spaces, BOM, etc.)
     that messaging apps embed in exports. Applied universally before any parser touches the text."""
-    # Remove Unicode categories: Cf (format), Cc (control except \n \r \t), Zl/Zp (line/paragraph sep)
-    return ''.join(
-        ch for ch in text
-        if ch in ('\n', '\r', '\t')
-        or unicodedata.category(ch) not in ('Cf', 'Cc', 'Zl', 'Zp')
-    )
+    return text.translate(_SANITIZATION_TABLE)
 
 def standardize_entities(df: pd.DataFrame, my_name: str, partner_name: str) -> pd.DataFrame:
     """
@@ -90,27 +112,20 @@ class Parsers:
     
     @staticmethod
     def parse_whatsapp(file_path: str) -> pd.DataFrame:
-        pattern = re.compile(
-            r'^\[?(?P<date>\d{1,2}[/-]\d{1,2}[/-]\d{2,4})[,\s]+(?P<time>\d{1,2}:\d{2}(?::\d{2})?(?:\s*[apAp][mM])?)\]?[\s-]+(?P<sender>[^:]+):\s+(?P<text>.*)$'
-        )
-        sys_pattern = re.compile(
-            r'^\[?(?P<date>\d{1,2}[/-]\d{1,2}[/-]\d{2,4})[,\s]+(?P<time>\d{1,2}:\d{2}(?::\d{2})?(?:\s*[apAp][mM])?)\]?[\s-]+(?P<sys_msg>Messages and calls are end-to-end encrypted.*|.*changed their phone number|.*joined using an invite link|.*left|.*changed the subject to|.*changed the group description|.*You deleted this message.*)$'
-        )
-
         dt_strs, senders, texts = [], [], []
         with open(file_path, 'r', encoding='utf-8') as f:
             for line in f:
                 line = sanitize_text(line).strip()
                 if not line:
                     continue
-                match = pattern.match(line)
+                match = WA_MSG_PATTERN.match(line)
                 if match:
                     date_str, time_str, sender, text = match.groups()
                     dt_strs.append(f"{date_str} {time_str}")
                     senders.append(sender.strip())
                     texts.append(text.strip())
                 else:
-                    sys_match = sys_pattern.match(line)
+                    sys_match = WA_SYS_PATTERN.match(line)
                     if sys_match:
                          pass # Skip system messages
                     elif texts:
@@ -142,9 +157,9 @@ class Parsers:
                 continue
             
             # Extract date
-            date_match = re.search(r'class="pull_right date details" title="([^"]+)"', block)
+            date_match = TG_DATE_PATTERN.search(block)
             if not date_match:
-                date_match = re.search(r'class="date" title="([^"]+)"', block)
+                date_match = TG_DATE_FALLBACK_PATTERN.search(block)
             
             if not date_match:
                 continue
@@ -154,19 +169,19 @@ class Parsers:
             dt_str = f"{parts[0]} {parts[1]}" if len(parts) >= 2 else title_str
             
             # Extract sender
-            sender_match = re.search(r'<div class="from_name">\s*([^<]+)\s*</div>', block)
+            sender_match = TG_SENDER_PATTERN.search(block)
             if sender_match:
                 current_sender = sender_match.group(1).strip()
             
             # Extract text
-            text_match = re.search(r'<div class="text"[^>]*>(.*?)</div>', block, re.DOTALL)
+            text_match = TG_TEXT_PATTERN.search(block)
             text = ""
             if text_match:
                 raw_text = text_match.group(1)
                 text = re.sub(r'<[^>]+>', '\n', raw_text).strip()
             else:
                 # Check for media (Voice messages, Stickers, etc.)
-                media_match = re.search(r'<div class="media_wrap[^>]*>.*?<div class="title">\s*([^<]+)\s*</div>.*?<div class="status">\s*([^<]+)\s*</div>', block, re.DOTALL)
+                media_match = TG_MEDIA_PATTERN.search(block)
                 if media_match:
                     text = f"[{media_match.group(1).strip()}] {media_match.group(2).strip()}"
                     
@@ -202,14 +217,11 @@ class Parsers:
         
     @staticmethod
     def _parse_raw_lines_whatsapp(lines: list) -> pd.DataFrame:
-        pattern = re.compile(
-            r'^\[?(?P<date>\d{1,2}[/-]\d{1,2}[/-]\d{2,4})[,\s]+(?P<time>\d{1,2}:\d{2}(?::\d{2})?(?:\s*[apAp][mM])?)\]?[\s-]+(?P<sender>[^:]+):\s+(?P<text>.*)$'
-        )
         dt_strs, senders, texts = [], [], []
         for line in lines:
             line = line.strip()
             if not line: continue
-            match = pattern.match(line)
+            match = WA_MSG_PATTERN.match(line)
             if match:
                 date_str, time_str, sender, text = match.groups()
                 dt_strs.append(f"{date_str} {time_str}")
