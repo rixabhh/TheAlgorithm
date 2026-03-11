@@ -250,15 +250,16 @@
                                             d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                     </svg>
                                 </span>
-                                <textarea id="userContext" rows="1"
+                                <textarea id="userContext" rows="1" maxlength="2000"
                                     placeholder="e.g. 'We just moved to a new city' or 'My partner started a stressful job'"
                                     class="field-input pl-8 resize-none"
                                     style="padding-top: 8px; padding-bottom: 8px;"></textarea>
+                                <div id="userContextCharCount" class="text-[10px] text-gray-500 text-right mt-1" aria-live="polite">0 / 2000</div>
                             </div>
                         </div>
 
                         <!-- Sensitive Mode -->
-                        <label class="flex items-center justify-between cursor-pointer group">
+                        <label for="sensitiveMode" class="flex items-center justify-between cursor-pointer group">
                             <div class="flex items-center gap-2.5">
                                 <svg class="w-4 h-4 text-gray-500 group-hover:text-gray-400 transition-colors"
                                     fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -123,6 +123,20 @@ document.addEventListener('DOMContentLoaded', () => {
         fileInput.addEventListener('change', updateFileList);
     }
 
+    // Auto-expand User Context textarea and update character count
+    const userContextEl = document.getElementById('userContext');
+    const charCountEl = document.getElementById('userContextCharCount');
+
+    if (userContextEl && charCountEl) {
+        userContextEl.addEventListener('input', () => {
+            userContextEl.style.height = 'auto';
+            userContextEl.style.height = (userContextEl.scrollHeight) + 'px';
+            const len = userContextEl.value.length;
+            charCountEl.textContent = `${len} / 2000`;
+            charCountEl.className = `text-[10px] text-right mt-1 ${len >= 1900 ? 'text-brand-400' : 'text-gray-500'}`;
+        });
+    }
+
     function updateFileList() {
         if (fileInput && fileInput.files.length > 0) {
             fileList.classList.remove('hidden');
