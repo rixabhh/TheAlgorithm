@@ -49,7 +49,6 @@ def sanitize_text(text: str) -> str:
     that messaging apps embed in exports. Applied universally before any parser touches the text."""
     # Optimization: Use str.translate for O(N) performance vs O(N*M) character-level loop
     return text.translate(_STRIP_TABLE)
-    return text.translate(_SANITIZATION_TABLE)
 
 def standardize_entities(df: pd.DataFrame, my_name: str, partner_name: str) -> pd.DataFrame:
     """
