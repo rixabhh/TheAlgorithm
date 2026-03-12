@@ -71,7 +71,8 @@ def set_security_headers(response):
     response.headers['Permissions-Policy'] = 'camera=(), microphone=(), geolocation=()'
 
     # No-cache on sensitive routes to prevent browser history leaking results
-    if request.path in ('/process', '/dashboard', '/flashback-messages'):
+    # 🛡️ Sentinel: Fix typo and add /highlights and /flashback to protect sensitive data
+    if request.path in ('/process', '/dashboard', '/flashback', '/highlights'):
         response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
         response.headers['Pragma'] = 'no-cache'
         response.headers['Expires'] = '0'
@@ -100,7 +101,8 @@ def process_chat():
     partner_name = request.form.get('partner_name', '').strip()
     connection_type = request.form.get('connection_type', 'romantic').strip()
     output_language = request.form.get('output_language', 'english').strip()
-    user_context = request.form.get('user_context', '').strip()
+    # 🛡️ Sentinel: Truncate user_context to 2,000 chars to prevent DoS via massive payload
+    user_context = request.form.get('user_context', '').strip()[:2000]
     api_key = request.form.get('api_key', '').strip()
     hf_url = request.form.get('hf_url', '').strip()
     provider = request.form.get('llm_provider', 'openai').strip()
@@ -168,6 +170,11 @@ def process_chat():
             # 5. Store in Global Data Store (Session cookies are limited to 4KB)
             # 🛡️ Sentinel: Replace uuid with cryptographically secure token
             session_id = secrets.token_urlsafe(16)
+
+            # 🛡️ Sentinel: Implement FIFO eviction to prevent memory exhaustion (DoS)
+            if len(GLOBAL_DATA_STORE) >= 100:
+                oldest_session = next(iter(GLOBAL_DATA_STORE))
+                del GLOBAL_DATA_STORE[oldest_session]
             
             # Store df for flashbacks (privacy: only for duration of session)
             # We only need text, sender, timestamp
