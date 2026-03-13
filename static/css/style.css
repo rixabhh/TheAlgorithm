@@ -236,6 +236,12 @@ input[type="checkbox"].toggle:focus-visible+.toggle-track {
     outline-offset: 2px;
 }
 
+#toggleApiKey:focus-visible {
+    outline: 2px solid rgba(139, 92, 246, 0.5);
+    outline-offset: -4px;
+    border-radius: 4px;
+}
+
 /* ── Privacy Pill ── */
 .privacy-pill {
     background: rgba(139, 92, 246, 0.12);
