@@ -10,6 +10,29 @@ document.addEventListener('DOMContentLoaded', () => {
     const saveSettingsBtn = document.getElementById('saveSettingsBtn');
     const fileList = document.getElementById('fileList');
 
+    // API Key UI Status
+    const updateApiKeyUI = () => {
+        const icon = document.getElementById('apiKeyStatusIcon');
+        const text = document.getElementById('apiKeyStatusText');
+        if (!icon || !text) return;
+
+        const key = sessionStorage.getItem('_llm_token');
+        if (key && key.trim() !== "" && key !== btoa("")) {
+            icon.classList.remove('text-brand-400');
+            icon.classList.add('text-emerald-400');
+            text.textContent = 'API Key Configured';
+            text.classList.remove('text-gray-300');
+            text.classList.add('text-emerald-400');
+        } else {
+            icon.classList.add('text-brand-400');
+            icon.classList.remove('text-emerald-400');
+            text.textContent = 'API Key Required';
+            text.classList.add('text-gray-300');
+            text.classList.remove('text-emerald-400');
+        }
+    };
+    updateApiKeyUI();
+
     // --- Trust Center Logic ---
     const trustCenterBtn = document.getElementById('trustCenterBtn');
     const trustCenterModal = document.getElementById('trustCenterModal');
@@ -23,6 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
             trustCenterModal.classList.add('hidden');
             trustCenterModal.classList.remove('flex');
+            if (trustCenterBtn) trustCenterBtn.focus();
         }, 300);
     };
 
@@ -32,6 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
             settingsModal.classList.add('hidden');
             settingsModal.classList.remove('flex');
+            if (settingsBtn) settingsBtn.focus();
         }, 300);
     };
 
@@ -50,6 +75,8 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
                 trustCenterModal.classList.remove('opacity-0');
                 document.getElementById('trustCenterContent').classList.remove('scale-95');
+                const firstBtn = trustCenterModal.querySelector('button');
+                if (firstBtn) firstBtn.focus();
             }, 10);
         });
 
@@ -65,6 +92,8 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
                 settingsModal.classList.remove('opacity-0');
                 document.getElementById('settingsContent').classList.remove('scale-95');
+                const provider = document.getElementById('llmProvider');
+                if (provider) provider.focus();
             }, 10);
         });
 
@@ -74,6 +103,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const apiKeyEl = document.getElementById('apiKey');
         const hfUrlEl = document.getElementById('hfUrl');
         const llmProviderEl = document.getElementById('llmProvider');
+
+        // Allow Save with Enter key
+        [apiKeyEl, hfUrlEl].forEach(el => {
+            if (el) {
+                el.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (saveSettingsBtn) saveSettingsBtn.click();
+                    }
+                });
+            }
+        });
 
         if (apiKeyEl) apiKeyEl.value = sessionStorage.getItem('_llm_token') ? atob(sessionStorage.getItem('_llm_token')) : '';
         if (hfUrlEl) hfUrlEl.value = localStorage.getItem('hf_url') || '';
@@ -89,6 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 sessionStorage.setItem('_llm_token', btoa(key));
                 localStorage.setItem('hf_url', hfUrl);
                 localStorage.setItem('llm_provider', provider);
+                updateApiKeyUI();
                 hideSettings();
             });
         }
