@@ -189,14 +189,14 @@ def process_chat():
                 del GLOBAL_DATA_STORE[oldest_session]
             
             # Store df for flashbacks (privacy: only for duration of session)
-            # We only need text, sender, timestamp
+            # Performance Optimization: Store as DataFrame to avoid slow to_dict() and
+            # enable vectorized filtering in /flashback and /highlights.
             flashback_df = full_df[['timestamp', 'sender', 'text']].copy()
-            flashback_df['timestamp'] = flashback_df['timestamp'].dt.strftime('%Y-%m-%d %H:%M:%S')
 
             GLOBAL_DATA_STORE[session_id] = {
                 'stats': analytics_result,
                 'report': report,
-                'messages': flashback_df.to_dict(orient='records'),
+                'messages': flashback_df,
                 'connection_type': connection_type
             }
             session['data_id'] = session_id
@@ -224,24 +224,22 @@ def get_flashback():
     if not data_id or not week_start or data_id not in GLOBAL_DATA_STORE:
         return jsonify([])
         
-    all_msgs = GLOBAL_DATA_STORE[data_id]['messages']
+    df = GLOBAL_DATA_STORE[data_id]['messages']
     
     # Filter messages for that week
     try:
         ws_dt = pd.to_datetime(week_start)
         we_dt = ws_dt + pd.Timedelta(days=7)
         
-        # Convert to records logic
-        messages_in_week = []
-        for m in all_msgs:
-            m_dt = pd.to_datetime(m['timestamp'])
-            if ws_dt <= m_dt < we_dt:
-                messages_in_week.append(m)
-                if len(messages_in_week) > 50: break # Limit to first 50
+        # Performance Optimization: Replace O(N) Python loop with vectorized Pandas filtering
+        mask = (df['timestamp'] >= ws_dt) & (df['timestamp'] < we_dt)
+        messages_in_week = df[mask].head(50).copy()
+        messages_in_week['timestamp'] = messages_in_week['timestamp'].dt.strftime('%Y-%m-%d %H:%M:%S')
                 
-        # Sample 5 representative ones (or just first 5)
-        return jsonify(messages_in_week[:8])
-    except:
+        # Sample 8 representative ones
+        return jsonify(messages_in_week.to_dict(orient='records')[:8])
+    except Exception as e:
+        print(f"Flashback error: {e}")
         return jsonify([])
 
 @app.route('/highlights')
@@ -250,9 +248,12 @@ def get_highlights():
     if not data_id or data_id not in GLOBAL_DATA_STORE:
         return jsonify({'highlights': []})
         
-    all_msgs = GLOBAL_DATA_STORE[data_id].get('messages', [])
+    df = GLOBAL_DATA_STORE[data_id].get('messages')
     connection_type = GLOBAL_DATA_STORE[data_id].get('connection_type', 'romantic')
     
+    if df is None or df.empty:
+        return jsonify({'highlights': []})
+
     # Filter messages that are reasonably substantial, not just media/links, and not tiny reactions
     system_phrases = [
         "missed voice call", 
@@ -269,25 +270,41 @@ def get_highlights():
         "contact card omitted"
     ]
     
-    valid_msgs = []
-    for m in all_msgs:
-        t = str(m.get('text', '')).strip()
-        t_lower = t.lower()
-        
-        is_sys_msg = any(sys_phrase in t_lower for sys_phrase in system_phrases)
-        
-        if len(t) > 15 and len(t) < 150 and not t.startswith('<Media') and 'http' not in t and not is_sys_msg:
-            valid_msgs.append(m)
+    # Performance Optimization: Use vectorized Pandas string operations for filtering
+    # instead of a manual O(N) Python loop.
+    t_series = df['text'].astype(str)
+    t_lower = t_series.str.lower()
+
+    # Check for system phrases using vectorized regex search
+    is_sys_msg = t_lower.str.contains('|'.join(system_phrases), regex=True, na=False)
+
+    # Combined filter: length 15-150, no media tags, no links, not system message
+    mask = (
+        (t_series.str.len() > 15) &
+        (t_series.str.len() < 150) &
+        (~t_series.str.startswith('<Media', na=False)) &
+        (~t_series.str.contains('http', na=False)) &
+        (~is_sys_msg)
+    )
+
+    valid_df = df[mask]
             
-    if not valid_msgs:
+    if valid_df.empty:
         return jsonify({'highlights': []})
         
     # 🛡️ Sentinel: Use cryptographically secure random for highlight selection (Bandit B311)
     secure_random = secrets.SystemRandom()
 
     # Sample up to 5 highlights
-    sample_size = min(5, len(valid_msgs))
-    sampled = secure_random.sample(valid_msgs, sample_size)
+    sample_size = min(5, len(valid_df))
+    sampled_indices = secure_random.sample(range(len(valid_df)), sample_size)
+    sampled_df = valid_df.iloc[sampled_indices].copy()
+
+    # Performance Optimization: Format timestamp to string once for the sample
+    sampled_df['timestamp'] = sampled_df['timestamp'].dt.strftime('%Y-%m-%d %H:%M:%S')
+
+    # Convert to list of dicts for processing
+    sampled = sampled_df.to_dict(orient='records')
     
     highlights = []
     for msg in sampled:
