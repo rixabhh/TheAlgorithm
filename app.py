@@ -97,15 +97,27 @@ def process_chat():
         return jsonify({'error': 'No file part'}), 400
     
     files = request.files.getlist('chat_files')
-    my_name = request.form.get('my_name', '').strip()
-    partner_name = request.form.get('partner_name', '').strip()
+    # 🛡️ Sentinel: Enforce length limits on names to prevent resource exhaustion/injection bloat
+    my_name = request.form.get('my_name', '').strip()[:100]
+    partner_name = request.form.get('partner_name', '').strip()[:100]
+
+    # 🛡️ Sentinel: Strict allowlists for critical parameters
     connection_type = request.form.get('connection_type', 'romantic').strip()
+    if connection_type not in ['romantic', 'friendship', 'professional', 'family', 'casual']:
+        connection_type = 'romantic'
+
     output_language = request.form.get('output_language', 'english').strip()
+    if output_language not in ['english', 'hinglish', 'hindi']:
+        output_language = 'english'
+
     # 🛡️ Sentinel: Truncate user_context to 2,000 chars to prevent DoS via massive payload
     user_context = request.form.get('user_context', '').strip()[:2000]
     api_key = request.form.get('api_key', '').strip()
     hf_url = request.form.get('hf_url', '').strip()
+
     provider = request.form.get('llm_provider', 'openai').strip()
+    if provider not in ['openai', 'anthropic', 'gemini', 'grok', 'xai']:
+        provider = 'openai'
     
     if not my_name or not partner_name:
          return jsonify({'error': 'Both names are required'}), 400
@@ -234,7 +246,6 @@ def get_flashback():
 
 @app.route('/highlights')
 def get_highlights():
-    import random
     data_id = session.get('data_id')
     if not data_id or data_id not in GLOBAL_DATA_STORE:
         return jsonify({'highlights': []})
@@ -271,9 +282,12 @@ def get_highlights():
     if not valid_msgs:
         return jsonify({'highlights': []})
         
+    # 🛡️ Sentinel: Use cryptographically secure random for highlight selection (Bandit B311)
+    secure_random = secrets.SystemRandom()
+
     # Sample up to 5 highlights
     sample_size = min(5, len(valid_msgs))
-    sampled = random.sample(valid_msgs, sample_size)
+    sampled = secure_random.sample(valid_msgs, sample_size)
     
     highlights = []
     for msg in sampled:
@@ -288,7 +302,7 @@ def get_highlights():
         elif connection_type == 'professional':
              titles = ["Collaboration Note", "Discussion Point", "Key Exchange"]
              
-        title = random.choice(titles)
+        title = secure_random.choice(titles)
         
         highlights.append({
             'title': title,
