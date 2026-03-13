@@ -163,7 +163,7 @@
                                         </svg>
                                     </span>
                                     <input type="text" id="myName" required placeholder="e.g. Rahul"
-                                        class="field-input pl-8">
+                                        class="field-input pl-8" maxlength="100">
                                 </div>
                             </div>
                             <div class="space-y-1">
@@ -177,7 +177,7 @@
                                         </svg>
                                     </span>
                                     <input type="text" id="partnerName" required placeholder="e.g. Priya"
-                                        class="field-input pl-8">
+                                        class="field-input pl-8" maxlength="100">
                                 </div>
                             </div>
                         </div>
@@ -474,7 +474,7 @@
             <p class="text-xs text-gray-500 mb-6">Bring Your Own Key (BYOK)</p>
             <div class="space-y-4">
                 <div class="space-y-1.5">
-                    <label class="text-sm font-medium text-gray-300">Provider</label>
+                    <label for="llmProvider" class="text-sm font-medium text-gray-300">Provider</label>
                     <select id="llmProvider" class="field-input">
                         <option value="openai">OpenAI (GPT-4o)</option>
                         <option value="anthropic">Anthropic (Claude 3.5)</option>
@@ -483,12 +483,20 @@
                     </select>
                 </div>
                 <div class="space-y-1.5">
-                    <label class="text-sm font-medium text-gray-300">API Key</label>
-                    <input type="password" id="apiKey" placeholder="sk-..." class="field-input">
+                    <label for="apiKey" class="text-sm font-medium text-gray-300">API Key</label>
+                    <div class="relative">
+                        <input type="password" id="apiKey" placeholder="sk-..." class="field-input pr-10">
+                        <button type="button" id="toggleApiKey" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-white transition-colors" aria-label="Show API Key">
+                            <svg id="eyeIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                        </button>
+                    </div>
                     <p class="text-xs text-purple-400 mt-1">Stored securely in your browser's sessionStorage.</p>
                 </div>
                 <div class="space-y-1.5 border-t border-white/8 pt-4">
-                    <label class="text-sm font-medium text-gray-300">Lightning Studio API URL <span
+                    <label for="hfUrl" class="text-sm font-medium text-gray-300">Lightning Studio API URL <span
                             class="text-gray-600">(Optional)</span></label>
                     <input type="text" id="hfUrl" placeholder="https://xxxx-8000.lit.ai/analyze" class="field-input">
                     <p class="text-xs text-gray-600 mt-1">Deploy the cloud_api folder to Lightning AI and paste your URL
