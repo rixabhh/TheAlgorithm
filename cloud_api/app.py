@@ -5,6 +5,7 @@ from typing import List
 from transformers import pipeline
 import json
 import uvicorn
+import os
 
 app = FastAPI(title="The Algorithm - Cloud GPU API")
 
@@ -72,4 +73,6 @@ async def health_check():
     return {"status": "online", "gpu_enabled": True}
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    # 🛡️ Sentinel: Use environment variable for host binding to follow security best practices
+    host = os.environ.get("HOST", "127.0.0.1")
+    uvicorn.run(app, host=host, port=8000)
