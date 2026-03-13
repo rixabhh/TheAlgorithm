@@ -44,6 +44,7 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 def set_security_headers(response):
     """Apply security headers to every response."""
     # Content Security Policy — only allow resources from same origin + specific CDNs
+    # 🛡️ Sentinel: Added frame-ancestors to prevent clickjacking while allowing HF embedding
     response.headers['Content-Security-Policy'] = (
         "default-src 'self'; "
         "script-src 'self' 'unsafe-inline' 'unsafe-eval' "
@@ -60,7 +61,8 @@ def set_security_headers(response):
             "https://api.x.ai "
             "https://*.lit.ai; "
         "base-uri 'self'; "
-        "form-action 'self';"
+        "form-action 'self'; "
+        "frame-ancestors 'self' https://*.huggingface.co https://huggingface.co;"
     )
     # Prevent clickjacking is removed to allow Hugging Face Spaces iframe embedding
     # Prevent MIME sniffing
