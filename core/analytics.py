@@ -196,13 +196,15 @@ def aggregate_weekly(df: pd.DataFrame) -> pd.DataFrame:
     weekly.fillna({'median_latency': 0, 'mean_sentiment': 0}, inplace=True)
     return weekly
 
-def calculate_emoji_frequency(df: pd.DataFrame) -> dict:
+def calculate_emoji_frequency(df: pd.DataFrame, text_str: pd.Series = None) -> dict:
     """Extract top-10 emoji usage per sender. Must be called BEFORE privacy firewall drops text."""
     result = {}
+    # Use pre-calculated string series if provided to avoid redundant astype(str)
+    t_series = text_str if text_str is not None else df['text'].astype(str)
     for sender in ['ME', 'PARTNER']:
         mask = df['sender'] == sender
         # Memory-efficient: Use generator to avoid creating a massive intermediate string/list
-        emojis_gen = (c for text in df.loc[mask, 'text'].astype(str) for c in text if emoji.is_emoji(c))
+        emojis_gen = (c for text in t_series[mask] for c in text if emoji.is_emoji(c))
         counts = Counter(emojis_gen).most_common(10)
         result[sender] = [{'emoji': e, 'count': c} for e, c in counts]
     return result
@@ -279,12 +281,14 @@ def detect_risk_phases(weekly_df: pd.DataFrame) -> pd.DataFrame:
         weekly_df['phase'] = weekly_df['risk_score'].apply(_phase)
     return weekly_df
 
-def calculate_power_dynamics(df: pd.DataFrame) -> dict:
+def calculate_power_dynamics(df: pd.DataFrame, text_str: pd.Series = None) -> dict:
     """Calculate the Word Count ratio to establish Power Dynamics (V3.0)."""
     if 'text' not in df.columns: return {}
     
     # Optimization: Use str.count for faster vectorized word counting
-    df['word_count'] = df['text'].astype(str).str.count(r'\S+')
+    # Use pre-calculated string series if provided
+    t_series = text_str if text_str is not None else df['text'].astype(str)
+    df['word_count'] = t_series.str.count(r'\S+')
     counts = df.groupby('sender')['word_count'].sum().to_dict()
     
     me_words = int(counts.get('ME', 0))
@@ -299,14 +303,15 @@ def calculate_power_dynamics(df: pd.DataFrame) -> dict:
         'power_ratio': ratio
     }
 
-def calculate_affection_friction(df: pd.DataFrame) -> dict:
+def calculate_affection_friction(df: pd.DataFrame, text_lower: pd.Series = None) -> dict:
     """Detect 'Burnout' via affirmative vs dismissive language trends (V3.0)."""
     if 'text' not in df.columns: return {}
     
     affirmative = ['love', 'thanks', 'happy', 'we', 'miss', 'appreciate', 'glad', 'proud', 'beautiful', 'care']
     dismissive = ['whatever', 'fine', 'okay', 'sure', 'k', 'ok', 'busy', 'tired', 'idk', 'anyway']
     
-    text_lower = df['text'].astype(str).str.lower()
+    # Use pre-calculated lowercased series if provided
+    text_lower = text_lower if text_lower is not None else df['text'].astype(str).str.lower()
     
     # Count occurrences across the entire dataset
     aff_count = text_lower.str.contains('|'.join(affirmative), regex=True).sum()
@@ -317,7 +322,7 @@ def calculate_affection_friction(df: pd.DataFrame) -> dict:
         'dismissive_count': int(dis_count)
     }
 
-def calculate_support_gap(df: pd.DataFrame) -> dict:
+def calculate_support_gap(df: pd.DataFrame, text_lower: pd.Series = None, text_str: pd.Series = None) -> dict:
     """Identify stress messages and measure partner's response quality (V4.0)."""
     if 'text' not in df.columns or len(df) < 5: return {}
     
@@ -326,11 +331,15 @@ def calculate_support_gap(df: pd.DataFrame) -> dict:
     # Optimization: Use input df directly as it is already sorted
     df_temp = df
 
+    # Use pre-calculated series if provided
+    t_lower = text_lower if text_lower is not None else df_temp['text'].astype(str).str.lower()
+    t_str_vals = text_str.values if text_str is not None else df_temp['text'].astype(str).values
+
     # Vectorized stress detection outside the loop is much faster
-    is_stress = df_temp['text'].astype(str).str.lower().str.contains('|'.join(stress_keywords), regex=True).values
+    is_stress = t_lower.str.contains('|'.join(stress_keywords), regex=True).values
     senders = df_temp['sender'].values
     timestamps = df_temp['timestamp'].values
-    texts = df_temp['text'].astype(str).values
+    texts = t_str_vals
     
     support_results = {
         'ME': {'stress_count': 0, 'support_received': 0},
@@ -381,7 +390,7 @@ def calculate_reengagement(df: pd.DataFrame) -> dict:
         'partner_reengagements': int(counts.get('PARTNER', 0))
     }
 
-def calculate_linguistic_mirroring(df: pd.DataFrame) -> dict:
+def calculate_linguistic_mirroring(df: pd.DataFrame, text_lower: pd.Series = None) -> dict:
     """Measure how frequently partners adopt each others vocabulary (V4.0)."""
     if 'text' not in df.columns or len(df) < 100:
         return {}
@@ -392,7 +401,8 @@ def calculate_linguistic_mirroring(df: pd.DataFrame) -> dict:
     results = {}
     # Optimization: Use vectorized .str.contains().any() to avoid massive string joins
     # Joining 100k messages into one string causes major memory spikes and slow search.
-    text_lower = df['text'].astype(str).str.lower()
+    # Use pre-calculated lowercased series if provided
+    text_lower = text_lower if text_lower is not None else df['text'].astype(str).str.lower()
     
     # Pre-calculate habit presence for each sender using vectorized operations
     habit_presence = {}
@@ -414,7 +424,7 @@ def calculate_linguistic_mirroring(df: pd.DataFrame) -> dict:
         
     return results
 
-def calculate_topic_mix(df: pd.DataFrame, connection_type: str) -> dict:
+def calculate_topic_mix(df: pd.DataFrame, connection_type: str, text_lower: pd.Series = None) -> dict:
     """Categorize conversation dynamically based on connection type (V4.0)."""
     if 'text' not in df.columns: return {}
     
@@ -437,7 +447,8 @@ def calculate_topic_mix(df: pd.DataFrame, connection_type: str) -> dict:
         # Default fallback
         categories = {'Logistics': logistics, 'Bonding': ['miss', 'care', 'fun'], 'Conflict': conflict, 'External': external}
     
-    text_lower = df['text'].astype(str).str.lower()
+    # Use pre-calculated lowercased series if provided
+    text_lower = text_lower if text_lower is not None else df['text'].astype(str).str.lower()
     results = {}
     
     for cat, keywords in categories.items():
@@ -449,20 +460,25 @@ def run_analytics_pipeline(df: pd.DataFrame, hf_url: str = "", connection_type: 
     """Runs the full analytics pipeline and returns a dict with weekly stats, emoji freq, and initiator ratio."""
     df = calculate_latency(df)
     df = apply_sentiment(df, hf_url=hf_url)
+
+    # Optimization: Pre-calculate string conversions and lowercasing once
+    # to avoid redundant O(N) operations across multiple analytics functions.
+    text_str = df['text'].astype(str)
+    text_lower = text_str.str.lower()
     
     # Phase 6: Extract enhanced features BEFORE privacy firewall
-    emoji_freq = calculate_emoji_frequency(df)
+    emoji_freq = calculate_emoji_frequency(df, text_str=text_str)
     initiator_ratio = calculate_initiator_ratio(df.copy())
     
     # Phase 8 (V3.0): Power Dynamics & Burnout NLP
-    power_dynamics = calculate_power_dynamics(df)
-    affection_friction = calculate_affection_friction(df)
+    power_dynamics = calculate_power_dynamics(df, text_str=text_str)
+    affection_friction = calculate_affection_friction(df, text_lower=text_lower)
     
     # Phase 11 (V4.0): Advanced Personalization
-    support_gap = calculate_support_gap(df)
+    support_gap = calculate_support_gap(df, text_lower=text_lower, text_str=text_str)
     reengagement = calculate_reengagement(df)
-    mirroring = calculate_linguistic_mirroring(df)
-    topic_mix = calculate_topic_mix(df, connection_type)
+    mirroring = calculate_linguistic_mirroring(df, text_lower=text_lower)
+    topic_mix = calculate_topic_mix(df, connection_type, text_lower=text_lower)
     
     # Privacy handling: text is needed for flashbacks in app.py, so we don't drop it here anymore.
     # The app.py will handle the session storage and eventual purging.
