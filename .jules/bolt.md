@@ -12,3 +12,11 @@
 ## 2025-05-16 - [Pipeline-wide String Conversion Optimization]
 **Learning:** In multi-step analytics pipelines (like `run_analytics_pipeline`), multiple functions often perform identical string casts (`astype(str)`) and normalizations (`str.lower()`) on the same columns. For large datasets (100k+ messages), these redundant O(N) operations cumulatively account for significant CPU overhead and garbage collection pressure.
 **Action:** Pre-calculate normalized series (e.g., `text_str` and `text_lower`) once at the start of the pipeline. Update downstream function signatures to accept these pre-calculated series as optional parameters, defaulting to local calculation for backward compatibility. This ensures each transformation happens exactly once per request.
+
+## 2025-05-17 - [DataFrame Migration for Session Storage]
+**Learning:** Storing large datasets (100k+ messages) as lists of dictionaries in an in-memory session store () causes significant latency in request handlers that must filter this data. Python-level loops with manual  parsing in every request resulted in ~36s response times for 100k messages.
+**Action:** Store the dataset as a Pandas DataFrame object. Use vectorized boolean indexing and  accessor methods for filtering in Flask routes. This leverages C-optimized libraries and reduces response times to milliseconds by deferring serialization and avoiding redundant parsing.
+
+## 2025-05-17 - [DataFrame Migration for Session Storage]
+**Learning:** Storing large datasets (100k+ messages) as lists of dictionaries in an in-memory session store (`GLOBAL_DATA_STORE`) causes significant latency in request handlers that must filter this data. Python-level loops with manual `pd.to_datetime` parsing in every request resulted in ~36s response times for 100k messages.
+**Action:** Store the dataset as a Pandas DataFrame object. Use vectorized boolean indexing and `.str` accessor methods for filtering in Flask routes. This leverages C-optimized libraries and reduces response times to milliseconds by deferring serialization and avoiding redundant parsing.
