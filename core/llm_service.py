@@ -251,13 +251,11 @@ def generate_report(provider: str, api_key: str, stats_payload: dict, my_name: s
         else:
             raise ValueError(f"Unknown provider: {provider}")
     except Exception as e:
-        err_msg = str(e)
-        print(f"LLM API Error: {err_msg}")
-        # Return a summarized version to the pulse_summary so the user sees it in the UI
-        display_err = err_msg if len(err_msg) < 100 else err_msg[:97] + "..."
+        # 🛡️ Sentinel: Mask raw exception strings to prevent information disclosure
+        print(f"LLM API Error: {str(e)}")
         return {
-            "pulse_summary": f"Error: {display_err}",
-            "time_machine_insights": f"The {provider} API returned an error: {err_msg}",
+            "pulse_summary": f"The {provider} API returned an error.",
+            "time_machine_insights": "We encountered an issue while generating your insights.",
             "predictive_path": "Please verify your API key, credits, and internet connection.",
             "top_shareable_snippet": f"{provider} Error."
         }
