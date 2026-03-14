@@ -402,6 +402,20 @@ input:-webkit-autofill:active {
     animation: shimmer 3s linear infinite;
 }
 
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
 /* Stagger children */
 .stagger-children>*:nth-child(1) {
     animation-delay: 0.05s;
