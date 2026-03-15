@@ -161,40 +161,54 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // --- Spotify Wrapped Download Logic ---
 async function downloadWrappedCard() {
-    const report = window.llmReport || {};
-    const topicMix = window.topicMix || {};
-    const supportGap = window.supportGap || {};
-    const mirroring = window.mirroring || {};
-
-    // 1. Calculate values
-    const sortedTopics = Object.entries(topicMix).sort((a, b) => b[1] - a[1]);
-    const coreTopic = sortedTopics.length > 0 ? sortedTopics[0][0] : 'General';
-
-    const meSupport = supportGap['ME'] || { stress_count: 0, support_received: 0 };
-    const pSupport = supportGap['PARTNER'] || { stress_count: 0, support_received: 0 };
-    const totalStress = meSupport.stress_count + pSupport.stress_count;
-    const totalSupport = meSupport.support_received + pSupport.support_received;
-    const supportScore = totalStress > 0 ? Math.round((totalSupport / totalStress) * 100) + '%' : '--';
-
-    // 2. Populate the hidden card
-    document.getElementById('share-persona').textContent = report.relationship_persona || "The Mystery";
-    document.getElementById('share-topic').textContent = coreTopic;
-    document.getElementById('share-support').textContent = supportScore;
-    document.getElementById('share-snippet').textContent = report.top_shareable_snippet || "Just vibing.";
-    document.getElementById('share-predictive').textContent = report.predictive_path || "Walking the path together.";
-    document.getElementById('share-time-machine').textContent = report.time_machine_insights || "Building history.";
-    document.getElementById('share-compatibility').textContent = report.compatibility_score || "85";
-
-    // 3. Unhide, Capture, and Re-hide
-    const container = document.getElementById('shareable-capture-container');
-    const card = document.getElementById('shareable-card');
-
-    // Move on-screen temporarily for exact rendering
-    container.style.left = '0px';
-    container.style.top = '0px';
-    container.style.zIndex = '-999';
+    const downloadBtn = document.getElementById('downloadVibeBtn');
+    const originalContent = downloadBtn ? downloadBtn.innerHTML : '';
 
     try {
+        if (downloadBtn) {
+            downloadBtn.disabled = true;
+            downloadBtn.innerHTML = `
+                <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Capturing...</span>
+            `;
+        }
+
+        const report = window.llmReport || {};
+        const topicMix = window.topicMix || {};
+        const supportGap = window.supportGap || {};
+        const mirroring = window.mirroring || {};
+
+        // 1. Calculate values
+        const sortedTopics = Object.entries(topicMix).sort((a, b) => b[1] - a[1]);
+        const coreTopic = sortedTopics.length > 0 ? sortedTopics[0][0] : 'General';
+
+        const meSupport = supportGap['ME'] || { stress_count: 0, support_received: 0 };
+        const pSupport = supportGap['PARTNER'] || { stress_count: 0, support_received: 0 };
+        const totalStress = meSupport.stress_count + pSupport.stress_count;
+        const totalSupport = meSupport.support_received + pSupport.support_received;
+        const supportScore = totalStress > 0 ? Math.round((totalSupport / totalStress) * 100) + '%' : '--';
+
+        // 2. Populate the hidden card
+        document.getElementById('share-persona').textContent = report.relationship_persona || "The Mystery";
+        document.getElementById('share-topic').textContent = coreTopic;
+        document.getElementById('share-support').textContent = supportScore;
+        document.getElementById('share-snippet').textContent = report.top_shareable_snippet || "Just vibing.";
+        document.getElementById('share-predictive').textContent = report.predictive_path || "Walking the path together.";
+        document.getElementById('share-time-machine').textContent = report.time_machine_insights || "Building history.";
+        document.getElementById('share-compatibility').textContent = report.compatibility_score || "85";
+
+        // 3. Unhide, Capture, and Re-hide
+        const container = document.getElementById('shareable-capture-container');
+        const card = document.getElementById('shareable-card');
+
+        // Move on-screen temporarily for exact rendering
+        container.style.left = '0px';
+        container.style.top = '0px';
+        container.style.zIndex = '-999';
+
         const canvas = await html2canvas(card, {
             scale: 2, // High-res export
             useCORS: true,
@@ -215,6 +229,11 @@ async function downloadWrappedCard() {
         container.style.left = '-9999px';
         container.style.top = '-9999px';
         container.style.zIndex = 'auto';
+
+        if (downloadBtn) {
+            downloadBtn.disabled = false;
+            downloadBtn.innerHTML = originalContent;
+        }
     }
 }
 
