@@ -62,7 +62,7 @@ def set_security_headers(response):
             "https://*.lit.ai; "
         "base-uri 'self'; "
         "form-action 'self'; "
-        "frame-ancestors 'self' https://*.huggingface.co https://huggingface.co;"
+        "frame-ancestors 'self' https://*.huggingface.co https://huggingface.co https://*.pages.dev https://*.workers.dev;"
     )
     # Prevent clickjacking is removed to allow Hugging Face Spaces iframe embedding
     # Prevent MIME sniffing
