@@ -20,8 +20,10 @@ app.add_middleware(
 # Initialize model once on boot
 print("Loading XLM-RoBERTa Sentiment Pipeline into GPU...")
 model_name = "cardiffnlp/twitter-xlm-roberta-base-sentiment"
+# 🛡️ Sentinel: Pin model revision for supply chain integrity
+REVISION = "f2f1202"
 # device=0 targets the first available GPU (Lightning Studio T4/L4)
-sentiment_pipeline = pipeline("sentiment-analysis", model=model_name, device=0) 
+sentiment_pipeline = pipeline("sentiment-analysis", model=model_name, device=0, revision=REVISION)
 print("Model loaded successfully.")
 
 class TextPayload(BaseModel):
@@ -37,6 +39,10 @@ async def analyze_sentiment(payload: TextPayload):
     try:
         if not payload.texts:
              return {"scores": []}
+
+        # 🛡️ Sentinel: Limit payload size to prevent RAM/GPU exhaustion (DoS)
+        if len(payload.texts) > 2000:
+            raise HTTPException(status_code=413, detail="Payload too large. Maximum 2000 texts allowed.")
              
         # Robust generator to stream data to the GPU in batches
         # This fixes the "must be type str" error and maximizes efficiency
