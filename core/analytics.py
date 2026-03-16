@@ -112,7 +112,8 @@ def apply_sentiment(df: pd.DataFrame, hf_url: str = "") -> pd.DataFrame:
                         api_endpoint,
                         json={"texts": chunk},
                         headers={"Content-Type": "application/json"},
-                        timeout=timeout
+                        timeout=timeout,
+                        allow_redirects=False  # 🛡️ Sentinel: Prevent SSRF redirect bypass
                     )
                     response.raise_for_status()
                     result = response.json()
