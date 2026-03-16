@@ -42,8 +42,12 @@ def validate_cloud_url(url: str) -> bool:
         return False
     try:
         parsed = urlparse(url)
+        # 🛡️ Sentinel: Use hostname instead of netloc to handle ports and auth safely
+        hostname = parsed.hostname
+        if not hostname:
+            return False
         # Enforce HTTPS and restrict to Lightning AI domain (*.lit.ai)
-        if parsed.scheme == 'https' and parsed.netloc.endswith('.lit.ai'):
+        if parsed.scheme == 'https' and hostname.endswith('.lit.ai'):
             return True
         return False
     except Exception:

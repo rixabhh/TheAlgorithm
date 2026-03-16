@@ -99,6 +99,10 @@ def process_chat():
         return jsonify({'error': 'No file part'}), 400
     
     files = request.files.getlist('chat_files')
+    # 🛡️ Sentinel: Limit file count to prevent DoS
+    if len(files) > 20:
+        return jsonify({'error': 'Too many files. Maximum 20 allowed.'}), 400
+
     # 🛡️ Sentinel: Enforce length limits on names to prevent resource exhaustion/injection bloat
     my_name = request.form.get('my_name', '').strip()[:100]
     partner_name = request.form.get('partner_name', '').strip()[:100]
@@ -225,6 +229,9 @@ def get_flashback():
     week_start = request.args.get('week')
     if not data_id or not week_start or data_id not in GLOBAL_DATA_STORE:
         return jsonify([])
+
+    # 🛡️ Sentinel: Truncate week_start to prevent potential ReDoS or parsing issues
+    week_start = week_start.strip()[:50]
         
     df = GLOBAL_DATA_STORE[data_id]['messages']
     
