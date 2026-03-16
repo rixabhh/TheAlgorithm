@@ -60,11 +60,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 300);
     };
 
-    // Close modals on Escape key
+    // Close modals on Escape key or outside click
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             if (trustCenterModal && !trustCenterModal.classList.contains('hidden')) hideTrustCenter();
             if (settingsModal && !settingsModal.classList.contains('hidden')) hideSettings();
+        }
+    });
+
+    [trustCenterModal, settingsModal].forEach(modal => {
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    if (modal === trustCenterModal) hideTrustCenter();
+                    if (modal === settingsModal) hideSettings();
+                }
+            });
         }
     });
 
@@ -213,22 +224,43 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // --- Error Handling Helper ---
+    const showError = (message) => {
+        const errorContainer = document.getElementById('errorContainer');
+        if (errorContainer) {
+            errorContainer.textContent = message;
+            errorContainer.classList.remove('hidden');
+            errorContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else {
+            alert(message);
+        }
+    };
+
+    const hideError = () => {
+        const errorContainer = document.getElementById('errorContainer');
+        if (errorContainer) {
+            errorContainer.classList.add('hidden');
+            errorContainer.textContent = '';
+        }
+    };
+
     // Form Submission
     if (uploadForm) {
         uploadForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            hideError();
 
             const analyzeBtn = document.getElementById('analyzeBtn');
             const originalBtnContent = analyzeBtn.innerHTML;
 
             if (fileInput.files.length === 0) {
-                alert('Please select at least one chat export file.');
+                showError('Please select at least one chat export file.');
                 return;
             }
 
             const apiKey = sessionStorage.getItem('_llm_token') ? atob(sessionStorage.getItem('_llm_token')) : '';
             if (!apiKey) {
-                alert('An AI API Key is required to run the analysis. Please click the Settings gear icon ⚙️ in the top right to configure your API key first. (e.g. Google Gemini 2.5 Flash is quick to set up!)');
+                showError('An AI API Key is required to run the analysis. Please click the Settings gear icon ⚙️ in the top right to configure your API key first. (e.g. Google Gemini 2.5 Flash is quick to set up!)');
                 return;
             }
 
@@ -335,7 +367,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             } catch (err) {
                 console.error("Error scrubbing files:", err);
-                alert("An error occurred while locally preparing your files for upload.");
+                showError("An error occurred while locally preparing your files for upload.");
                 analyzeBtn.classList.remove('hidden');
                 analyzeBtn.innerHTML = originalBtnContent;
                 analyzeBtn.disabled = false;
@@ -399,7 +431,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     window.location.href = '/dashboard';
                 } else {
                     const err = await response.json();
-                    alert(`Error: ${err.error}`);
+                    showError(`Error: ${err.error}`);
                     analyzeBtn.disabled = false;
                     analyzeBtn.innerHTML = originalBtnContent;
                     analyzeBtn.classList.remove('opacity-80', 'cursor-not-allowed', 'hidden');
@@ -408,7 +440,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (error) {
                 clearInterval(stepInterval);
                 clearInterval(timeInterval);
-                alert('Network Error. Ensure backend is running.');
+                showError('Network Error. Ensure backend is running.');
                 analyzeBtn.disabled = false;
                 analyzeBtn.innerHTML = originalBtnContent;
                 analyzeBtn.classList.remove('opacity-80', 'cursor-not-allowed', 'hidden');
