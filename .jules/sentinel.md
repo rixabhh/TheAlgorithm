@@ -21,3 +21,16 @@
 2. Use `urllib.parse.urlparse(url).hostname` for domain validation to avoid credentials-based bypasses.
 3. Pin remote resources (like ML models) to specific revisions/hashes.
 4. Truncate all user-provided query parameters before parsing.
+
+## 2026-03-16 - [MEDIUM] SSRF and Header Hardening
+**Vulnerability:**
+1. SSRF via redirect: A validated `*.lit.ai` URL could redirect to internal metadata services.
+2. Information disclosure/DoS: Untruncated API keys or URLs could be used to bloat logs or memory.
+3. Missing HSTS: Lack of `Strict-Transport-Security` header.
+
+**Learning:** URL validation at the `hostname` level is good, but `requests` follows redirects by default, which can lead to SSRF even if the initial URL is "safe".
+
+**Prevention:**
+1. Always set `allow_redirects=False` when making server-side requests to user-provided URLs.
+2. Implement HSTS and other security headers in a centralized `after_request` handler.
+3. Truncate all user-provided strings at the entry point.
