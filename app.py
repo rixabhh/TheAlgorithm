@@ -69,6 +69,8 @@ def set_security_headers(response):
     response.headers['X-Content-Type-Options'] = 'nosniff'
     # Referrer policy — don't leak URLs
     response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    # 🛡️ Sentinel: Enforce HSTS (1 year)
+    response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
     # Permissions policy — disable unnecessary browser features
     response.headers['Permissions-Policy'] = 'camera=(), microphone=(), geolocation=()'
 
@@ -118,8 +120,9 @@ def process_chat():
 
     # 🛡️ Sentinel: Truncate user_context to 2,000 chars to prevent DoS via massive payload
     user_context = request.form.get('user_context', '').strip()[:2000]
-    api_key = request.form.get('api_key', '').strip()
-    hf_url = request.form.get('hf_url', '').strip()
+    # 🛡️ Sentinel: Truncate api_key and hf_url to prevent resource abuse
+    api_key = request.form.get('api_key', '').strip()[:512]
+    hf_url = request.form.get('hf_url', '').strip()[:512]
 
     provider = request.form.get('llm_provider', 'openai').strip()
     if provider not in ['openai', 'anthropic', 'gemini', 'grok', 'xai']:
