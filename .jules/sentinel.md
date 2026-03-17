@@ -34,3 +34,16 @@
 1. Always set `allow_redirects=False` when making server-side requests to user-provided URLs.
 2. Implement HSTS and other security headers in a centralized `after_request` handler.
 3. Truncate all user-provided strings at the entry point.
+
+## 2026-03-17 - [MEDIUM] RAM Data Persistence and Resource Hardening
+**Vulnerability:**
+1. Lack of explicit data clearing: User chat data remained in `GLOBAL_DATA_STORE` (RAM) even after the user left the dashboard, until naturally evicted by other users.
+2. Potential OOM DoS: No cap on the number of messages processed, allowing for memory exhaustion via massive uploads.
+3. CSP Gap: `object-src` was not restricted, allowing potential plugin-based attacks.
+
+**Learning:** In-memory data stores require explicit "delete" hooks in the UI to satisfy user privacy expectations. Resource limits (messages, threads) must be tuned to the smallest expected deployment environment.
+
+**Prevention:**
+1. Implement a `/clear` route and link it to "Start Over" or "Exit" buttons.
+2. Enforce hard caps on the total number of items (messages) processed in a single request.
+3. Use `object-src 'none'` in CSP as a standard defense-in-depth measure.

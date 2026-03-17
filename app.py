@@ -2,7 +2,7 @@ import os
 import shutil
 import pandas as pd
 import tempfile
-from flask import Flask, render_template, request, jsonify, session
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from werkzeug.utils import secure_filename
 import traceback
 import secrets
@@ -62,6 +62,7 @@ def set_security_headers(response):
             "https://*.lit.ai; "
         "base-uri 'self'; "
         "form-action 'self'; "
+        "object-src 'none'; "
         "frame-ancestors 'self' https://*.huggingface.co https://huggingface.co https://*.pages.dev https://*.workers.dev;"
     )
     # Prevent clickjacking is removed to allow Hugging Face Spaces iframe embedding
@@ -86,6 +87,15 @@ def set_security_headers(response):
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/clear')
+def clear_session():
+    """🛡️ Sentinel: Securely clear user data from RAM and session."""
+    data_id = session.get('data_id')
+    if data_id and data_id in GLOBAL_DATA_STORE:
+        del GLOBAL_DATA_STORE[data_id]
+    session.clear()
+    return redirect(url_for('index'))
 
 @app.route('/instructions')
 def instructions():
@@ -152,7 +162,8 @@ def process_chat():
             # 2. Parse Files Concurrently
             dfs = []
             parsing_errors = []
-            with ThreadPoolExecutor(max_workers=min(32, len(saved_files) + 4)) as executor:
+            # 🛡️ Sentinel: Cap max workers to prevent CPU starvation in smaller environments
+            with ThreadPoolExecutor(max_workers=min(8, len(saved_files) + 4)) as executor:
                 # Submit all parsing tasks
                 future_to_filepath = {executor.submit(process_file, fp, my_name, partner_name): fp for fp in saved_files}
                 
@@ -177,6 +188,11 @@ def process_chat():
                 return jsonify({'error': 'Could not extract any valid messages from the provided files.'}), 400
 
             full_df = pd.concat(dfs, ignore_index=True)
+
+            # 🛡️ Sentinel: Enforce message limit to prevent memory exhaustion (DoS)
+            if len(full_df) > 50000:
+                return jsonify({'error': 'Too many messages. Maximum 50,000 allowed for analysis.'}), 400
+
             full_df.sort_values('timestamp', inplace=True)
             
             # 3. Analytics & Privacy Drop
