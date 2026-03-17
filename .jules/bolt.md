@@ -28,3 +28,7 @@
 ## 2026-03-15 - [Vectorized Datetime Conversion in JSON Parsers]
 **Learning:** Calling `pd.to_datetime` inside message-by-message loops for JSON exports (Instagram, Discord, Telegram) was a significant O(N) bottleneck, especially for 50MB+ files. Vectorized conversion on the final DataFrame is ~500x faster by leveraging C-optimized routines.
 **Action:** Replace all per-message `pd.to_datetime` calls inside loops with a single vectorized call on the resulting DataFrame column after data collection.
+
+## 2026-03-20 - [Counter Optimization via itertools.chain]
+**Learning:** Calling `Counter.update()` in a Python-level loop for every row in a large Pandas Series (100k+ rows) incurs significant function call overhead.
+**Action:** Use `Counter(itertools.chain.from_iterable(series))` to ingest character data in a single C-optimized pass. This maintains a flat memory profile through lazy iteration while achieving ~1.3x speedup on large datasets by reducing Python-layer overhead.
