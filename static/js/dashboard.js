@@ -13,15 +13,23 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('report-headline').textContent = report.dynamic_headline || "Your Relationship Pulse";
     document.getElementById('report-pulse').textContent = report.pulse_summary || "Could not generate pulse summary.";
     document.getElementById('report-persona').textContent = report.relationship_persona || "The Enigma";
-    document.getElementById('report-compatibility').textContent = report.compatibility_score || "85";
+
+    // Compatibility Animation
+    const compScore = parseInt(report.compatibility_score) || 85;
+    animateValue('report-compatibility', 0, compScore, 1500);
 
     // Support Score Calculation
     const meSupport = supportGap['ME'] || { stress_count: 0, support_received: 0 };
     const pSupport = supportGap['PARTNER'] || { stress_count: 0, support_received: 0 };
     const totalStress = meSupport.stress_count + pSupport.stress_count;
     const totalSupport = meSupport.support_received + pSupport.support_received;
-    const supportScore = totalStress > 0 ? Math.round((totalSupport / totalStress) * 100) : '--';
-    document.getElementById('support-score').textContent = supportScore + (supportScore !== '--' ? '%' : '');
+    const supportScore = totalStress > 0 ? Math.round((totalSupport / totalStress) * 100) : null;
+
+    if (supportScore !== null) {
+        animateValue('support-score', 0, supportScore, 1500, '%');
+    } else {
+        document.getElementById('support-score').textContent = '--';
+    }
 
     // Mirroring Value
     const mirroringVal = (mirroring['ME_mirroring'] || 0) + (mirroring['PARTNER_mirroring'] || 0);
