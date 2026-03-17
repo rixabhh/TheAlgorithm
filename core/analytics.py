@@ -1,5 +1,6 @@
 import os
 from urllib.parse import urlparse
+from itertools import chain
 import pandas as pd
 import numpy as np
 from transformers import pipeline
@@ -208,12 +209,10 @@ def calculate_emoji_frequency(df: pd.DataFrame, text_str: pd.Series = None) -> d
     t_series = text_str if text_str is not None else df['text'].astype(str)
     for sender in ['ME', 'PARTNER']:
         mask = df['sender'] == sender
-        # Performance Optimization (V5.0): Count all characters first using C-optimized
-        # Counter.update, then filter unique characters for emojis. This reduces
-        # calls to emoji.is_emoji() from O(N_chars) to O(N_unique_chars).
-        counts_all = Counter()
-        for text in t_series[mask]:
-            counts_all.update(text)
+        # Performance Optimization (V5.1): Use itertools.chain with Counter to eliminate
+        # the manual Python loop. This delegates character-level iteration to C-level
+        # routines while maintaining O(N_unique_chars) calls to emoji.is_emoji().
+        counts_all = Counter(chain.from_iterable(t_series[mask]))
 
         emoji_counts = {char: count for char, count in counts_all.items() if emoji.is_emoji(char)}
         counts = Counter(emoji_counts).most_common(10)
