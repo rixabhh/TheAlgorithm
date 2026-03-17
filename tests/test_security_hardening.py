@@ -65,6 +65,61 @@ def test_security_headers(client):
         response = client.get(route)
         assert response.headers['Cache-Control'] == 'no-store, no-cache, must-revalidate, max-age=0'
         assert response.headers['X-Content-Type-Options'] == 'nosniff'
+        assert response.headers['Strict-Transport-Security'] == 'max-age=31536000; includeSubDomains'
+
+def test_input_truncation(client):
+    # Test that the /process route correctly truncates long inputs
+    from unittest.mock import patch
+
+    # We need to mock the processing pipeline to avoid actually running it
+    with patch('app.process_file') as mock_parse, \
+         patch('app.run_analytics_pipeline') as mock_analytics, \
+         patch('app.generate_report') as mock_report:
+
+        import pandas as pd
+        mock_parse.return_value = pd.DataFrame({'timestamp': [pd.Timestamp.now()], 'sender': ['ME'], 'text': ['hi']})
+        mock_analytics.return_value = {'weekly': [{'week_start': '2023-01-01'}]}
+        mock_report.return_value = {'pulse_summary': 'test'}
+
+        # Create a dummy file
+        import io
+        data = {
+            'my_name': 'Rahul',
+            'partner_name': 'Priya',
+            'api_key': 'K' * 1000,
+            'hf_url': 'H' * 1000,
+            'chat_files': (io.BytesIO(b"2023-01-01, 12:00 - Rahul: hi"), 'test.txt')
+        }
+
+        with patch('app.secrets.token_urlsafe', return_value='test_token'):
+            client.post('/process', data=data)
+
+            # Verify the arguments passed to generate_report and run_analytics_pipeline
+            args, kwargs = mock_report.call_args
+            # provider, api_key, analytics_result, my_name, partner_name, connection_type, user_context, output_language
+            assert len(args[1]) == 512
+
+            _, kwargs_analytics = mock_analytics.call_args
+            assert len(kwargs_analytics['hf_url']) == 512
+
+def test_ssrf_redirect_protection(client):
+    from core.analytics import apply_sentiment
+    import pandas as pd
+    from unittest.mock import patch, MagicMock
+
+    df = pd.DataFrame({'sender': ['PARTNER'], 'text': ['hello'], 'timestamp': [pd.Timestamp.now()]})
+    hf_url = "https://safe-studio.lit.ai/analyze"
+
+    with patch('requests.post') as mock_post:
+        mock_response = MagicMock()
+        mock_response.json.return_value = {"scores": [1]}
+        mock_post.return_value = mock_response
+
+        apply_sentiment(df, hf_url=hf_url)
+
+        # Verify allow_redirects=False was passed
+        args, kwargs = mock_post.call_args
+        assert kwargs['allow_redirects'] is False
 
 def test_prompt_injection_hardening():
     from core.llm_service import build_prompt
