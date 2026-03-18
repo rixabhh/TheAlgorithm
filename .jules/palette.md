@@ -15,3 +15,6 @@
 **Learning:** When using staggered entry animations with `animation-delay`, setting `animation-fill-mode: both` is critical to ensure elements remain invisible before their animation starts. For numerical "count-up" animations (e.g., scores), `aria-live="polite"` ensures that screen reader users receive the final calculated value once the animation completes, fulfilling standard accessibility expectations for dynamic content.
 
 **Action:** Always use `animation-fill-mode: both` for delayed entrance animations and pair numerical animations with `aria-live="polite"` for accessible results.
+## 2026-03-18 - [Toast Notifications & Transitions]
+**Learning:** Browser `alert()` calls are disruptive to the premium user experience and inaccessible to some screen readers. Implementing a custom, non-blocking toast system with `role="status"` and `aria-live="polite"` provides better accessibility and UI consistency.
+**Action:** Use the `showToast(message, type)` pattern in `dashboard.js` for action feedback, and ensure the `#toast-container` is properly tagged for accessibility.
