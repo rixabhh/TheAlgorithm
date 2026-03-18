@@ -32,3 +32,7 @@
 ## 2026-03-20 - [Eliminating Python Loops in Character Counting]
 **Learning:** Even when using C-optimized `Counter` objects, manual Python-level loops for updating counts (e.g., `for text in series: counter.update(text)`) introduce significant overhead at scale (500k+ messages).
 **Action:** Use `itertools.chain.from_iterable` to flatten the string series and pass it directly to the `Counter` constructor. This delegates the iteration entirely to C-level routines in CPython, yielding a ~22% performance gain on large datasets.
+
+## 2026-03-22 - [Local Sentiment Analysis Vectorization & Batching]
+**Learning:** The local sentiment analysis path in `apply_sentiment` was bottlenecked by manual Python-level batching and label-to-score mapping loops. For datasets with 50k+ messages, this introduced significant Python interpreter overhead and unnecessary model loading when no partner messages were present.
+**Action:** Replace manual Python batching loops with native Transformers pipeline `batch_size` optimization. Vectorized text truncation using `.str[:512]` and replaced Python-level label mapping with `np.select` for O(N) scoring at C-speed. Added a check to avoid loading the sentiment model if no messages require scoring, saving significant RAM and startup time in sparse datasets.
