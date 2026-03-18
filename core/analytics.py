@@ -73,10 +73,10 @@ def calculate_latency(df: pd.DataFrame) -> pd.DataFrame:
 def apply_sentiment(df: pd.DataFrame, hf_url: str = "") -> pd.DataFrame:
     # We only score PARTNER messages for the risk algorithm
     partner_mask = df['sender'] == 'PARTNER'
-    partner_msgs = df.loc[partner_mask, 'text'].astype(str).tolist()
     
-    # Truncate to 512 characters to prevent token overflow
-    partner_msgs = [x[:512] for x in partner_msgs]
+    # Performance Optimization (V5.2): Use vectorized truncation instead of Python list comprehension
+    partner_msgs_series = df.loc[partner_mask, 'text'].astype(str).str[:512]
+    partner_msgs = partner_msgs_series.tolist()
     
     sentiment_scores = []
     
@@ -154,31 +154,34 @@ def apply_sentiment(df: pd.DataFrame, hf_url: str = "") -> pd.DataFrame:
             
     else:
         # ONLY run local scoring if NO cloud URL was provided at all
-        pipe = get_sentiment_pipeline()
-        results = []
-        batch_size = 32
-        print(f"Scoring {len(partner_msgs)} messages locally in batches of {batch_size}...")
-        
-        for i in range(0, len(partner_msgs), batch_size):
-            batch = partner_msgs[i:i+batch_size]
+        if partner_msgs:
+            pipe = get_sentiment_pipeline()
+            batch_size = 32
+            print(f"Scoring {len(partner_msgs)} messages locally (pipeline batch_size={batch_size})...")
+
             try:
-                batch_results = pipe(batch)
-                results.extend(batch_results)
-            except Exception as e:
-                print(f"Batch failed: {e}")
-                results.extend([{'label': 'Neutral', 'score': 0}] * len(batch))
+                # Performance Optimization (V5.2): Leverage Transformers native batching and
+                # replace manual Python loops with vectorized Pandas mapping for label-to-score conversion.
+                results = pipe(partner_msgs, batch_size=batch_size)
                 
-        for r in results:
-            label = r['label'].lower()
-            if 'positive' in label or label == 'label_2':
-                sentiment_scores.append(1)
-            elif 'negative' in label or label == 'label_0':
-                sentiment_scores.append(-1)
-            else:
-                sentiment_scores.append(0)
+                # Map labels to numerical scores using a vectorized Series approach
+                labels = pd.Series([r['label'].lower() for r in results])
+
+                # Mapping logic: positive/label_2 -> 1, negative/label_0 -> -1, else 0
+                # This is significantly faster than a Python for-loop for large datasets.
+                conditions = [
+                    labels.str.contains('positive') | (labels == 'label_2'),
+                    labels.str.contains('negative') | (labels == 'label_0')
+                ]
+                sentiment_scores = np.select(conditions, [1, -1], default=0).tolist()
+
+            except Exception as e:
+                print(f"Local sentiment analysis failed: {e}")
+                sentiment_scores = [0] * len(partner_msgs)
                 
     df['sentiment'] = 0
-    df.loc[partner_mask, 'sentiment'] = sentiment_scores
+    if sentiment_scores:
+        df.loc[partner_mask, 'sentiment'] = sentiment_scores
     
     return df
 
