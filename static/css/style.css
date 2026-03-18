@@ -406,7 +406,7 @@ input:-webkit-autofill:active {
 }
 
 .animate-fade-in-up {
-    animation: fade-in-up 0.6s ease-out forwards;
+    animation: fade-in-up 0.6s ease-out both;
 }
 
 .animate-shimmer {
@@ -443,6 +443,30 @@ input:-webkit-autofill:active {
 
 .stagger-children>*:nth-child(4) {
     animation-delay: 0.2s;
+}
+
+.stagger-children>*:nth-child(5) {
+    animation-delay: 0.25s;
+}
+
+.stagger-children>*:nth-child(6) {
+    animation-delay: 0.3s;
+}
+
+.stagger-children>*:nth-child(7) {
+    animation-delay: 0.35s;
+}
+
+.stagger-children>*:nth-child(8) {
+    animation-delay: 0.4s;
+}
+
+.stagger-children>*:nth-child(9) {
+    animation-delay: 0.45s;
+}
+
+.stagger-children>*:nth-child(10) {
+    animation-delay: 0.5s;
 }
 
 /* ═══════════════════════════════════════════════
