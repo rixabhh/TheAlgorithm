@@ -9,3 +9,9 @@
 **Learning:** When implementing visibility toggles for sensitive fields, using a `button` with `type="button"` inside a `relative` container alongside the `input` is the most robust approach. It prevents accidental form submission. Always ensure `aria-label` is updated dynamically (e.g., from "Show API Key" to "Hide API Key") and that labels are explicitly linked via `for` attributes to maintain accessibility standards.
 
 **Action:** Consistently apply this pattern for all secret/key inputs. Ensure focus-visible states are explicitly defined for these utility buttons.
+
+## 2026-05-20 - Staggered Animations & Counting Metrics
+
+**Learning:** When using staggered entry animations with `animation-delay`, setting `animation-fill-mode: both` is critical to ensure elements remain invisible before their animation starts. For numerical "count-up" animations (e.g., scores), `aria-live="polite"` ensures that screen reader users receive the final calculated value once the animation completes, fulfilling standard accessibility expectations for dynamic content.
+
+**Action:** Always use `animation-fill-mode: both` for delayed entrance animations and pair numerical animations with `aria-live="polite"` for accessible results.
