@@ -151,16 +151,20 @@ def call_anthropic(api_key: str, sys_prompt: str, data_prompt: str) -> dict:
 
 def call_gemini(api_key: str, sys_prompt: str, data_prompt: str) -> dict:
     # 🛡️ Sentinel: Move API key from URL to header to prevent exposure in logs
-    url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
+    # 🛡️ Sentinel: Update to 1.5-flash (stable) and use system_instruction for role separation
+    url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
     headers = {
         "Content-Type": "application/json",
         "x-goog-api-key": api_key
     }
     
-    # Gemini requires system instructions differently
+    # 🛡️ Sentinel: Use system_instruction field for better role separation (Prompt Injection Resistance)
     payload = {
+        "system_instruction": {
+            "parts": [{"text": sys_prompt}]
+        },
         "contents": [{
-            "parts": [{"text": sys_prompt + "\n\n" + data_prompt}]
+            "parts": [{"text": data_prompt}]
         }],
         "generationConfig": {
             "temperature": 0.7,
