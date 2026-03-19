@@ -47,3 +47,15 @@
 1. Implement a `/clear` route and link it to "Start Over" or "Exit" buttons.
 2. Enforce hard caps on the total number of items (messages) processed in a single request.
 3. Use `object-src 'none'` in CSP as a standard defense-in-depth measure.
+
+## 2026-03-20 - [MEDIUM] CSP and SSRF Redirection Hardening
+**Vulnerability:**
+1. Overly permissive CSP: `connect-src` allowed direct frontend communication with AI providers, creating an exfiltration vector. `frame-ancestors` included broad `.pages.dev` and `.workers.dev` patterns.
+2. SSRF risk via redirection: Server-side `requests` to AI APIs (OpenAI, Anthropic, Gemini, xAI) did not disable redirects, potentially allowing an attacker to redirect a "safe" URL to internal metadata services.
+
+**Learning:** Frontend security headers should be as restrictive as possible; if the backend handles API calls, the frontend should not have those domains in its `connect-src`. SSRF protection requires not just hostname validation but also disabling redirect follows in the HTTP client.
+
+**Prevention:**
+1. Set `connect-src 'self'` if all external API calls are proxied through the backend.
+2. Use `upgrade-insecure-requests` to force HTTPS.
+3. Always set `allow_redirects=False` for any `requests.post` call to an external service, even if the URL is hardcoded or validated.

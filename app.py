@@ -45,6 +45,8 @@ def set_security_headers(response):
     """Apply security headers to every response."""
     # Content Security Policy — only allow resources from same origin + specific CDNs
     # 🛡️ Sentinel: Added frame-ancestors to prevent clickjacking while allowing HF embedding
+    # 🛡️ Sentinel: Hardened CSP by removing unnecessary external domains from connect-src (backend calls)
+    # and tightening frame-ancestors. Added upgrade-insecure-requests.
     response.headers['Content-Security-Policy'] = (
         "default-src 'self'; "
         "script-src 'self' 'unsafe-inline' 'unsafe-eval' "
@@ -54,16 +56,12 @@ def set_security_headers(response):
         "style-src 'self' 'unsafe-inline'; "
         "font-src 'self'; "
         "img-src 'self' data: blob:; "
-        "connect-src 'self' "
-            "https://api.openai.com "
-            "https://api.anthropic.com "
-            "https://generativelanguage.googleapis.com "
-            "https://api.x.ai "
-            "https://*.lit.ai; "
+        "connect-src 'self'; "
         "base-uri 'self'; "
         "form-action 'self'; "
         "object-src 'none'; "
-        "frame-ancestors 'self' https://*.huggingface.co https://huggingface.co https://*.pages.dev https://*.workers.dev;"
+        "frame-ancestors 'self' https://*.huggingface.co https://huggingface.co; "
+        "upgrade-insecure-requests;"
     )
     # Prevent clickjacking is removed to allow Hugging Face Spaces iframe embedding
     # Prevent MIME sniffing

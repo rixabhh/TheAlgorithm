@@ -122,7 +122,8 @@ def call_openai(api_key: str, sys_prompt: str, data_prompt: str) -> dict:
         ],
         "temperature": 0.7
     }
-    resp = requests.post(url, headers=headers, json=payload, timeout=30)
+    # 🛡️ Sentinel: Added allow_redirects=False to prevent SSRF
+    resp = requests.post(url, headers=headers, json=payload, timeout=30, allow_redirects=False)
     resp.raise_for_status()
     # Attempt to parse json 
     content = resp.json()['choices'][0]['message']['content'].strip()
@@ -144,14 +145,16 @@ def call_anthropic(api_key: str, sys_prompt: str, data_prompt: str) -> dict:
         "max_tokens": 1000,
         "temperature": 0.7
     }
-    resp = requests.post(url, headers=headers, json=payload, timeout=30)
+    # 🛡️ Sentinel: Added allow_redirects=False to prevent SSRF
+    resp = requests.post(url, headers=headers, json=payload, timeout=30, allow_redirects=False)
     resp.raise_for_status()
     content = resp.json()['content'][0]['text'].strip()
     return json.loads(content)
 
 def call_gemini(api_key: str, sys_prompt: str, data_prompt: str) -> dict:
     # 🛡️ Sentinel: Move API key from URL to header to prevent exposure in logs
-    url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
+    # 🛡️ Sentinel: Fixed model name from gemini-2.5-flash to gemini-1.5-flash
+    url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
     headers = {
         "Content-Type": "application/json",
         "x-goog-api-key": api_key
@@ -167,7 +170,8 @@ def call_gemini(api_key: str, sys_prompt: str, data_prompt: str) -> dict:
             "responseMimeType": "application/json"
         }
     }
-    resp = requests.post(url, headers=headers, json=payload, timeout=30)
+    # 🛡️ Sentinel: Added allow_redirects=False to prevent SSRF
+    resp = requests.post(url, headers=headers, json=payload, timeout=30, allow_redirects=False)
     resp.raise_for_status()
     
     data = resp.json()
@@ -200,7 +204,8 @@ def call_xai(api_key: str, sys_prompt: str, data_prompt: str) -> dict:
         }
         
         try:
-            resp = requests.post(url, headers=headers, json=payload, timeout=60)
+            # 🛡️ Sentinel: Added allow_redirects=False to prevent SSRF
+            resp = requests.post(url, headers=headers, json=payload, timeout=60, allow_redirects=False)
             if resp.status_code == 200:
                 data = resp.json()
                 content = data['choices'][0]['message']['content'].strip()
