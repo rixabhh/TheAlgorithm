@@ -167,6 +167,49 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+/**
+ * Shows a styled toast notification.
+ * @param {string} message - The message to display.
+ * @param {'success' | 'error' | 'info'} type - The type of toast.
+ */
+function showToast(message, type = 'info') {
+    const toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) return;
+
+    const toast = document.createElement('div');
+    let accentClass = 'border-brand-500/50 from-brand-500/10 to-transparent shadow-brand-500/20';
+    let icon = 'ℹ️';
+
+    if (type === 'success') {
+        accentClass = 'border-emerald-500/50 from-emerald-500/10 to-transparent shadow-emerald-500/20';
+        icon = '✅';
+    } else if (type === 'error') {
+        accentClass = 'border-red-500/50 from-red-500/10 to-transparent shadow-red-500/20';
+        icon = '❌';
+    }
+
+    toast.className = `glass-card p-4 rounded-2xl border ${accentClass} shadow-lg backdrop-blur-md transform transition-all duration-700 translate-y-10 opacity-0 min-w-[300px] max-w-sm pointer-events-auto`;
+    toast.innerHTML = `
+        <div class="flex items-center gap-3">
+            <span class="text-lg">${icon}</span>
+            <div class="text-sm text-gray-100 font-medium">${escapeHTML(message)}</div>
+        </div>
+    `;
+
+    toastContainer.appendChild(toast);
+
+    // Animate in
+    requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-10', 'opacity-0');
+    });
+
+    // Animate out and remove
+    setTimeout(() => {
+        toast.classList.add('translate-y-10', 'opacity-0');
+        setTimeout(() => toast.remove(), 700);
+    }, 5000);
+}
+
 // --- Spotify Wrapped Download Logic ---
 async function downloadWrappedCard() {
     const downloadBtn = document.getElementById('downloadVibeBtn');
@@ -229,9 +272,12 @@ async function downloadWrappedCard() {
         link.href = canvas.toDataURL('image/png');
         link.click();
 
+        // Show success toast
+        showToast("Vibe card downloaded successfully!", "success");
+
     } catch (err) {
         console.error("Failed to generate wrapped image:", err);
-        alert("Oops! Couldn't generate your wrapped image. Check console for details.");
+        showToast("Couldn't generate your wrapped image. Please try again.", "error");
     } finally {
         // Hide again
         container.style.left = '-9999px';
