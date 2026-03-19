@@ -138,33 +138,48 @@ document.addEventListener('DOMContentLoaded', () => {
     renderEmojiList('emojiListMe', emojiFreq['ME'] || []);
     renderEmojiList('emojiListPartner', emojiFreq['PARTNER'] || []);
 
-    const totalInit = (initiatorRatio.me_initiations || 0) + (initiatorRatio.partner_initiations || 0);
-    document.getElementById('meInitCount').textContent = initiatorRatio.me_initiations || 0;
-    document.getElementById('partnerInitCount').textContent = initiatorRatio.partner_initiations || 0;
+    // 4. Trigger Deep Dive Animations on Expansion
+    const deepDiveDetails = document.getElementById('deep-dive-details');
+    if (deepDiveDetails) {
+        deepDiveDetails.addEventListener('toggle', () => {
+            if (deepDiveDetails.open) {
+                // Initiator counts
+                animateValue('meInitCount', 0, initiatorRatio.me_initiations || 0, 1000);
+                animateValue('partnerInitCount', 0, initiatorRatio.partner_initiations || 0, 1000);
 
-    if (totalInit > 0) {
-        const mePct = ((initiatorRatio.me_initiations || 0) / totalInit) * 100;
-        const partnerPct = ((initiatorRatio.partner_initiations || 0) / totalInit) * 100;
+                const totalInit = (initiatorRatio.me_initiations || 0) + (initiatorRatio.partner_initiations || 0);
+                if (totalInit > 0) {
+                    const mePct = ((initiatorRatio.me_initiations || 0) / totalInit) * 100;
+                    const partnerPct = ((initiatorRatio.partner_initiations || 0) / totalInit) * 100;
+                    document.getElementById('meInitiatorBar').style.width = `${mePct}%`;
+                    document.getElementById('partnerInitiatorBar').style.width = `${partnerPct}%`;
+                }
 
-        document.getElementById('meInitiatorBar').style.width = `${mePct}%`;
-        document.getElementById('partnerInitiatorBar').style.width = `${partnerPct}%`;
+                // Power Dynamics (Chat Balance)
+                const ratioVal = powerDynamics.power_ratio || 1.0;
+                animateValue('powerRatioValue', 0, ratioVal, 1000, 'x', 1);
+
+                // Affection counts
+                const affCount = affectionFriction.affirmative_count || 0;
+                const disCount = affectionFriction.dismissive_count || 0;
+                animateValue('affCount', 0, affCount, 1000);
+                animateValue('disCount', 0, disCount, 1000);
+
+                const totalAf = affCount + disCount;
+                if (totalAf > 0) {
+                    document.getElementById('affBar').style.width = `${(affCount / totalAf) * 100}%`;
+                    document.getElementById('disBar').style.width = `${(disCount / totalAf) * 100}%`;
+                }
+            }
+        }, { once: true }); // Only animate once per session
     }
+
+    // Static description population
     const ratioVal = powerDynamics.power_ratio || 1.0;
-    document.getElementById('powerRatioValue').textContent = ratioVal.toFixed(1) + 'x';
     let ratioDesc = "You both text about the same amount.";
     if (ratioVal > 1.2) ratioDesc = "You generally send longer or more frequent messages.";
     else if (ratioVal < 0.8) ratioDesc = "Your partner generally sends longer or more frequent messages.";
     document.getElementById('powerRatioText').textContent = ratioDesc;
-
-    const affCount = affectionFriction.affirmative_count || 0;
-    const disCount = affectionFriction.dismissive_count || 0;
-    document.getElementById('affCount').textContent = affCount;
-    document.getElementById('disCount').textContent = disCount;
-    const totalAf = affCount + disCount;
-    if (totalAf > 0) {
-        document.getElementById('affBar').style.width = `${(affCount / totalAf) * 100}%`;
-        document.getElementById('disBar').style.width = `${(disCount / totalAf) * 100}%`;
-    }
 });
 
 /**
