@@ -242,6 +242,18 @@ input[type="checkbox"].toggle:focus-visible+.toggle-track {
     border-radius: 4px;
 }
 
+/* Universal Focus Indicator */
+:focus-visible {
+    outline: 2px solid var(--accent-purple);
+    outline-offset: 4px;
+    border-radius: 4px;
+}
+
+a:focus-visible,
+button:focus-visible {
+    outline: 2px solid white;
+}
+
 /* ── Privacy Pill ── */
 .privacy-pill {
     background: rgba(139, 92, 246, 0.12);

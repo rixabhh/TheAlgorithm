@@ -18,3 +18,7 @@
 ## 2026-03-18 - [Toast Notifications & Transitions]
 **Learning:** Browser `alert()` calls are disruptive to the premium user experience and inaccessible to some screen readers. Implementing a custom, non-blocking toast system with `role="status"` and `aria-live="polite"` provides better accessibility and UI consistency.
 **Action:** Use the `showToast(message, type)` pattern in `dashboard.js` for action feedback, and ensure the `#toast-container` is properly tagged for accessibility.
+
+## 2026-03-19 - [Lazy Triggered Animations for Collapsible Content]
+**Learning:** For performance and UX clarity, trigger numerical animations (like `animateValue`) only when their parent collapsible container (e.g., `<details>`) is expanded using the `toggle` event. This ensures users actually see the animation "delight" and prevents unnecessary screen reader activity on hidden content.
+**Action:** Use `detailsElement.addEventListener('toggle', ..., { once: true })` to trigger visual polish only when it becomes relevant to the user's viewport.

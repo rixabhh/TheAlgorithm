@@ -17,8 +17,14 @@ function escapeHTML(str) {
 
 /**
  * Animates a numerical value from start to end over a duration.
+ * @param {string} id - The ID of the element to update.
+ * @param {number} start - The starting value.
+ * @param {number} end - The ending value.
+ * @param {number} duration - The duration of the animation in ms.
+ * @param {string} suffix - Optional suffix (e.g., '%').
+ * @param {number} decimals - Number of decimal places to show.
  */
-function animateValue(id, start, end, duration, suffix = "") {
+function animateValue(id, start, end, duration, suffix = "", decimals = 0) {
     const obj = document.getElementById(id);
     if (!obj) return;
 
@@ -26,12 +32,12 @@ function animateValue(id, start, end, duration, suffix = "") {
     const step = (timestamp) => {
         if (!startTimestamp) startTimestamp = timestamp;
         const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-        const current = Math.floor(progress * (end - start) + start);
+        const current = (progress * (end - start) + start).toFixed(decimals);
         obj.innerHTML = current + suffix;
         if (progress < 1) {
             window.requestAnimationFrame(step);
         } else {
-            obj.innerHTML = end + suffix;
+            obj.innerHTML = end.toFixed(decimals) + suffix;
         }
     };
     window.requestAnimationFrame(step);
