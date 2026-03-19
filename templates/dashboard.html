@@ -168,7 +168,7 @@
         </section>
 
         <!-- Collapsible Analytics Section -->
-        <details class="group mt-12 glass-card rounded-2xl border-white/10 shadow-lg">
+        <details id="deep-dive-details" class="group mt-12 glass-card rounded-2xl border-white/10 shadow-lg">
             <summary
                 class="flex justify-between items-center font-medium cursor-pointer list-none p-6 text-xl text-gray-300 hover:text-white transition-colors">
                 <span class="flex items-center gap-3">
@@ -267,7 +267,7 @@
                             <div>
                                 <div class="flex items-center justify-between mb-2">
                                     <span class="text-sm font-semibold text-brand-400">You</span>
-                                    <span class="text-2xl font-bold text-white" id="meInitCount">0</span>
+                                    <span class="text-2xl font-bold text-white" id="meInitCount" aria-live="polite">0</span>
                                 </div>
                                 <div class="w-full h-3 bg-dark-900 rounded-full overflow-hidden">
                                     <div id="meInitiatorBar"
@@ -278,7 +278,7 @@
                             <div>
                                 <div class="flex items-center justify-between mb-2">
                                     <span class="text-sm font-semibold text-pink-400">Partner</span>
-                                    <span class="text-2xl font-bold text-white" id="partnerInitCount">0</span>
+                                    <span class="text-2xl font-bold text-white" id="partnerInitCount" aria-live="polite">0</span>
                                 </div>
                                 <div class="w-full h-3 bg-dark-900 rounded-full overflow-hidden">
                                     <div id="partnerInitiatorBar"
@@ -300,7 +300,7 @@
                         <div
                             class="flex flex-col items-center justify-center p-4 bg-dark-900/50 rounded-2xl border border-white/5">
                             <div class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-brand-400 to-pink-500 mb-2"
-                                id="powerRatioValue">1.0x</div>
+                                id="powerRatioValue" aria-live="polite">1.0x</div>
                             <div class="text-sm text-gray-400 px-4 text-center" id="powerRatioText">Perfectly balanced
                                 communication.</div>
                         </div>
@@ -314,7 +314,7 @@
                             <div>
                                 <div class="flex justify-between items-center mb-2">
                                     <span class="text-sm font-semibold text-emerald-400">Warm Words</span>
-                                    <span class="text-lg font-bold text-white" id="affCount">0</span>
+                                    <span class="text-lg font-bold text-white" id="affCount" aria-live="polite">0</span>
                                 </div>
                                 <div class="h-4 bg-dark-900 rounded-full overflow-hidden">
                                     <div class="h-full bg-gradient-to-r from-emerald-500 to-green-400 rounded-full"
@@ -324,7 +324,7 @@
                             <div>
                                 <div class="flex justify-between items-center mb-2">
                                     <span class="text-sm font-semibold text-red-400">Cold Words</span>
-                                    <span class="text-lg font-bold text-white" id="disCount">0</span>
+                                    <span class="text-lg font-bold text-white" id="disCount" aria-live="polite">0</span>
                                 </div>
                                 <div class="h-4 bg-dark-900 rounded-full overflow-hidden">
                                     <div class="h-full bg-gradient-to-r from-red-500 to-rose-400 rounded-full"
