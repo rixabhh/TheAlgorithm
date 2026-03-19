@@ -55,19 +55,21 @@ def validate_cloud_url(url: str) -> bool:
         return False
 
 def calculate_latency(df: pd.DataFrame) -> pd.DataFrame:
-    df = df.sort_values('timestamp').reset_index(drop=True)
+    # DF is already sorted by app.py before passing to the pipeline
+    df = df.reset_index(drop=True)
     df['prev_sender'] = df['sender'].shift(1)
     df['prev_timestamp'] = df['timestamp'].shift(1)
     
-    df['time_gap_mins'] = (df['timestamp'] - df['prev_timestamp']).dt.total_seconds() / 60.0
+    df['gap_mins'] = (df['timestamp'] - df['prev_timestamp']).dt.total_seconds() / 60.0
     
     # Valid reply: Different sender, gap <= 24 hours (1440 mins)
-    valid_reply_mask = (df['sender'] != df['prev_sender']) & (df['time_gap_mins'] <= 1440)
+    valid_reply_mask = (df['sender'] != df['prev_sender']) & (df['gap_mins'] <= 1440)
     
     df['latency_mins'] = np.nan
-    df.loc[valid_reply_mask, 'latency_mins'] = df.loc[valid_reply_mask, 'time_gap_mins']
+    df.loc[valid_reply_mask, 'latency_mins'] = df.loc[valid_reply_mask, 'gap_mins']
     
-    df.drop(columns=['prev_sender', 'prev_timestamp', 'time_gap_mins'], inplace=True)
+    # We preserve gap_mins for downstream functions like initiator_ratio and reengagement
+    df.drop(columns=['prev_sender', 'prev_timestamp'], inplace=True)
     return df
 
 def apply_sentiment(df: pd.DataFrame, hf_url: str = "") -> pd.DataFrame:
@@ -230,9 +232,6 @@ def calculate_initiator_ratio(df: pd.DataFrame) -> dict:
     
     gap_threshold_mins = 240  # 4 hours
     
-    df['prev_ts'] = df['timestamp'].shift(1)
-    df['gap_mins'] = (df['timestamp'] - df['prev_ts']).dt.total_seconds() / 60.0
-    
     # First message is always an initiation
     initiation_mask = (df['gap_mins'] >= gap_threshold_mins) | (df.index == 0)
     initiations = df.loc[initiation_mask]
@@ -240,8 +239,6 @@ def calculate_initiator_ratio(df: pd.DataFrame) -> dict:
     me_count = int((initiations['sender'] == 'ME').sum())
     partner_count = int((initiations['sender'] == 'PARTNER').sum())
     total = me_count + partner_count
-    
-    df.drop(columns=['prev_ts', 'gap_mins'], inplace=True)
     
     return {
         'me_initiations': me_count,
@@ -390,12 +387,9 @@ def calculate_reengagement(df: pd.DataFrame) -> dict:
     # Optimization: DF is already sorted
     if len(df) < 10: return {}
     
-    # We already have latency_mins from calculate_latency
+    # We already have gap_mins from calculate_latency
     # Long silence = gap > 24 hours (1440 mins)
-    df['prev_ts'] = df['timestamp'].shift(1)
-    df['gap_hours'] = (df['timestamp'] - df['prev_ts']).dt.total_seconds() / 3600.0
-    
-    reengagements = df[df['gap_hours'] > 24]
+    reengagements = df[df['gap_mins'] > 1440]
     counts = reengagements['sender'].value_counts().to_dict()
     
     return {
@@ -481,7 +475,7 @@ def run_analytics_pipeline(df: pd.DataFrame, hf_url: str = "", connection_type: 
     
     # Phase 6: Extract enhanced features BEFORE privacy firewall
     emoji_freq = calculate_emoji_frequency(df, text_str=text_str)
-    initiator_ratio = calculate_initiator_ratio(df.copy())
+    initiator_ratio = calculate_initiator_ratio(df)
     
     # Phase 8 (V3.0): Power Dynamics & Burnout NLP
     power_dynamics = calculate_power_dynamics(df, text_str=text_str)

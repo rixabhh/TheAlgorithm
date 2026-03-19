@@ -36,3 +36,7 @@
 ## 2026-03-22 - [Local Sentiment Analysis Vectorization & Batching]
 **Learning:** The local sentiment analysis path in `apply_sentiment` was bottlenecked by manual Python-level batching and label-to-score mapping loops. For datasets with 50k+ messages, this introduced significant Python interpreter overhead and unnecessary model loading when no partner messages were present.
 **Action:** Replace manual Python batching loops with native Transformers pipeline `batch_size` optimization. Vectorized text truncation using `.str[:512]` and replaced Python-level label mapping with `np.select` for O(N) scoring at C-speed. Added a check to avoid loading the sentiment model if no messages require scoring, saving significant RAM and startup time in sparse datasets.
+
+## 2026-03-19 - [Centralized Sorting & Computational Reuse]
+**Learning:** Redundant sorting operations ((N \log N)$) across multiple parsers and analytics entry points, combined with recalculating message time gaps in every downstream function, created significant CPU waste in large datasets (50k+ messages).
+**Action:** Centralize data sorting in the application layer () and preserve intermediate calculations like `gap_mins` in the DataFrame. This allows downstream functions to reuse pre-calculated columns, eliminating multiple (N)$ shift/delta operations and unnecessary `df.copy()` calls.
