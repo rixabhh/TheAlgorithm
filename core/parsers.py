@@ -151,7 +151,6 @@ class Parsers:
             df['timestamp'] = pd.to_datetime(df['dt_str'], dayfirst=True, errors='coerce')
             df.drop(columns=['dt_str'], inplace=True)
             df.dropna(subset=['timestamp'], inplace=True)
-            df.sort_values('timestamp', inplace=True)
         return df
 
     @staticmethod
@@ -211,7 +210,6 @@ class Parsers:
             df['timestamp'] = df['timestamp'].fillna(pd.to_datetime(df['dt_str'], errors='coerce'))
             df.drop(columns=['dt_str'], inplace=True)
             df.dropna(subset=['timestamp'], inplace=True)
-            df.sort_values('timestamp', inplace=True)
         return df
 
     @staticmethod
@@ -249,7 +247,6 @@ class Parsers:
             df['timestamp'] = pd.to_datetime(df['dt_str'], dayfirst=True, errors='coerce')
             df.drop(columns=['dt_str'], inplace=True)
             df.dropna(subset=['timestamp'], inplace=True)
-            df.sort_values('timestamp', inplace=True)
         return df
 
     @staticmethod
