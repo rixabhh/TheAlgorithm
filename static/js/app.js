@@ -181,11 +181,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         ['dragenter', 'dragover'].forEach(eventName => {
-            dropZone.addEventListener(eventName, () => dropZone.classList.add('border-brand-500', 'bg-white/[0.05]'), false);
+            dropZone.addEventListener(eventName, () => dropZone.classList.add('dropzone-active'), false);
         });
 
         ['dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, () => dropZone.classList.remove('border-brand-500', 'bg-white/[0.05]'), false);
+            dropZone.addEventListener(eventName, () => dropZone.classList.remove('dropzone-active'), false);
         });
 
         dropZone.addEventListener('drop', (e) => {
@@ -219,8 +219,10 @@ document.addEventListener('DOMContentLoaded', () => {
             fileList.classList.remove('hidden');
             const names = Array.from(fileInput.files).map(f => f.name).join(', ');
             fileList.textContent = `Selected: ${names}`;
+            if (dropZone) dropZone.classList.add('dropzone-success');
         } else if (fileList) {
             fileList.classList.add('hidden');
+            if (dropZone) dropZone.classList.remove('dropzone-success');
         }
     }
 
