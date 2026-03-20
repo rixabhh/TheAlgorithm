@@ -55,10 +55,6 @@ def set_security_headers(response):
         "font-src 'self'; "
         "img-src 'self' data: blob:; "
         "connect-src 'self' "
-            "https://api.openai.com "
-            "https://api.anthropic.com "
-            "https://generativelanguage.googleapis.com "
-            "https://api.x.ai "
             "https://*.lit.ai; "
         "base-uri 'self'; "
         "form-action 'self'; "
@@ -70,8 +66,8 @@ def set_security_headers(response):
     response.headers['X-Content-Type-Options'] = 'nosniff'
     # Referrer policy — don't leak URLs
     response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
-    # 🛡️ Sentinel: Enforce HSTS (1 year)
-    response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+    # 🛡️ Sentinel: Enforce HSTS (1 year) with preload for top-tier security
+    response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains; preload'
     # Permissions policy — disable unnecessary browser features
     response.headers['Permissions-Policy'] = 'camera=(), microphone=(), geolocation=()'
 

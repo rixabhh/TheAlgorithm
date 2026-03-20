@@ -47,3 +47,16 @@
 1. Implement a `/clear` route and link it to "Start Over" or "Exit" buttons.
 2. Enforce hard caps on the total number of items (messages) processed in a single request.
 3. Use `object-src 'none'` in CSP as a standard defense-in-depth measure.
+
+## 2026-03-20 - [MEDIUM] Defense-in-Depth and DoS Hardening
+**Vulnerability:**
+1. Potential DoS via memory exhaustion if an attacker uploads a single file with millions of messages, bypassing the aggregate message cap.
+2. Insecure CSP: Inclusion of backend-only AI provider domains in `connect-src` could facilitate data exfiltration if a frontend XSS occurred.
+3. Missing HSTS `preload` directive, leaving the site vulnerable to first-load MITM attacks even if HSTS is active.
+
+**Learning:** Aggregate limits are not enough if the individual processing steps (like per-file parsing) are not also constrained. Security headers should be as restrictive as possible, only allowing domains that are actually called from the client-side.
+
+**Prevention:**
+1. Implement per-file message limits early in the parsing pipeline (e.g., in `core/parsers.py`).
+2. Audit CSP regularly and remove backend-only domains (OpenAI, Anthropic, etc.) from `connect-src`.
+3. Use `preload` in the `Strict-Transport-Security` header to enable inclusion in browser preload lists.
