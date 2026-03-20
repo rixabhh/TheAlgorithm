@@ -387,6 +387,10 @@ def process_file(file_path: str, my_name: str, partner_name: str) -> pd.DataFram
         
     if df.empty:
          return df
+
+    # 🛡️ Sentinel: Enforce per-file message limit to prevent memory exhaustion (DoS)
+    if len(df) > 50000:
+        raise ValueError(f"File too large: {os.path.basename(file_path)} contains {len(df)} messages. Maximum 50,000 allowed per file.")
          
     processed_df = standardize_entities(df, my_name, partner_name)
     
