@@ -218,6 +218,27 @@ input[type="checkbox"].toggle:focus-visible+.toggle-track {
     background: rgba(168, 85, 247, 0.04);
 }
 
+.dropzone:focus-within {
+    outline: 2px solid var(--accent-purple);
+    outline-offset: 4px;
+}
+
+.dropzone-active {
+    border-color: var(--accent-purple) !important;
+    background: rgba(139, 92, 246, 0.08) !important;
+    animation: pulse-soft 2s infinite ease-in-out;
+}
+
+.dropzone-success {
+    border-color: var(--accent-pink) !important;
+    border-style: solid;
+    background: rgba(236, 72, 153, 0.04);
+}
+
+.dropzone-success svg {
+    color: var(--accent-pink) !important;
+}
+
 /* ── Run Button ── */
 .run-btn {
     background: linear-gradient(90deg, #c026d3 0%, #7c3aed 50%, #db2777 100%);
@@ -406,6 +427,17 @@ input:-webkit-autofill:active {
 
     to {
         opacity: 1;
+    }
+}
+
+@keyframes pulse-soft {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(139, 92, 246, 0);
+    }
+    50% {
+        transform: scale(1.005);
+        box-shadow: 0 0 20px 0 rgba(139, 92, 246, 0.15);
     }
 }
 
