@@ -60,3 +60,8 @@
 1. Implement per-file message limits early in the parsing pipeline (e.g., in `core/parsers.py`).
 2. Audit CSP regularly and remove backend-only domains (OpenAI, Anthropic, etc.) from `connect-src`.
 3. Use `preload` in the `Strict-Transport-Security` header to enable inclusion in browser preload lists.
+
+## 2026-03-25 - [MEDIUM] Parser Early-Exit for DoS Mitigation
+**Vulnerability:** Even with aggregate message limits in `app.py`, the individual parsers in `core/parsers.py` would still attempt to load and process entire files (up to 100MB) into memory before the limit was enforced. This could lead to memory exhaustion (OOM) if a file contained millions of short messages.
+**Learning:** Security limits should be enforced as early as possible in the data ingestion pipeline. In a Pandas/Flask architecture, this means breaking out of parsing loops immediately once a safe threshold is exceeded, rather than waiting for the final DataFrame to be constructed.
+**Prevention:** Implement `if len(collection) >= LIMIT: break` checks inside all file parsing loops (regex, JSON, HTML) to ensure resource consumption is bounded from the start.

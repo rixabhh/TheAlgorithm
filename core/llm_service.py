@@ -120,7 +120,8 @@ def call_openai(api_key: str, sys_prompt: str, data_prompt: str) -> dict:
             {"role": "system", "content": sys_prompt},
             {"role": "user", "content": data_prompt}
         ],
-        "temperature": 0.7
+        "temperature": 0.7,
+        "max_tokens": 1500
     }
     resp = requests.post(url, headers=headers, json=payload, timeout=30)
     resp.raise_for_status()
@@ -168,7 +169,8 @@ def call_gemini(api_key: str, sys_prompt: str, data_prompt: str) -> dict:
         }],
         "generationConfig": {
             "temperature": 0.7,
-            "responseMimeType": "application/json"
+            "responseMimeType": "application/json",
+            "max_output_tokens": 1500
         }
     }
     resp = requests.post(url, headers=headers, json=payload, timeout=30)
@@ -200,7 +202,8 @@ def call_xai(api_key: str, sys_prompt: str, data_prompt: str) -> dict:
                 {"role": "system", "content": sys_prompt},
                 {"role": "user", "content": data_prompt}
             ],
-            "temperature": 0.7
+            "temperature": 0.7,
+            "max_tokens": 1500
         }
         
         try:

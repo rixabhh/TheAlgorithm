@@ -134,6 +134,7 @@ class Parsers:
                     continue
                 match = WA_MSG_PATTERN.match(line)
                 if match:
+                    if len(texts) >= 50001: break # 🛡️ Sentinel: Early exit
                     date_str, time_str, sender, text = match.groups()
                     dt_strs.append(f"{date_str} {time_str}")
                     senders.append(sender.strip())
@@ -166,6 +167,7 @@ class Parsers:
         current_sender = "UNKNOWN"
         
         for block in blocks[1:]:
+            if len(texts) >= 50001: break # 🛡️ Sentinel: Early exit
             if 'service"' in block:
                 continue
             
@@ -235,6 +237,7 @@ class Parsers:
             if not line: continue
             match = WA_MSG_PATTERN.match(line)
             if match:
+                if len(texts) >= 50001: break # 🛡️ Sentinel: Early exit
                 date_str, time_str, sender, text = match.groups()
                 dt_strs.append(f"{date_str} {time_str}")
                 senders.append(sender.strip())
@@ -294,6 +297,7 @@ class Parsers:
                 return t
 
         for msg in data.get('messages', []):
+            if len(messages) >= 50001: break # 🛡️ Sentinel: Early exit
             sender = fix_text(msg.get('sender_name', 'UNKNOWN'))
             text = fix_text(msg.get('content', ''))
             ts_ms = msg.get('timestamp_ms')
@@ -315,6 +319,7 @@ class Parsers:
     def _parse_discord_native(data: list) -> pd.DataFrame:
         messages = []
         for msg in data:
+            if len(messages) >= 50001: break # 🛡️ Sentinel: Early exit
             ts = msg.get('Timestamp') or msg.get('timestamp')
             text = msg.get('Contents') or msg.get('content')
             if ts and text:
@@ -333,6 +338,7 @@ class Parsers:
     def _parse_telegram_json(data: dict) -> pd.DataFrame:
         messages = []
         for msg in data.get('messages', []):
+            if len(messages) >= 50001: break # 🛡️ Sentinel: Early exit
             if msg.get('type') != 'message': continue
             sender = msg.get('from', 'UNKNOWN')
             text = msg.get('text', '')
@@ -357,6 +363,7 @@ class Parsers:
     def _parse_discord_exporter(data: dict) -> pd.DataFrame:
         messages = []
         for msg in data.get('messages', []):
+            if len(messages) >= 50001: break # 🛡️ Sentinel: Early exit
             sender = msg.get('author', {}).get('name', 'UNKNOWN')
             text = msg.get('content', '')
             ts = msg.get('timestamp')
