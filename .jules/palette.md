@@ -26,3 +26,9 @@
 ## 2026-05-22 - [Accessible & Delightful Dropzones]
 **Learning:** For file upload components, relying on manual JS style injection is fragile. Using dedicated CSS classes like `.dropzone-active` (with `@keyframes pulse-soft`) and `.dropzone-success` (leveraging `--accent-pink` for confirmation) creates a more robust and delightful experience. Furthermore, applying `:focus-within` to the dropzone container ensures that keyboard users navigating to the hidden file input still receive a clear visual focus indicator, fulfilling essential accessibility requirements.
 **Action:** Always prefer CSS-driven state classes over manual style manipulation in JS for interactive components. Ensure focus indicators are visible on parent containers when child inputs are hidden for styling purposes.
+
+## 2026-06-15 - Icon-only Buttons & ARIA Accessibility
+
+**Learning:** When adding micro-interactions like "Copy to Clipboard" using icon-only buttons (SVGs), relying solely on the `title` attribute is insufficient for screen readers. Using a descriptive `aria-label` is mandatory to fulfill accessibility requirements for non-text interactive elements. Pairing this with a success toast notification provides clear, non-disruptive feedback for the action.
+
+**Action:** Ensure all icon-only buttons have an explicit `aria-label` and provide immediate visual feedback (e.g., `showToast`) upon successful action.
