@@ -97,6 +97,14 @@
                             Reading Your Energy...
                         </h2>
                         <p class="text-lg text-gray-200 leading-relaxed max-w-3xl font-light" id="report-pulse"></p>
+                        <blockquote id="report-snippet-container" class="hidden italic text-brand-300 border-l-4 border-brand-500 pl-4 py-2 my-4 bg-white/5 rounded-r-xl flex justify-between items-center group animate-fade-in-up" style="animation-delay: 0.1s;">
+                            <span id="report-snippet" class="flex-grow"></span>
+                            <button id="copySnippetBtn" type="button" class="ml-4 p-2 text-gray-500 hover:text-white transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100" title="Copy to clipboard" aria-label="Copy snippet to clipboard">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                                </svg>
+                            </button>
+                        </blockquote>
                     </div>
 
                     <!-- Spotify Wrapped Download Button -->
@@ -112,7 +120,7 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8 stagger-children">
                     <!-- Compatibility Score Card -->
-                    <div class="bg-white/5 border border-white/10 rounded-2xl p-5 hover:bg-white/10 transition-colors animate-fade-in-up" style="opacity: 0;">
+                    <div class="hover-lift bg-white/5 border border-white/10 rounded-2xl p-5 hover:bg-white/10 transition-colors animate-fade-in-up" style="opacity: 0;">
                         <span
                             class="text-[10px] font-bold text-emerald-400 uppercase tracking-tighter block mb-1">Compatibility</span>
                         <div class="text-3xl text-emerald-300 font-bold flex items-baseline gap-1">
@@ -121,25 +129,25 @@
                         </div>
                     </div>
                     <!-- Persona Card -->
-                    <div class="bg-white/5 border border-white/10 rounded-2xl p-5 hover:bg-white/10 transition-colors animate-fade-in-up" style="opacity: 0;">
+                    <div class="hover-lift bg-white/5 border border-white/10 rounded-2xl p-5 hover:bg-white/10 transition-colors animate-fade-in-up" style="opacity: 0;">
                         <span class="text-[10px] font-bold text-gray-400 uppercase tracking-tighter block mb-1">Your
                             Vibe</span>
                         <div class="text-xl text-brand-300 font-bold" id="report-persona">Determining...</div>
                     </div>
                     <!-- Mirroring Card -->
-                    <div class="bg-white/5 border border-white/10 rounded-2xl p-5 hover:bg-white/10 transition-colors animate-fade-in-up" style="opacity: 0;">
+                    <div class="hover-lift bg-white/5 border border-white/10 rounded-2xl p-5 hover:bg-white/10 transition-colors animate-fade-in-up" style="opacity: 0;">
                         <span class="text-[10px] font-bold text-gray-400 uppercase tracking-tighter block mb-1">Vibe
                             Match</span>
                         <div class="text-xl text-pink-300 font-bold" id="mirroring-value">--</div>
                     </div>
                     <!-- Support Card -->
-                    <div class="bg-white/5 border border-white/10 rounded-2xl p-5 hover:bg-white/10 transition-colors animate-fade-in-up" style="opacity: 0;">
+                    <div class="hover-lift bg-white/5 border border-white/10 rounded-2xl p-5 hover:bg-white/10 transition-colors animate-fade-in-up" style="opacity: 0;">
                         <span
                             class="text-[10px] font-bold text-gray-400 uppercase tracking-tighter block mb-1">Responsiveness</span>
                         <div class="text-xl text-purple-300 font-bold" id="support-score" aria-live="polite">--</div>
                     </div>
                     <!-- Topic mix -->
-                    <div class="bg-white/5 border border-white/10 rounded-2xl p-5 hover:bg-white/10 transition-colors animate-fade-in-up" style="opacity: 0;">
+                    <div class="hover-lift bg-white/5 border border-white/10 rounded-2xl p-5 hover:bg-white/10 transition-colors animate-fade-in-up" style="opacity: 0;">
                         <span class="text-[10px] font-bold text-gray-400 uppercase tracking-tighter block mb-1">Main
                             Topic</span>
                         <div class="text-xl text-blue-300 font-bold" id="core-topic">Analyzing...</div>
