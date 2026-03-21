@@ -22,3 +22,7 @@
 ## 2026-03-19 - [Lazy Triggered Animations for Collapsible Content]
 **Learning:** For performance and UX clarity, trigger numerical animations (like `animateValue`) only when their parent collapsible container (e.g., `<details>`) is expanded using the `toggle` event. This ensures users actually see the animation "delight" and prevents unnecessary screen reader activity on hidden content.
 **Action:** Use `detailsElement.addEventListener('toggle', ..., { once: true })` to trigger visual polish only when it becomes relevant to the user's viewport.
+
+## 2026-05-22 - [Accessible & Delightful Dropzones]
+**Learning:** For file upload components, relying on manual JS style injection is fragile. Using dedicated CSS classes like `.dropzone-active` (with `@keyframes pulse-soft`) and `.dropzone-success` (leveraging `--accent-pink` for confirmation) creates a more robust and delightful experience. Furthermore, applying `:focus-within` to the dropzone container ensures that keyboard users navigating to the hidden file input still receive a clear visual focus indicator, fulfilling essential accessibility requirements.
+**Action:** Always prefer CSS-driven state classes over manual style manipulation in JS for interactive components. Ensure focus indicators are visible on parent containers when child inputs are hidden for styling purposes.
