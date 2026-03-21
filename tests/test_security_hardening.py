@@ -65,7 +65,7 @@ def test_security_headers(client):
         response = client.get(route)
         assert response.headers['Cache-Control'] == 'no-store, no-cache, must-revalidate, max-age=0'
         assert response.headers['X-Content-Type-Options'] == 'nosniff'
-        assert response.headers['Strict-Transport-Security'] == 'max-age=31536000; includeSubDomains'
+        assert response.headers['Strict-Transport-Security'] == 'max-age=31536000; includeSubDomains; preload'
 
 def test_input_truncation(client):
     # Test that the /process route correctly truncates long inputs
