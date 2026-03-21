@@ -62,8 +62,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const snippetEl = document.getElementById('report-snippet');
-    if (snippetEl) {
-        snippetEl.textContent = report.top_shareable_snippet || "No shareable highlight generated.";
+    const snippetContainer = document.getElementById('report-snippet-container');
+    const copyBtn = document.getElementById('copySnippetBtn');
+
+    if (snippetEl && report.top_shareable_snippet) {
+        snippetEl.textContent = `"${report.top_shareable_snippet}"`;
+        if (snippetContainer) snippetContainer.classList.remove('hidden');
+
+        if (copyBtn) {
+            copyBtn.addEventListener('click', () => {
+                navigator.clipboard.writeText(report.top_shareable_snippet).then(() => {
+                    showToast("Snippet copied to clipboard!", "success");
+                }).catch(err => {
+                    console.error('Failed to copy text: ', err);
+                });
+            });
+        }
     }
 
     // Populate Chart Insights
