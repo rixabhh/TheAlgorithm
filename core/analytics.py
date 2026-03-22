@@ -72,12 +72,13 @@ def calculate_latency(df: pd.DataFrame) -> pd.DataFrame:
     df.drop(columns=['prev_sender', 'prev_timestamp'], inplace=True)
     return df
 
-def apply_sentiment(df: pd.DataFrame, hf_url: str = "") -> pd.DataFrame:
+def apply_sentiment(df: pd.DataFrame, hf_url: str = "", text_str: pd.Series = None) -> pd.DataFrame:
     # We only score PARTNER messages for the risk algorithm
     partner_mask = df['sender'] == 'PARTNER'
     
-    # Performance Optimization (V5.2): Use vectorized truncation instead of Python list comprehension
-    partner_msgs_series = df.loc[partner_mask, 'text'].astype(str).str[:512]
+    # ⚡ Bolt Optimization: Use pre-calculated text_str if provided to avoid redundant astype(str)
+    t_series = text_str if text_str is not None else df.loc[partner_mask, 'text'].astype(str)
+    partner_msgs_series = t_series[partner_mask].str[:512] if text_str is not None else t_series.str[:512]
     partner_msgs = partner_msgs_series.tolist()
     
     sentiment_scores = []
@@ -162,20 +163,19 @@ def apply_sentiment(df: pd.DataFrame, hf_url: str = "") -> pd.DataFrame:
             print(f"Scoring {len(partner_msgs)} messages locally (pipeline batch_size={batch_size})...")
 
             try:
-                # Performance Optimization (V5.2): Leverage Transformers native batching and
-                # replace manual Python loops with vectorized Pandas mapping for label-to-score conversion.
+                # Performance Optimization (V5.2): Leverage Transformers native batching.
                 results = pipe(partner_msgs, batch_size=batch_size)
                 
-                # Map labels to numerical scores using a vectorized Series approach
+                # Performance Optimization (V5.3): Replaced multiple str.contains scans
+                # and np.select with a direct O(1) dictionary map for label-to-score conversion.
                 labels = pd.Series([r['label'].lower() for r in results])
 
-                # Mapping logic: positive/label_2 -> 1, negative/label_0 -> -1, else 0
-                # This is significantly faster than a Python for-loop for large datasets.
-                conditions = [
-                    labels.str.contains('positive') | (labels == 'label_2'),
-                    labels.str.contains('negative') | (labels == 'label_0')
-                ]
-                sentiment_scores = np.select(conditions, [1, -1], default=0).tolist()
+                label_map = {
+                    'label_0': -1, 'negative': -1,
+                    'label_1': 0, 'neutral': 0,
+                    'label_2': 1, 'positive': 1
+                }
+                sentiment_scores = labels.map(label_map).fillna(0).astype(int).tolist()
 
             except Exception as e:
                 print(f"Local sentiment analysis failed: {e}")
@@ -338,49 +338,58 @@ def calculate_support_gap(df: pd.DataFrame, text_lower: pd.Series = None, text_s
     
     stress_keywords = ['work', 'tired', 'sad', 'stressed', 'deadline', 'exhausted', 'unhappy', 'worry', 'anxious', 'sick', 'bad day', 'hard time']
     
-    # Optimization: Use input df directly as it is already sorted
+    # Use input df directly as it is already sorted
     df_temp = df
 
     # Use pre-calculated series if provided
     t_lower = text_lower if text_lower is not None else df_temp['text'].astype(str).str.lower()
-    t_str_vals = text_str.values if text_str is not None else df_temp['text'].astype(str).values
 
     # Vectorized stress detection outside the loop is much faster
     is_stress = t_lower.str.contains('|'.join(stress_keywords), regex=True).values
+
+    # Performance Optimization (V5.3): Refactored the Python loop to use integer indexing
+    # and NumPy-native state tracking. This eliminates multiple dictionary lookups
+    # and string key overhead in every iteration of the hot loop (O(N)).
     senders = df_temp['sender'].values
+    # ME -> 0, PARTNER -> 1
+    s_idx = (senders == 'PARTNER').astype(np.int8)
     timestamps = df_temp['timestamp'].values
-    texts = t_str_vals
     
-    support_results = {
-        'ME': {'stress_count': 0, 'support_received': 0},
-        'PARTNER': {'stress_count': 0, 'support_received': 0}
-    }
+    # Pre-calculate message lengths to avoid calling len() in the loop
+    text_lens = text_str.str.len().values if text_str is not None else df_temp['text'].astype(str).str.len().values
     
-    # State trackers for active stress
-    active_stress = {'ME': None, 'PARTNER': None}  # Stores timestamp of last stress msg
+    # State tracking using arrays (index 0: ME, index 1: PARTNER)
+    stress_counts = np.zeros(2, dtype=np.int32)
+    support_received = np.zeros(2, dtype=np.int32)
+    active_stress_ts = np.full(2, np.datetime64('NaT'), dtype=timestamps.dtype)
     
-    # Using numpy array iteration is ~40x faster than df.iterrows()
-    for i in range(len(senders)):
-        sender = senders[i]
-        timestamp = timestamps[i]
+    # Comparison threshold for response time
+    threshold = np.timedelta64(60, 'm')
+
+    for i in range(len(s_idx)):
+        s = s_idx[i]
+        ts = timestamps[i]
         
         # Did this person just send a stress message?
         if is_stress[i]:
-            support_results[sender]['stress_count'] += 1
-            active_stress[sender] = timestamp
+            stress_counts[s] += 1
+            active_stress_ts[s] = ts
             
         # Did this person just respond to the OTHER person's stress message?
-        other_sender = 'PARTNER' if sender == 'ME' else 'ME'
-        if active_stress[other_sender] is not None:
-            # Check if response is within 60 mins and decent length
-            # Use numpy datetime subtraction for speed
-            time_diff = (timestamp - active_stress[other_sender]) / np.timedelta64(1, 'm')
-            if time_diff <= 60.0 and len(texts[i]) > 10:
-                support_results[other_sender]['support_received'] += 1
+        other_s = 1 - s # Flip 0 to 1, 1 to 0
+        ast = active_stress_ts[other_s]
+
+        if not np.isnat(ast):
+            # Direct comparison of timedeltas avoids division overhead
+            if (ts - ast) <= threshold and text_lens[i] > 10:
+                support_received[other_s] += 1
                 # Clear their stress state so we don't double count
-                active_stress[other_sender] = None
+                active_stress_ts[other_s] = np.datetime64('NaT')
                 
-    return support_results
+    return {
+        'ME': {'stress_count': int(stress_counts[0]), 'support_received': int(support_received[0])},
+        'PARTNER': {'stress_count': int(stress_counts[1]), 'support_received': int(support_received[1])}
+    }
 
 def calculate_reengagement(df: pd.DataFrame) -> dict:
     """Detect who reaches out first after a long silence (> 24h) (V4.0)."""
@@ -465,13 +474,13 @@ def calculate_topic_mix(df: pd.DataFrame, connection_type: str, text_lower: pd.S
 
 def run_analytics_pipeline(df: pd.DataFrame, hf_url: str = "", connection_type: str = "romantic") -> dict:
     """Runs the full analytics pipeline and returns a dict with weekly stats, emoji freq, and initiator ratio."""
-    df = calculate_latency(df)
-    df = apply_sentiment(df, hf_url=hf_url)
-
-    # Optimization: Pre-calculate string conversions and lowercasing once
+    # ⚡ Bolt Optimization: Pre-calculate common series once at the pipeline entry
     # to avoid redundant O(N) operations across multiple analytics functions.
     text_str = df['text'].astype(str)
     text_lower = text_str.str.lower()
+
+    df = calculate_latency(df)
+    df = apply_sentiment(df, hf_url=hf_url, text_str=text_str)
     
     # Phase 6: Extract enhanced features BEFORE privacy firewall
     emoji_freq = calculate_emoji_frequency(df, text_str=text_str)
