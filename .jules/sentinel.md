@@ -65,3 +65,11 @@
 **Vulnerability:** Even with aggregate message limits in `app.py`, the individual parsers in `core/parsers.py` would still attempt to load and process entire files (up to 100MB) into memory before the limit was enforced. This could lead to memory exhaustion (OOM) if a file contained millions of short messages.
 **Learning:** Security limits should be enforced as early as possible in the data ingestion pipeline. In a Pandas/Flask architecture, this means breaking out of parsing loops immediately once a safe threshold is exceeded, rather than waiting for the final DataFrame to be constructed.
 **Prevention:** Implement `if len(collection) >= LIMIT: break` checks inside all file parsing loops (regex, JSON, HTML) to ensure resource consumption is bounded from the start.
+
+## 2026-03-22 - [HIGH] Server-Side Request Forgery (SSRF) Hardening
+**Vulnerability:** External API requests to LLM providers (OpenAI, Anthropic, Gemini, xAI) did not disable HTTP redirects, potentially allowing SSRF if a provider's domain were compromised or if DNS-level attacks occurred. Additionally, the `validate_cloud_url` logic was susceptible to credential-based URL obfuscation.
+**Learning:** Hostname-only validation can be bypassed using the `@` character (e.g., `https://trusted.com@attacker.com`) which some parsers might interpret as credentials for the first domain but connect to the second. Furthermore, default `requests.post` follows redirects, which is dangerous for server-side calls to user-influenced or third-party URLs.
+**Prevention:**
+1. Always set `allow_redirects=False` for all server-side requests to external or user-provided URLs.
+2. Explicitly reject URLs containing the `@` character in validation functions to prevent credential-based bypasses.
+3. Enforce strict `Cache-Control: no-store` headers on all routes that process sensitive user data or clear sessions.
