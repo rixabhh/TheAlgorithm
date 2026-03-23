@@ -12,10 +12,19 @@ app = FastAPI(title="The Algorithm - Cloud GPU API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False, # 🛡️ Sentinel: Credentials must be false when allowing all origins to prevent CSRF
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# 🛡️ Sentinel: Add security headers to the Cloud API (Defense-in-depth)
+@app.middleware("http")
+async def add_security_headers(request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Content-Security-Policy"] = "default-src 'self'"
+    return response
 
 # Initialize model once on boot
 print("Loading XLM-RoBERTa Sentiment Pipeline into GPU...")
