@@ -72,8 +72,8 @@ def set_security_headers(response):
     response.headers['Permissions-Policy'] = 'camera=(), microphone=(), geolocation=()'
 
     # No-cache on sensitive routes to prevent browser history leaking results
-    # 🛡️ Sentinel: Fix typo and add /highlights and /flashback to protect sensitive data
-    if request.path in ('/process', '/dashboard', '/flashback', '/highlights'):
+    # 🛡️ Sentinel: Fix typo and add /highlights, /flashback and /clear to protect sensitive data
+    if request.path in ('/process', '/dashboard', '/flashback', '/highlights', '/clear'):
         response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
         response.headers['Pragma'] = 'no-cache'
         response.headers['Expires'] = '0'
