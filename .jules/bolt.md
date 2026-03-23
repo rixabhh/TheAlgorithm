@@ -40,3 +40,7 @@
 ## 2026-03-19 - [Centralized Sorting & Computational Reuse]
 **Learning:** Redundant sorting operations ((N \log N)$) across multiple parsers and analytics entry points, combined with recalculating message time gaps in every downstream function, created significant CPU waste in large datasets (50k+ messages).
 **Action:** Centralize data sorting in the application layer () and preserve intermediate calculations like `gap_mins` in the DataFrame. This allows downstream functions to reuse pre-calculated columns, eliminating multiple (N)$ shift/delta operations and unnecessary `df.copy()` calls.
+
+## 2026-03-25 - [Analytics Pipeline Hot-Loop & Mapping Optimization]
+**Learning:** The `calculate_support_gap` function was bottlenecked by Python-level dictionary lookups and string operations within an O(N) loop (up to 50k messages). Additionally, the sentiment label mapping phase used multiple redundant scans of the results Series via `str.contains`.
+**Action:** Refactored the `calculate_support_gap` loop to use NumPy-native arrays for state tracking and pre-calculated message lengths, eliminating dictionary/string overhead. Replaced regex-based sentiment mapping with an O(1) dictionary `map()` on the labels Series, significantly reducing the constant factor for post-ML processing. Moved string series pre-calculations to the pipeline entry to avoid redundant O(N) conversions.
