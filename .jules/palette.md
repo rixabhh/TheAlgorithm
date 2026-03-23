@@ -32,3 +32,9 @@
 **Learning:** When adding micro-interactions like "Copy to Clipboard" using icon-only buttons (SVGs), relying solely on the `title` attribute is insufficient for screen readers. Using a descriptive `aria-label` is mandatory to fulfill accessibility requirements for non-text interactive elements. Pairing this with a success toast notification provides clear, non-disruptive feedback for the action.
 
 **Action:** Ensure all icon-only buttons have an explicit `aria-label` and provide immediate visual feedback (e.g., `showToast`) upon successful action.
+
+## 2026-06-20 - Dark Mode Contrast & Accessibility (WCAG AA)
+
+**Learning:** On deep dark backgrounds (`#08080f`), standard `text-gray-500` or `text-gray-600` classes often fail WCAG AA contrast requirements (4.5:1). Uplifting secondary text and utility icons to `text-gray-400` significantly improves legibility for users with visual impairments without compromising the "glassmorphism" aesthetic. Pairing this with `aria-live="polite"` on dynamic content ensure screen readers announce updates as they happen.
+
+**Action:** Audit all secondary labels, descriptions, and icons on dark backgrounds and ensure they use at least `text-gray-400` to maintain accessibility standards.

@@ -63,21 +63,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const snippetEl = document.getElementById('report-snippet');
     const snippetContainer = document.getElementById('report-snippet-container');
-    const copyBtn = document.getElementById('copySnippetBtn');
+    const copySnippetBtn = document.getElementById('copySnippetBtn');
+    const copyPersonaBtn = document.getElementById('copyPersonaBtn');
 
     if (snippetEl && report.top_shareable_snippet) {
         snippetEl.textContent = `"${report.top_shareable_snippet}"`;
         if (snippetContainer) snippetContainer.classList.remove('hidden');
 
-        if (copyBtn) {
-            copyBtn.addEventListener('click', () => {
+        if (copySnippetBtn) {
+            copySnippetBtn.addEventListener('click', () => {
                 navigator.clipboard.writeText(report.top_shareable_snippet).then(() => {
                     showToast("Snippet copied to clipboard!", "success");
                 }).catch(err => {
-                    console.error('Failed to copy text: ', err);
+                    console.error('Failed to copy snippet: ', err);
                 });
             });
         }
+    }
+
+    if (copyPersonaBtn && report.relationship_persona) {
+        copyPersonaBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(report.relationship_persona).then(() => {
+                showToast("Persona copied to clipboard!", "success");
+            }).catch(err => {
+                console.error('Failed to copy persona: ', err);
+            });
+        });
     }
 
     // Populate Chart Insights
