@@ -227,12 +227,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Error Handling Helper ---
-    const showError = (message) => {
+    /**
+     * Shows a styled error message.
+     * @param {string} message - The error message or HTML.
+     * @param {boolean} isHTML - Whether the message should be treated as HTML.
+     */
+    const showError = (message, isHTML = false) => {
         const errorContainer = document.getElementById('errorContainer');
         if (errorContainer) {
-            errorContainer.textContent = message;
+            if (isHTML) {
+                errorContainer.innerHTML = message;
+            } else {
+                errorContainer.textContent = message;
+            }
             errorContainer.classList.remove('hidden');
             errorContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            // Trigger shake animation
+            errorContainer.classList.remove('animate-shake');
+            void errorContainer.offsetWidth; // Trigger reflow
+            errorContainer.classList.add('animate-shake');
         } else {
             alert(message);
         }
@@ -262,7 +276,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const apiKey = sessionStorage.getItem('_llm_token') ? atob(sessionStorage.getItem('_llm_token')) : '';
             if (!apiKey) {
-                showError('An AI API Key is required to run the analysis. Please click the Settings gear icon ⚙️ in the top right to configure your API key first. (e.g. Google Gemini 2.5 Flash is quick to set up!)');
+                const errorHtml = `
+                    <div class="flex flex-col gap-3">
+                        <div class="flex items-start gap-2.5">
+                            <span class="text-xl">🔑</span>
+                            <div>
+                                <p class="font-bold text-white mb-0.5">API Key Required</p>
+                                <p class="text-xs opacity-90 leading-relaxed">An AI API Key is needed to generate your relationship insights privately and securely.</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button type="button" id="configKeyBtn"
+                                class="flex-1 bg-white/10 hover:bg-white/20 text-white text-[11px] font-bold py-2 rounded-lg transition-colors border border-white/10">
+                                Configure Key
+                            </button>
+                            <a href="/instructions#api-keys" class="flex-1 bg-brand-500/20 hover:bg-brand-500/30 text-brand-300 text-[11px] font-bold py-2 rounded-lg transition-colors border border-brand-500/30 text-center">
+                                Get Free Key
+                            </a>
+                        </div>
+                    </div>
+                `;
+                showError(errorHtml, true);
+                // Attach event listener instead of inline onclick for better UX/standard compliance
+                const configBtn = document.getElementById('configKeyBtn');
+                if (configBtn) {
+                    configBtn.addEventListener('click', () => {
+                        const settingsBtn = document.getElementById('settingsBtn');
+                        if (settingsBtn) settingsBtn.click();
+                    });
+                }
                 return;
             }
 
