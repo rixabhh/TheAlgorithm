@@ -123,7 +123,8 @@ def call_openai(api_key: str, sys_prompt: str, data_prompt: str) -> dict:
         "temperature": 0.7,
         "max_tokens": 1500
     }
-    resp = requests.post(url, headers=headers, json=payload, timeout=30)
+    # 🛡️ Sentinel: Enforce allow_redirects=False to prevent SSRF bypass via redirection
+    resp = requests.post(url, headers=headers, json=payload, timeout=30, allow_redirects=False)
     resp.raise_for_status()
     # Attempt to parse json 
     content = resp.json()['choices'][0]['message']['content'].strip()
@@ -145,7 +146,8 @@ def call_anthropic(api_key: str, sys_prompt: str, data_prompt: str) -> dict:
         "max_tokens": 1000,
         "temperature": 0.7
     }
-    resp = requests.post(url, headers=headers, json=payload, timeout=30)
+    # 🛡️ Sentinel: Enforce allow_redirects=False to prevent SSRF bypass via redirection
+    resp = requests.post(url, headers=headers, json=payload, timeout=30, allow_redirects=False)
     resp.raise_for_status()
     content = resp.json()['content'][0]['text'].strip()
     return json.loads(content)
@@ -173,7 +175,8 @@ def call_gemini(api_key: str, sys_prompt: str, data_prompt: str) -> dict:
             "max_output_tokens": 1500
         }
     }
-    resp = requests.post(url, headers=headers, json=payload, timeout=30)
+    # 🛡️ Sentinel: Enforce allow_redirects=False to prevent SSRF bypass via redirection
+    resp = requests.post(url, headers=headers, json=payload, timeout=30, allow_redirects=False)
     resp.raise_for_status()
     
     data = resp.json()
@@ -207,7 +210,8 @@ def call_xai(api_key: str, sys_prompt: str, data_prompt: str) -> dict:
         }
         
         try:
-            resp = requests.post(url, headers=headers, json=payload, timeout=60)
+            # 🛡️ Sentinel: Enforce allow_redirects=False to prevent SSRF bypass via redirection
+            resp = requests.post(url, headers=headers, json=payload, timeout=60, allow_redirects=False)
             if resp.status_code == 200:
                 data = resp.json()
                 content = data['choices'][0]['message']['content'].strip()

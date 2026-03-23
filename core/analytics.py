@@ -42,11 +42,16 @@ def validate_cloud_url(url: str) -> bool:
     if not url:
         return False
     try:
+        # 🛡️ Sentinel: Reject URLs with '@' to prevent credential-based SSRF bypasses
+        if '@' in url:
+            return False
+
         parsed = urlparse(url)
         # 🛡️ Sentinel: Use hostname instead of netloc to handle ports and auth safely
         hostname = parsed.hostname
         if not hostname:
             return False
+
         # Enforce HTTPS and restrict to Lightning AI domain (*.lit.ai)
         if parsed.scheme == 'https' and hostname.endswith('.lit.ai'):
             return True
