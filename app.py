@@ -1,4 +1,5 @@
 import os
+import re
 import shutil
 import pandas as pd
 import tempfile
@@ -30,6 +31,23 @@ GLOBAL_DATA_STORE = {}
 
 # 🛡️ Sentinel: Strict file extension allowlist
 ALLOWED_EXTENSIONS = {'txt', 'html', 'json', 'pdf'}
+
+# ⚡ Bolt Optimization: Pre-compile system phrases regex for high-speed highlight filtering.
+SYSTEM_PHRASES = [
+    "missed voice call",
+    "missed video call",
+    "end-to-end encrypted",
+    "tap for more info",
+    "message was deleted",
+    "deleted this message",
+    "image omitted",
+    "video omitted",
+    "audio omitted",
+    "sticker omitted",
+    "gif omitted",
+    "contact card omitted"
+]
+SYSTEM_PHRASES_PATTERN = re.compile('|'.join(SYSTEM_PHRASES))
 
 def allowed_file(filename):
     """Check if the uploaded file has a permitted extension."""
@@ -189,7 +207,7 @@ def process_chat():
             if len(full_df) > 50000:
                 return jsonify({'error': 'Too many messages. Maximum 50,000 allowed for analysis.'}), 400
 
-            full_df.sort_values('timestamp', inplace=True)
+            full_df.sort_values('timestamp', inplace=True, ignore_index=True)
             
             # 3. Analytics & Privacy Drop
             analytics_result = run_analytics_pipeline(full_df, hf_url=hf_url, connection_type=connection_type)
@@ -278,29 +296,13 @@ def get_highlights():
     if df is None or df.empty:
         return jsonify({'highlights': []})
 
-    # Filter messages that are reasonably substantial, not just media/links, and not tiny reactions
-    system_phrases = [
-        "missed voice call", 
-        "missed video call", 
-        "end-to-end encrypted", 
-        "tap for more info", 
-        "message was deleted", 
-        "deleted this message", 
-        "image omitted", 
-        "video omitted", 
-        "audio omitted", 
-        "sticker omitted", 
-        "gif omitted",
-        "contact card omitted"
-    ]
-    
     # Performance Optimization: Use vectorized Pandas string operations for filtering
     # instead of a manual O(N) Python loop.
     t_series = df['text'].astype(str)
     t_lower = t_series.str.lower()
 
-    # Check for system phrases using vectorized regex search
-    is_sys_msg = t_lower.str.contains('|'.join(system_phrases), regex=True, na=False)
+    # Check for system phrases using pre-compiled vectorized regex search (Bolt)
+    is_sys_msg = t_lower.str.contains(SYSTEM_PHRASES_PATTERN, na=False)
 
     # Combined filter: length 15-150, no media tags, no links, not system message
     mask = (

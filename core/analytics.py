@@ -1,4 +1,5 @@
 import os
+import re
 from urllib.parse import urlparse
 from itertools import chain
 import pandas as pd
@@ -9,6 +10,24 @@ import emoji
 from collections import Counter
 
 sentiment_pipeline = None
+
+# ⚡ Bolt Optimization: Pre-compile static regexes for analytics functions
+# to avoid redundant string joining and regex compilation cycles in request hot-paths.
+AFFIRMATIVE_WORDS = ['love', 'thanks', 'happy', 'we', 'miss', 'appreciate', 'glad', 'proud', 'beautiful', 'care']
+DISMISSIVE_WORDS = ['whatever', 'fine', 'okay', 'sure', 'k', 'ok', 'busy', 'tired', 'idk', 'anyway']
+STRESS_KEYWORDS = ['work', 'tired', 'sad', 'stressed', 'deadline', 'exhausted', 'unhappy', 'worry', 'anxious', 'sick', 'bad day', 'hard time']
+
+AFFIRMATIVE_PATTERN = re.compile('|'.join(AFFIRMATIVE_WORDS))
+DISMISSIVE_PATTERN = re.compile('|'.join(DISMISSIVE_WORDS))
+STRESS_PATTERN = re.compile('|'.join(STRESS_KEYWORDS))
+
+# Topic Specific Patterns
+LOGISTICS_PATTERN = re.compile('|'.join(['dinner', 'lunch', 'bill', 'home', 'work', 'done', 'todo', 'buy', 'shop', 'cleaning']))
+EXTERNAL_PATTERN = re.compile('|'.join(['friends', 'party', 'movie', 'news', 'gym', 'weather', 'job']))
+CONFLICT_PATTERN = re.compile('|'.join(['sorry', 'why', 'fight', 'angry', 'stop', 'listen', 'mean', 'hurt', 'annoyed']))
+INTIMACY_PATTERN = re.compile('|'.join(['love', 'miss', 'baby', 'darling', 'honey', 'kiss', 'hug', 'beautiful', 'forever']))
+BONDING_PATTERN = re.compile('|'.join(['miss', 'love', 'haha', 'lol', 'fun', 'crazy', 'remember', 'bro', 'dude', 'bestie']))
+COLLABORATION_PATTERN = re.compile('|'.join(['help', 'thanks', 'appreciate', 'great', 'good job', 'team', 'meeting', 'sync']))
 
 def get_sentiment_pipeline():
     """Lazy load and quantize the Hinglish sentiment model on CPU."""
@@ -60,8 +79,7 @@ def validate_cloud_url(url: str) -> bool:
         return False
 
 def calculate_latency(df: pd.DataFrame) -> pd.DataFrame:
-    # DF is already sorted by app.py before passing to the pipeline
-    df = df.reset_index(drop=True)
+    # Optimization: DF index is already reset by run_analytics_pipeline (Bolt)
     df['prev_sender'] = df['sender'].shift(1)
     df['prev_timestamp'] = df['timestamp'].shift(1)
     
@@ -322,15 +340,12 @@ def calculate_affection_friction(df: pd.DataFrame, text_lower: pd.Series = None)
     """Detect 'Burnout' via affirmative vs dismissive language trends (V3.0)."""
     if 'text' not in df.columns: return {}
     
-    affirmative = ['love', 'thanks', 'happy', 'we', 'miss', 'appreciate', 'glad', 'proud', 'beautiful', 'care']
-    dismissive = ['whatever', 'fine', 'okay', 'sure', 'k', 'ok', 'busy', 'tired', 'idk', 'anyway']
-    
     # Use pre-calculated lowercased series if provided
     text_lower = text_lower if text_lower is not None else df['text'].astype(str).str.lower()
     
-    # Count occurrences across the entire dataset
-    aff_count = text_lower.str.contains('|'.join(affirmative), regex=True).sum()
-    dis_count = text_lower.str.contains('|'.join(dismissive), regex=True).sum()
+    # Count occurrences across the entire dataset (using pre-compiled patterns)
+    aff_count = text_lower.str.contains(AFFIRMATIVE_PATTERN, na=False).sum()
+    dis_count = text_lower.str.contains(DISMISSIVE_PATTERN, na=False).sum()
     
     return {
         'affirmative_count': int(aff_count),
@@ -341,16 +356,14 @@ def calculate_support_gap(df: pd.DataFrame, text_lower: pd.Series = None, text_s
     """Identify stress messages and measure partner's response quality (V4.0)."""
     if 'text' not in df.columns or len(df) < 5: return {}
     
-    stress_keywords = ['work', 'tired', 'sad', 'stressed', 'deadline', 'exhausted', 'unhappy', 'worry', 'anxious', 'sick', 'bad day', 'hard time']
-    
     # Use input df directly as it is already sorted
     df_temp = df
 
     # Use pre-calculated series if provided
     t_lower = text_lower if text_lower is not None else df_temp['text'].astype(str).str.lower()
 
-    # Vectorized stress detection outside the loop is much faster
-    is_stress = t_lower.str.contains('|'.join(stress_keywords), regex=True).values
+    # Vectorized stress detection outside the loop is much faster (using pre-compiled pattern)
+    is_stress = t_lower.str.contains(STRESS_PATTERN, na=False).values
 
     # Performance Optimization (V5.3): Refactored the Python loop to use integer indexing
     # and NumPy-native state tracking. This eliminates multiple dictionary lookups
@@ -449,37 +462,34 @@ def calculate_topic_mix(df: pd.DataFrame, connection_type: str, text_lower: pd.S
     """Categorize conversation dynamically based on connection type (V4.0)."""
     if 'text' not in df.columns: return {}
     
-    # Base topics that apply to everything
-    logistics = ['dinner', 'lunch', 'bill', 'home', 'work', 'done', 'todo', 'buy', 'shop', 'cleaning']
-    external = ['friends', 'party', 'movie', 'news', 'gym', 'weather', 'job']
-    conflict = ['sorry', 'why', 'fight', 'angry', 'stop', 'listen', 'mean', 'hurt', 'annoyed']
-    
-    # Relationship-specific intimacy/bonding terms
+    # Relationship-specific patterns (Bolt: Use pre-compiled patterns)
     if connection_type == 'romantic':
-        intimacy = ['love', 'miss', 'baby', 'darling', 'honey', 'kiss', 'hug', 'beautiful', 'forever']
-        categories = {'Logistics': logistics, 'Intimacy': intimacy, 'Conflict': conflict, 'External': external}
+        categories = {'Logistics': LOGISTICS_PATTERN, 'Intimacy': INTIMACY_PATTERN, 'Conflict': CONFLICT_PATTERN, 'External': EXTERNAL_PATTERN}
     elif connection_type in ['friendship', 'casual', 'family']:
-        bonding = ['miss', 'love', 'haha', 'lol', 'fun', 'crazy', 'remember', 'bro', 'dude', 'bestie']
-        categories = {'Logistics': logistics, 'Bonding': bonding, 'Disagreement': conflict, 'External': external}
+        categories = {'Logistics': LOGISTICS_PATTERN, 'Bonding': BONDING_PATTERN, 'Disagreement': CONFLICT_PATTERN, 'External': EXTERNAL_PATTERN}
     elif connection_type == 'professional':
-        collaboration = ['help', 'thanks', 'appreciate', 'great', 'good job', 'team', 'meeting', 'sync']
-        categories = {'Operations': logistics, 'Collaboration': collaboration, 'Blockers': conflict, 'External': external}
+        categories = {'Operations': LOGISTICS_PATTERN, 'Collaboration': COLLABORATION_PATTERN, 'Blockers': CONFLICT_PATTERN, 'External': EXTERNAL_PATTERN}
     else:
-        # Default fallback
-        categories = {'Logistics': logistics, 'Bonding': ['miss', 'care', 'fun'], 'Conflict': conflict, 'External': external}
+        # Default fallback (Bonding is mixed here, so we use a small local regex if connection type is unknown)
+        categories = {'Logistics': LOGISTICS_PATTERN, 'Bonding': re.compile(r'miss|care|fun'), 'Conflict': CONFLICT_PATTERN, 'External': EXTERNAL_PATTERN}
     
     # Use pre-calculated lowercased series if provided
     text_lower = text_lower if text_lower is not None else df['text'].astype(str).str.lower()
     results = {}
     
-    for cat, keywords in categories.items():
-        results[cat] = int(text_lower.str.contains('|'.join(keywords), regex=True).sum())
+    for cat, pattern in categories.items():
+        results[cat] = int(text_lower.str.contains(pattern, na=False).sum())
         
     return results
 
 def run_analytics_pipeline(df: pd.DataFrame, hf_url: str = "", connection_type: str = "romantic") -> dict:
     """Runs the full analytics pipeline and returns a dict with weekly stats, emoji freq, and initiator ratio."""
-    # ⚡ Bolt Optimization: Pre-calculate common series once at the pipeline entry
+    # ⚡ Bolt Optimization: Reset index once at entry to ensure all downstream vectorized
+    # operations and pre-calculated series (text_str, text_lower) are perfectly
+    # aligned, avoiding costly O(N) alignment overhead and fixing data corruption bugs.
+    df = df.reset_index(drop=True)
+
+    # Pre-calculate common series once at the pipeline entry
     # to avoid redundant O(N) operations across multiple analytics functions.
     text_str = df['text'].astype(str)
     text_lower = text_str.str.lower()
