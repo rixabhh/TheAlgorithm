@@ -12,7 +12,7 @@ app = FastAPI(title="The Algorithm - Cloud GPU API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,  # 🛡️ Sentinel: Credentials must be False when using wildcard origins to prevent CSRF
     allow_methods=["*"],
     allow_headers=["*"],
 )
