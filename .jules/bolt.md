@@ -44,3 +44,7 @@
 ## 2026-03-25 - [Analytics Pipeline Hot-Loop & Mapping Optimization]
 **Learning:** The `calculate_support_gap` function was bottlenecked by Python-level dictionary lookups and string operations within an O(N) loop (up to 50k messages). Additionally, the sentiment label mapping phase used multiple redundant scans of the results Series via `str.contains`.
 **Action:** Refactored the `calculate_support_gap` loop to use NumPy-native arrays for state tracking and pre-calculated message lengths, eliminating dictionary/string overhead. Replaced regex-based sentiment mapping with an O(1) dictionary `map()` on the labels Series, significantly reducing the constant factor for post-ML processing. Moved string series pre-calculations to the pipeline entry to avoid redundant O(N) conversions.
+
+## 2026-03-28 - [Index Alignment & Regex Pre-compilation]
+**Learning:** Pre-calculating Series (like `text_str` and `text_lower`) before a DataFrame index reset leads to silent data misalignment in downstream vectorized operations. Additionally, joining keyword lists into regex strings on every function call within hot paths introduces unnecessary CPU-intensive compilation overhead.
+**Action:** Centralize the DataFrame index reset at the very beginning of the analytics pipeline before any Series are derived. Move all static keyword-based regex patterns (affection, stress, topic mix, and system phrases) to the module level to ensure they are compiled exactly once, reducing the constant factor in high-traffic request loops.

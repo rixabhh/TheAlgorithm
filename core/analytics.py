@@ -1,4 +1,5 @@
 import os
+import re
 from urllib.parse import urlparse
 from itertools import chain
 import pandas as pd
@@ -7,6 +8,21 @@ from transformers import pipeline
 import torch
 import emoji
 from collections import Counter
+
+# Pre-compiled Regex Patterns for Analytics (V5.4 Optimization)
+# Module-level compilation avoids redundant overhead in high-traffic request cycles.
+STRESS_RE = re.compile(r'work|tired|sad|stressed|deadline|exhausted|unhappy|worry|anxious|sick|bad day|hard time')
+AFFIRMATIVE_RE = re.compile(r'love|thanks|happy|we|miss|appreciate|glad|proud|beautiful|care')
+DISMISSIVE_RE = re.compile(r'whatever|fine|okay|sure|k|ok|busy|tired|idk|anyway')
+
+# Topic-specific regexes
+LOGISTICS_RE = re.compile(r'dinner|lunch|bill|home|work|done|todo|buy|shop|cleaning')
+EXTERNAL_RE = re.compile(r'friends|party|movie|news|gym|weather|job')
+CONFLICT_RE = re.compile(r'sorry|why|fight|angry|stop|listen|mean|hurt|annoyed')
+INTIMACY_RE = re.compile(r'love|miss|baby|darling|honey|kiss|hug|beautiful|forever')
+BONDING_RE = re.compile(r'miss|love|haha|lol|fun|crazy|remember|bro|dude|bestie')
+COLLABORATION_RE = re.compile(r'help|thanks|appreciate|great|good job|team|meeting|sync')
+FALLBACK_BONDING_RE = re.compile(r'miss|care|fun')
 
 sentiment_pipeline = None
 
@@ -60,8 +76,7 @@ def validate_cloud_url(url: str) -> bool:
         return False
 
 def calculate_latency(df: pd.DataFrame) -> pd.DataFrame:
-    # DF is already sorted by app.py before passing to the pipeline
-    df = df.reset_index(drop=True)
+    # DF is already sorted and index reset by run_analytics_pipeline
     df['prev_sender'] = df['sender'].shift(1)
     df['prev_timestamp'] = df['timestamp'].shift(1)
     
@@ -322,15 +337,12 @@ def calculate_affection_friction(df: pd.DataFrame, text_lower: pd.Series = None)
     """Detect 'Burnout' via affirmative vs dismissive language trends (V3.0)."""
     if 'text' not in df.columns: return {}
     
-    affirmative = ['love', 'thanks', 'happy', 'we', 'miss', 'appreciate', 'glad', 'proud', 'beautiful', 'care']
-    dismissive = ['whatever', 'fine', 'okay', 'sure', 'k', 'ok', 'busy', 'tired', 'idk', 'anyway']
-    
     # Use pre-calculated lowercased series if provided
     text_lower = text_lower if text_lower is not None else df['text'].astype(str).str.lower()
     
-    # Count occurrences across the entire dataset
-    aff_count = text_lower.str.contains('|'.join(affirmative), regex=True).sum()
-    dis_count = text_lower.str.contains('|'.join(dismissive), regex=True).sum()
+    # Performance Optimization (V5.4): Use pre-compiled module-level regexes.
+    aff_count = text_lower.str.contains(AFFIRMATIVE_RE).sum()
+    dis_count = text_lower.str.contains(DISMISSIVE_RE).sum()
     
     return {
         'affirmative_count': int(aff_count),
@@ -341,16 +353,15 @@ def calculate_support_gap(df: pd.DataFrame, text_lower: pd.Series = None, text_s
     """Identify stress messages and measure partner's response quality (V4.0)."""
     if 'text' not in df.columns or len(df) < 5: return {}
     
-    stress_keywords = ['work', 'tired', 'sad', 'stressed', 'deadline', 'exhausted', 'unhappy', 'worry', 'anxious', 'sick', 'bad day', 'hard time']
-    
     # Use input df directly as it is already sorted
     df_temp = df
 
     # Use pre-calculated series if provided
     t_lower = text_lower if text_lower is not None else df_temp['text'].astype(str).str.lower()
 
+    # Performance Optimization (V5.4): Use pre-compiled STRESS_RE.
     # Vectorized stress detection outside the loop is much faster
-    is_stress = t_lower.str.contains('|'.join(stress_keywords), regex=True).values
+    is_stress = t_lower.str.contains(STRESS_RE).values
 
     # Performance Optimization (V5.3): Refactored the Python loop to use integer indexing
     # and NumPy-native state tracking. This eliminates multiple dictionary lookups
@@ -449,36 +460,32 @@ def calculate_topic_mix(df: pd.DataFrame, connection_type: str, text_lower: pd.S
     """Categorize conversation dynamically based on connection type (V4.0)."""
     if 'text' not in df.columns: return {}
     
-    # Base topics that apply to everything
-    logistics = ['dinner', 'lunch', 'bill', 'home', 'work', 'done', 'todo', 'buy', 'shop', 'cleaning']
-    external = ['friends', 'party', 'movie', 'news', 'gym', 'weather', 'job']
-    conflict = ['sorry', 'why', 'fight', 'angry', 'stop', 'listen', 'mean', 'hurt', 'annoyed']
-    
-    # Relationship-specific intimacy/bonding terms
+    # Performance Optimization (V5.4): Use pre-compiled module-level regexes.
     if connection_type == 'romantic':
-        intimacy = ['love', 'miss', 'baby', 'darling', 'honey', 'kiss', 'hug', 'beautiful', 'forever']
-        categories = {'Logistics': logistics, 'Intimacy': intimacy, 'Conflict': conflict, 'External': external}
+        categories = {'Logistics': LOGISTICS_RE, 'Intimacy': INTIMACY_RE, 'Conflict': CONFLICT_RE, 'External': EXTERNAL_RE}
     elif connection_type in ['friendship', 'casual', 'family']:
-        bonding = ['miss', 'love', 'haha', 'lol', 'fun', 'crazy', 'remember', 'bro', 'dude', 'bestie']
-        categories = {'Logistics': logistics, 'Bonding': bonding, 'Disagreement': conflict, 'External': external}
+        categories = {'Logistics': LOGISTICS_RE, 'Bonding': BONDING_RE, 'Disagreement': CONFLICT_RE, 'External': EXTERNAL_RE}
     elif connection_type == 'professional':
-        collaboration = ['help', 'thanks', 'appreciate', 'great', 'good job', 'team', 'meeting', 'sync']
-        categories = {'Operations': logistics, 'Collaboration': collaboration, 'Blockers': conflict, 'External': external}
+        categories = {'Operations': LOGISTICS_RE, 'Collaboration': COLLABORATION_RE, 'Blockers': CONFLICT_RE, 'External': EXTERNAL_RE}
     else:
-        # Default fallback
-        categories = {'Logistics': logistics, 'Bonding': ['miss', 'care', 'fun'], 'Conflict': conflict, 'External': external}
+        categories = {'Logistics': LOGISTICS_RE, 'Bonding': FALLBACK_BONDING_RE, 'Conflict': CONFLICT_RE, 'External': EXTERNAL_RE}
     
     # Use pre-calculated lowercased series if provided
     text_lower = text_lower if text_lower is not None else df['text'].astype(str).str.lower()
     results = {}
     
-    for cat, keywords in categories.items():
-        results[cat] = int(text_lower.str.contains('|'.join(keywords), regex=True).sum())
+    for cat, regex in categories.items():
+        results[cat] = int(text_lower.str.contains(regex).sum())
         
     return results
 
 def run_analytics_pipeline(df: pd.DataFrame, hf_url: str = "", connection_type: str = "romantic") -> dict:
     """Runs the full analytics pipeline and returns a dict with weekly stats, emoji freq, and initiator ratio."""
+    # ⚡ Bolt Optimization (V5.4): Reset index at entry to ensure alignment for pre-calculated
+    # series and remove redundant O(N) reset_index calls from downstream functions.
+    # DF is already sorted by timestamp in app.py.
+    df = df.reset_index(drop=True)
+
     # ⚡ Bolt Optimization: Pre-calculate common series once at the pipeline entry
     # to avoid redundant O(N) operations across multiple analytics functions.
     text_str = df['text'].astype(str)
