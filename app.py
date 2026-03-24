@@ -1,4 +1,5 @@
 import os
+import re
 import shutil
 import pandas as pd
 import tempfile
@@ -27,6 +28,14 @@ app.config.update(
 
 # Simple server-side store to bypass 4KB session cookie limit
 GLOBAL_DATA_STORE = {}
+
+# Pre-compiled System Phrases for Highlights (Bolt Optimization V5.4)
+SYSTEM_PHRASES_RE = re.compile(
+    r'missed voice call|missed video call|end-to-end encrypted|tap for more info|'
+    r'message was deleted|deleted this message|image omitted|video omitted|'
+    r'audio omitted|sticker omitted|gif omitted|contact card omitted',
+    re.IGNORECASE
+)
 
 # 🛡️ Sentinel: Strict file extension allowlist
 ALLOWED_EXTENSIONS = {'txt', 'html', 'json', 'pdf'}
@@ -279,28 +288,12 @@ def get_highlights():
         return jsonify({'highlights': []})
 
     # Filter messages that are reasonably substantial, not just media/links, and not tiny reactions
-    system_phrases = [
-        "missed voice call", 
-        "missed video call", 
-        "end-to-end encrypted", 
-        "tap for more info", 
-        "message was deleted", 
-        "deleted this message", 
-        "image omitted", 
-        "video omitted", 
-        "audio omitted", 
-        "sticker omitted", 
-        "gif omitted",
-        "contact card omitted"
-    ]
-    
     # Performance Optimization: Use vectorized Pandas string operations for filtering
-    # instead of a manual O(N) Python loop.
+    # and pre-compiled SYSTEM_PHRASES_RE.
     t_series = df['text'].astype(str)
-    t_lower = t_series.str.lower()
 
-    # Check for system phrases using vectorized regex search
-    is_sys_msg = t_lower.str.contains('|'.join(system_phrases), regex=True, na=False)
+    # Check for system phrases using vectorized regex search (V5.4 Bolt Optimization)
+    is_sys_msg = t_series.str.contains(SYSTEM_PHRASES_RE, na=False)
 
     # Combined filter: length 15-150, no media tags, no links, not system message
     mask = (
