@@ -32,3 +32,7 @@
 **Learning:** When adding micro-interactions like "Copy to Clipboard" using icon-only buttons (SVGs), relying solely on the `title` attribute is insufficient for screen readers. Using a descriptive `aria-label` is mandatory to fulfill accessibility requirements for non-text interactive elements. Pairing this with a success toast notification provides clear, non-disruptive feedback for the action.
 
 **Action:** Ensure all icon-only buttons have an explicit `aria-label` and provide immediate visual feedback (e.g., `showToast`) upon successful action.
+
+## 2026-03-24 - [Visual Feedback for Copy Actions]
+**Learning:** For "Copy to Clipboard" interactions, a toast notification alone can be disconnected from the user's focus point. Swapping the button icon for a checkmark SVG provides immediate, localized visual confirmation. When injecting these SVGs via JS in a native CSS environment, avoid utility classes (like Tailwind) to ensure the styles are resilient and don't rely on a build step.
+**Action:** Use temporary `innerHTML` swaps with inline-styled SVGs for localized feedback on small action buttons.

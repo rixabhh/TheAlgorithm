@@ -71,8 +71,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (copyBtn) {
             copyBtn.addEventListener('click', () => {
+                const originalHTML = copyBtn.innerHTML;
                 navigator.clipboard.writeText(report.top_shareable_snippet).then(() => {
                     showToast("Snippet copied to clipboard!", "success");
+                    copyBtn.innerHTML = `
+                        <svg style="width: 1.25rem; height: 1.25rem; color: #34d399;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                    `;
+                    setTimeout(() => {
+                        copyBtn.innerHTML = originalHTML;
+                    }, 2000);
                 }).catch(err => {
                     console.error('Failed to copy text: ', err);
                 });
