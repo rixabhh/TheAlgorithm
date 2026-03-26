@@ -1,13 +1,30 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const data = window.algorithmData || [];
-    const report = window.llmReport || {};
-    const emojiFreq = window.emojiFreq || {};
-    const initiatorRatio = window.initiatorRatio || {};
-    const powerDynamics = window.powerDynamics || {};
-    const affectionFriction = window.affectionFriction || {};
-    const supportGap = window.supportGap || {};
-    const mirroring = window.mirroring || {};
-    const topicMix = window.topicMix || {};
+    // 1. DATA LOADING (V5.5 - Local First)
+    const stored = sessionStorage.getItem('dashboard_data');
+    if (!stored) {
+        console.warn("No analysis data found in sessionStorage.");
+        return;
+    }
+    const dashboardData = JSON.parse(stored);
+    
+    // Populate window variables for legacy/utility compatibility
+    window.algorithmData = dashboardData.stats?.weekly_data || [];
+    window.llmReport = dashboardData.report || {};
+    window.highlights = dashboardData.highlights || [];
+    window.flashbacks = dashboardData.flashbacks || {};
+    window.connectionType = dashboardData.connection_type || 'romantic';
+
+    // Map specific stat objects
+    const data = window.algorithmData;
+    const report = window.llmReport;
+    const stats = dashboardData.stats || {};
+    const emojiFreq = stats.emoji_frequency || {};
+    const initiatorRatio = stats.initiator_ratio || {};
+    const powerDynamics = stats.power_dynamics || {};
+    const affectionFriction = stats.affection_friction || {};
+    const supportGap = stats.support_gap || {};
+    const mirroring = stats.mirroring || {};
+    const topicMix = stats.topic_mix || {};
 
     // Scroll Progress Bar
     const progressBarScroll = document.getElementById('scroll-progress');
