@@ -1,136 +1,93 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
-
+<html lang="en" style="scroll-behavior:smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Privacy Policy | The Algorithm</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        brand: { 400: '#fb7185', 500: '#f43f5e', 600: '#e11d48' },
-                        dark: { 800: '#1f2937', 900: '#111827', 950: '#030712' }
-                    },
-                    fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'] }
-                }
-            }
-        }
-    </script>
+    <meta name="description" content="Learn how The Algorithm protects your chat data with client-side anonymization, RAM-only processing, and instant deletion.">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
-    <link href="{{ url_for('static', filename='fonts/inter.css') }}" rel="stylesheet">
 </head>
+<body class="comic-dots">
 
-<body class="text-gray-100 min-h-screen flex flex-col font-sans antialiased">
-    <!-- Background Orbs -->
-    <div class="fixed inset-0 pointer-events-none z-0" aria-hidden="true">
-        <div class="orb-purple absolute -top-32 -left-32 w-[600px] h-[600px] rounded-full animate-float"></div>
-        <div class="orb-pink absolute top-10 right-[-120px] w-[500px] h-[500px] rounded-full"
-            style="animation: float 8s ease-in-out infinite 1s;"></div>
+<!-- Nav -->
+<header class="nav">
+    <div class="container">
+        <a href="/" class="nav-logo" style="color:var(--white)">
+            <span style="font-size:1.2rem;margin-right:.25rem">←</span>
+            🧠 The Algorithm
+        </a>
+        <a href="{{ url_for('index') }}" class="nav-link" style="font-size:.8rem">Back to Analyzer</a>
+    </div>
+</header>
+
+<main style="max-width:800px;margin:0 auto;padding:3rem 1.25rem 4rem">
+    <!-- Title -->
+    <div class="text-center" style="margin-bottom:2.5rem">
+        <h1 style="margin-bottom:1rem">Strictly <span style="color:var(--pink)">Private.</span></h1>
+        <p class="pill-label pill-label--white" style="font-style:normal;font-size:.85rem;text-transform:none;max-width:500px;white-space:normal;line-height:1.4;padding:.75rem 1.25rem;display:inline-block">We built The Algorithm with a paranoid-level focus on your security. Your chats belong to you.</p>
     </div>
 
-    <!-- Header -->
-    <header
-        class="w-full py-6 px-8 flex justify-between items-center border-b border-white/5 backdrop-blur-md sticky top-0 z-50">
-        <a href="/" class="flex items-center gap-3 group">
-            <div
-                class="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/30 group-hover:scale-110 transition-transform">
-                <img src="{{ url_for('static', filename='favicon.png') }}" alt="A" class="w-5 h-5 rounded object-cover">
-            </div>
-            <h1
-                class="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-gray-100 to-gray-400">
-                The Algorithm</h1>
-        </a>
-        <a href="{{ url_for('index') }}"
-            class="text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-white/5">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18">
-                </path>
-            </svg>
-            Back to Analyzer
-        </a>
-    </header>
-
-    <main class="flex-grow relative z-10 px-4 py-12 md:py-20 max-w-3xl mx-auto w-full">
-        <div class="space-y-8 animate-fade-in-up">
-            <div class="text-center space-y-4 mb-12">
-                <h1 class="text-4xl md:text-5xl font-black tracking-tight text-white mb-4">
-                    Strictly <span class="gradient-text">Private.</span>
-                </h1>
-                <p class="text-gray-400 text-base md:text-lg">
-                    We built The Algorithm with a paranoid-level focus on your security. Your chats belong to you.
+    <!-- Content Card -->
+    <div class="card card--xl" style="border-width:4px;box-shadow:8px 8px 0 0 var(--green)">
+        <div style="display:flex;flex-direction:column;gap:2.5rem">
+            <!-- Section 1 -->
+            <section>
+                <h2 style="display:flex;align-items:center;gap:.75rem;margin-bottom:1rem;font-size:1.35rem">
+                    <span style="width:40px;height:40px;border-radius:50%;background:var(--green);color:var(--white);display:flex;align-items:center;justify-content:center;border:2px solid var(--black);box-shadow:2px 2px 0 0 var(--black);font-size:1rem;flex-shrink:0">1</span>
+                    Client-Side Anonymization
+                </h2>
+                <p style="font-size:.95rem;color:var(--gray-600);line-height:1.7;padding:1rem;background:var(--cream);border-radius:var(--r-sm);border:1px solid rgba(0,0,0,0.1)">
+                    If you enable "Sensitive Mode", our JavaScript redacts phone numbers, emails, and full names directly in your browser <strong style="color:var(--black)">before the file ever leaves your device</strong>. The server only sees masked labels like <code style="background:var(--white);padding:2px 6px;border-radius:4px;border:1px solid var(--black);color:var(--pink)">[PARTNER]</code> or <code style="background:var(--white);padding:2px 6px;border-radius:4px;border:1px solid var(--black);color:var(--pink)">[USER]</code>.
                 </p>
-            </div>
-
-            <div class="glass-card rounded-[2rem] p-8 md:p-10 space-y-8 shadow-2xl border-white/10">
-                <section class="space-y-3">
-                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
-                        <span class="text-emerald-400">1.</span> Client-Side Anonymization
-                    </h2>
-                    <p class="text-gray-400 text-sm leading-relaxed">
-                        If you enable "Sensitive Mode", our JavaScript redacts phone numbers, emails, and full names
-                        directly in your browser <strong>before the file ever leaves your device</strong>. The server
-                        only sees masked generic labels like `[PARTNER]` or `[USER]`.
-                    </p>
-                </section>
-
-                <section class="space-y-3">
-                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
-                        <span class="text-blue-400">2.</span> Pure RAM Processing
-                    </h2>
-                    <p class="text-gray-400 text-sm leading-relaxed">
-                        We intentionally refuse to use a database. When you upload a chat, it is parsed instantly in
-                        active memory (RAM). We <strong>never save your chat file to disk</strong>, and we never
-                        associate it with a user account because there are no accounts.
-                    </p>
-                </section>
-
-                <section class="space-y-3">
-                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
-                        <span class="text-pink-400">3.</span> Aggressive File Deletion
-                    </h2>
-                    <p class="text-gray-400 text-sm leading-relaxed">
-                        The millisecond your analysis finishes, a strict Python `finally` block executes. This
-                        guarantees that all temporary memory associated with your session is permanently destroyed. If
-                        you refresh the page, the data is gone forever.
-                    </p>
-                </section>
-
-                <section class="space-y-3">
-                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
-                        <span class="text-purple-400">4.</span> Safe LLM Analytics
-                    </h2>
-                    <p class="text-gray-400 text-sm leading-relaxed">
-                        Your raw, line-by-line chat logs are <strong>never</strong> blindly forwarded to OpenAI,
-                        Anthropic, or Google. Our Python backend processes the chats locally and sends only an
-                        anonymous, numerical statistical payload (e.g., "User A speaks 55% of the time, sentiment is
-                        positive") to the LLM to generate the final coaching report.
-                    </p>
-                </section>
-
-                <section class="space-y-3">
-                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
-                        <span class="text-yellow-400">5.</span> Self-Hosted & Non-Tracking
-                    </h2>
-                    <p class="text-gray-400 text-sm leading-relaxed">
-                        We block third-party trackers. Our fonts are self-hosted to prevent Google from tracking your
-                        IP, our security headers (CSP) block unauthorized external scripts, and we use zero analytical
-                        trackers like Google Analytics or Meta Pixels. You are invisible here.
-                    </p>
-                </section>
-            </div>
+            </section>
+            <!-- Section 2 -->
+            <section>
+                <h2 style="display:flex;align-items:center;gap:.75rem;margin-bottom:1rem;font-size:1.35rem">
+                    <span style="width:40px;height:40px;border-radius:50%;background:var(--blue);color:var(--white);display:flex;align-items:center;justify-content:center;border:2px solid var(--black);box-shadow:2px 2px 0 0 var(--black);font-size:1rem;flex-shrink:0">2</span>
+                    Pure RAM Processing
+                </h2>
+                <p style="font-size:.95rem;color:var(--gray-600);line-height:1.7;padding:1rem;background:var(--cream);border-radius:var(--r-sm);border:1px solid rgba(0,0,0,0.1)">
+                    We intentionally refuse to use a database. When you upload a chat, it is parsed instantly in active memory (RAM). We <strong style="color:var(--black)">never save your chat file to disk</strong>, and we never associate it with a user account because there are no accounts.
+                </p>
+            </section>
+            <!-- Section 3 -->
+            <section>
+                <h2 style="display:flex;align-items:center;gap:.75rem;margin-bottom:1rem;font-size:1.35rem">
+                    <span style="width:40px;height:40px;border-radius:50%;background:var(--pink);color:var(--white);display:flex;align-items:center;justify-content:center;border:2px solid var(--black);box-shadow:2px 2px 0 0 var(--black);font-size:1rem;flex-shrink:0">3</span>
+                    Aggressive File Deletion
+                </h2>
+                <p style="font-size:.95rem;color:var(--gray-600);line-height:1.7;padding:1rem;background:var(--cream);border-radius:var(--r-sm);border:1px solid rgba(0,0,0,0.1)">
+                    The millisecond your analysis finishes, a strict Python <code style="background:var(--white);padding:2px 6px;border-radius:4px;border:1px solid var(--black);color:var(--purple)">finally</code> block executes. This guarantees that all temporary memory associated with your session is permanently destroyed. If you refresh the page, the data is gone forever.
+                </p>
+            </section>
+            <!-- Section 4 -->
+            <section>
+                <h2 style="display:flex;align-items:center;gap:.75rem;margin-bottom:1rem;font-size:1.35rem">
+                    <span style="width:40px;height:40px;border-radius:50%;background:var(--purple);color:var(--white);display:flex;align-items:center;justify-content:center;border:2px solid var(--black);box-shadow:2px 2px 0 0 var(--black);font-size:1rem;flex-shrink:0">4</span>
+                    Safe LLM Analytics
+                </h2>
+                <p style="font-size:.95rem;color:var(--gray-600);line-height:1.7;padding:1rem;background:var(--cream);border-radius:var(--r-sm);border:1px solid rgba(0,0,0,0.1)">
+                    Your raw, line-by-line chat logs are <strong style="color:var(--black)">never</strong> forwarded to OpenAI, Anthropic, or Google. Our backend processes the chats locally and sends only an anonymous, numerical statistical payload to the LLM to generate the coaching report.
+                </p>
+            </section>
+            <!-- Section 5 -->
+            <section>
+                <h2 style="display:flex;align-items:center;gap:.75rem;margin-bottom:1rem;font-size:1.35rem">
+                    <span style="width:40px;height:40px;border-radius:50%;background:var(--yellow);color:var(--black);display:flex;align-items:center;justify-content:center;border:2px solid var(--black);box-shadow:2px 2px 0 0 var(--black);font-size:1rem;flex-shrink:0">5</span>
+                    Self-Hosted & Non-Tracking
+                </h2>
+                <p style="font-size:.95rem;color:var(--gray-600);line-height:1.7;padding:1rem;background:var(--cream);border-radius:var(--r-sm);border:1px solid rgba(0,0,0,0.1)">
+                    We block third-party trackers. Our fonts are self-hosted to prevent Google from tracking your IP, our security headers (CSP) block unauthorized external scripts, and we use zero analytical trackers. You are invisible here.
+                </p>
+            </section>
         </div>
-    </main>
+    </div>
+</main>
 
-    <!-- Footer -->
-    <footer class="py-8 text-center text-xs text-gray-600 relative z-10">
-        <p>Your secrets are safe here. Built open-source.</p>
-    </footer>
-
+<!-- Footer -->
+<footer style="background:var(--black);text-align:center;padding:2rem 0;border-top:3px solid var(--pink)">
+    <p style="font-size:.85rem;font-weight:700;color:var(--white)">Your secrets are safe here. Built open-source.</p>
+</footer>
 </body>
-
 </html>
