@@ -417,7 +417,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }));
 
                 if (progressBar) progressBar.style.width = '100%';
-                window.location.href = '/dashboard';
+                window.location.href = '/dashboard.html';
 
             } catch (err) {
                 showError(err.message);
