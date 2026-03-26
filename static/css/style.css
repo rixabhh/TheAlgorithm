@@ -1018,3 +1018,11 @@ textarea.field-input { resize: vertical; min-height: 60px; }
     background: var(--pink);
     color: var(--white);
 }
+/* Dashboard UI Polish V5.5 */
+.hero-dashboard { padding: 3rem 0 5rem !important; min-height: auto !important; }
+.hero-dashboard h1 { font-size: 2.2rem !important; margin-bottom: 0.5rem !important; }
+.hero-dashboard p { font-size: 0.95rem !important; margin-bottom: 1.5rem !important; }
+.stat-card__value { font-size: 2rem !important; }
+.section-py { padding: 2rem 0 !important; }
+.insight-card { padding: 1.5rem !important; }
+
