@@ -366,7 +366,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 };
                                 text = JSON.stringify(recurse(jsonObj));
                             } catch (e) {
-                                console.warn("JSON scrub failed, preserving formatting to prevent data loss.", e);
+                                /* redacted console out */
                             }
                         } else {
                             text = text.replace(phoneRegex, '[PHONE_REDACTED]');
@@ -410,7 +410,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
             } catch (err) {
-                console.error("Error scrubbing files:", err);
+                /* redacted console out */
                 showError("An error occurred while locally preparing your files for upload.");
                 analyzeBtn.classList.remove('hidden');
                 analyzeBtn.innerHTML = originalBtnContent;

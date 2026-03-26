@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         copyBtn.innerHTML = originalHTML;
                     }, 2000);
                 }).catch(err => {
-                    console.error('Failed to copy text: ', err);
+                    /* redacted console out */
                 });
             });
         }
@@ -314,7 +314,7 @@ async function downloadWrappedCard() {
         showToast("Vibe card downloaded successfully!", "success");
 
     } catch (err) {
-        console.error("Failed to generate wrapped image:", err);
+        /* redacted console out */
         showToast("Couldn't generate your wrapped image. Please try again.", "error");
     } finally {
         // Hide again
@@ -406,7 +406,7 @@ async function initHighlights() {
         }, 3000);
 
     } catch (e) {
-        console.error("Failed to load highlights:", e);
+        /* redacted console out */
     }
 }
 
