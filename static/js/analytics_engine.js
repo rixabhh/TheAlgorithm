@@ -1,40 +1,33 @@
 /**
- * The Algorithm - Local Analytics Engine (V2.0 Hinglish Optimized)
- * Ports the complex relationship scoring logic from analytics.py to JavaScript.
+ * The Algorithm - Local Analytics Engine (V3.0 Extended Metrics)
  */
 
 class AnalyticsEngine {
     constructor() {
-        // Regex Patterns (Hinglish Supported)
         this.STRESS_RE = /work|tired|sad|stressed|deadline|exhausted|unhappy|worry|anxious|sick|bad day|hard time|presure|dukh|pareshan|tension|thak|beemar/i;
         this.AFFIRMATIVE_RE = /love|thanks|happy|we|miss|appreciate|glad|proud|beautiful|care|pyaar|shukriya|accha|theek|badhiya|jaan|sona/i;
         this.DISMISSIVE_RE = /whatever|fine|okay|sure|k|ok|busy|tired|idk|anyway|thik h|hmmm|hmm|okey/i;
         
-        // Topic Mix Regexes
         this.LOGISTICS_RE = /dinner|lunch|bill|home|work|done|todo|buy|shop|cleaning|khana|ghar|paisa|office/i;
         this.EXTERNAL_RE = /friends|party|movie|news|gym|weather|job|dost|bahar|ghumna/i;
         this.CONFLICT_RE = /sorry|why|fight|angry|stop|listen|mean|hurt|annoyed|galti|kyu|gussa|chup/i;
         this.INTIMACY_RE = /love|miss|baby|darling|honey|kiss|hug|beautiful|forever|miss u|pyaar|jaan/i;
         
-        // Sentiment Keyword Map
         this.POS_WORDS = new Set(['love', 'happy', 'great', 'awesome', 'good', 'nice', 'thanks', 'wonderful', 'beautiful', 'yay', 'yes', 'perfect', 'glad', 'proud', 'accha', 'mast', 'top']);
         this.NEG_WORDS = new Set(['hate', 'sad', 'bad', 'angry', 'hurt', 'sorry', 'no', 'stop', 'upset', 'annoyed', 'tired', 'sick', 'worry', 'fail', 'bekar', 'gussa', 'bura']);
+
+        this.STOP_WORDS = new Set(['the', 'a', 'an', 'is', 'are', 'was', 'were', 'to', 'for', 'and', 'but', 'or', 'if', 'this', 'that', 'it', 'me', 'you', 'my', 'your', 'on', 'at', 'in', 'of', 'i', 'im', 'with', 'hi', 'hey', 'hello', 'ya', 'ye', 'na', 'h', 'hai', 'tha', 'thee', 'ke', 'ka', 'ko']);
     }
 
-    /**
-     * Main Entry Point
-     */
     runPipeline(messages, connectionType = 'romantic') {
         if (!messages.length) return null;
 
-        // 1. Pre-process text (lowercase)
         const processed = messages.map(m => ({
             ...m,
-            textLower: m.text.toLowerCase(),
-            words: m.text.toLowerCase().split(/\s+/).filter(w => w.length > 0)
+            textLower: (m.text || '').toLowerCase(),
+            words: (m.text || '').toLowerCase().split(/\s+/).filter(w => w.length > 1 && !this.STOP_WORDS.has(w))
         }));
 
-        // 2. Metrics
         const latencyInfo = this.calculateLatency(processed);
         const sentimentInfo = this.applySentiment(processed);
         const emojiStats = this.extractEmojiStats(processed);
@@ -42,8 +35,8 @@ class AnalyticsEngine {
         const powerInfo = this.calculatePowerDynamics(processed);
         const supportInfo = this.calculateSupportGap(processed);
         const topicMix = this.calculateTopicMix(processed, connectionType);
+        const mirroringValue = this.calculateMirroring(processed);
         
-        // 3. Weekly Aggregation
         const weekly = this.aggregateWeekly(latencyInfo);
         const riskAnalysis = this.calculateRiskScore(weekly);
         const phases = this.detectRiskPhases(riskAnalysis);
@@ -54,7 +47,9 @@ class AnalyticsEngine {
             initiator_ratio: initiatorInfo,
             power_dynamics: powerInfo,
             support_gap: supportInfo,
+            support_score: this.calculateSupportScore(supportInfo),
             topic_mix: topicMix,
+            mirroring: mirroringValue,
             sentiment_summary: {
                 partner_mean: sentimentInfo.partnerMean,
                 me_mean: sentimentInfo.meMean
@@ -62,75 +57,45 @@ class AnalyticsEngine {
         };
     }
 
-    /**
-     * Latency & Response Gap
-     */
     calculateLatency(messages) {
         for (let i = 1; i < messages.length; i++) {
             const current = messages[i];
             const prev = messages[i - 1];
-            
             const gapMs = current.timestamp - prev.timestamp;
             const gapMins = gapMs / (1000 * 60);
-            
             current.gapMins = gapMins;
-            
-            // Valid reply: Different sender, gap <= 24 hours
-            if (current.sender !== prev.sender && gapMins <= 1440) {
-                current.latencyMins = gapMins;
-            } else {
-                current.latencyMins = null;
-            }
+            if (current.sender !== prev.sender && gapMins <= 1440) current.latencyMins = gapMins;
+            else current.latencyMins = null;
         }
         return messages;
     }
 
-    /**
-     * Sentiment Analysis
-     */
     applySentiment(messages) {
-        let partnerTotal = 0;
-        let partnerCount = 0;
-        let meTotal = 0;
-        let meCount = 0;
-
+        let partnerTotal = 0, partnerCount = 0, meTotal = 0, meCount = 0;
         for (const m of messages) {
             let score = 0;
             for (const word of m.words) {
                 if (this.POS_WORDS.has(word)) score += 1;
                 else if (this.NEG_WORDS.has(word)) score -= 1;
             }
-            
-            // Regex boost
             if (this.AFFIRMATIVE_RE.test(m.text)) score += 1;
             if (this.DISMISSIVE_RE.test(m.text)) score -= 1;
-
             m.sentiment = Math.max(-1, Math.min(1, score));
-            
-            if (m.sender === 'PARTNER') {
-                partnerTotal += m.sentiment;
-                partnerCount++;
-            } else {
-                meTotal += m.sentiment;
-                meCount++;
-            }
+            if (m.sender === 'PARTNER') { partnerTotal += m.sentiment; partnerCount++; }
+            else { meTotal += m.sentiment; meCount++; }
         }
-
         return {
             partnerMean: partnerCount > 0 ? partnerTotal / partnerCount : 0,
             meMean: meCount > 0 ? meTotal / meCount : 0
         };
     }
 
-    /**
-     * Emoji Frequency Extraction
-     */
     extractEmojiStats(messages) {
-        const emojiRegex = /(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])/g;
+        // More robust emoji regex
+        const emojiRegex = /[\u{1f300}-\u{1f5ff}\u{1f600}-\u{1f64f}\u{1f680}-\u{1f6ff}\u{1f700}-\u{1f77f}\u{1f780}-\u{1f7ff}\u{1f800}-\u{1f8ff}\u{1f900}-\u{1f9ff}\u{1fa00}-\u{1faff}\u{2600}-\u{26ff}\u{2700}-\u{27bf}]/gu;
         const stats = { ME: {}, PARTNER: {} };
-
         for (const m of messages) {
-            const matches = m.text.match(emojiRegex);
+            const matches = (m.text || '').match(emojiRegex);
             if (matches) {
                 const target = stats[m.sender];
                 for (const emoji of matches) {
@@ -138,176 +103,67 @@ class AnalyticsEngine {
                 }
             }
         }
-
-        const finalize = (obj) => {
-            return Object.entries(obj)
-                .map(([emoji, count]) => ({ emoji, count }))
-                .sort((a, b) => b.count - a.count)
-                .slice(0, 10);
-        };
-
-        return {
-            ME: finalize(stats.ME),
-            PARTNER: finalize(stats.PARTNER)
-        };
+        const finalize = (obj) => Object.entries(obj).map(([emoji, count]) => ({ emoji, count })).sort((a, b) => b.count - a.count).slice(0, 10);
+        return { ME: finalize(stats.ME), PARTNER: finalize(stats.PARTNER) };
     }
 
-    /**
-     * Initiations (> 4 hour gap)
-     */
     calculateInitiatorRatio(messages) {
-        let meInits = 0;
-        let partnerInits = 0;
-        const GAP_THRESHOLD = 240; // 4 hours
-
-        if (messages.length > 0) {
-            if (messages[0].sender === 'ME') meInits++;
-            else partnerInits++;
-        }
-
+        let meInits = 0, partnerInits = 0;
+        const GAP_THRESHOLD = 240;
+        if (messages.length > 0) messages[0].sender === 'ME' ? meInits++ : partnerInits++;
         for (let i = 1; i < messages.length; i++) {
-            if (messages[i].gapMins >= GAP_THRESHOLD) {
-                if (messages[i].sender === 'ME') meInits++;
-                else partnerInits++;
-            }
+            if (messages[i].gapMins >= GAP_THRESHOLD) messages[i].sender === 'ME' ? meInits++ : partnerInits++;
         }
-
         const total = meInits + partnerInits;
-        return {
-            me_initiations: meInits,
-            partner_initiations: partnerInits,
-            me_ratio: total > 0 ? meInits / total : 0.5
-        };
+        return { me_initiations: meInits, partner_initiations: partnerInits, me_ratio: total > 0 ? meInits / total : 0.5 };
     }
 
-    /**
-     * Power Dynamics (Word Count)
-     */
     calculatePowerDynamics(messages) {
-        let meWords = 0;
-        let partnerWords = 0;
-
-        for (const m of messages) {
-            if (m.sender === 'ME') meWords += m.words.length;
-            else partnerWords += m.words.length;
-        }
-
-        return {
-            me_word_count: meWords,
-            partner_word_count: partnerWords,
-            power_ratio: partnerWords > 0 ? meWords / partnerWords : 1.0
-        };
+        let meWords = 0, partnerWords = 0;
+        for (const m of messages) m.sender === 'ME' ? meWords += m.words.length : partnerWords += m.words.length;
+        return { me_word_count: meWords, partner_word_count: partnerWords, power_ratio: partnerWords > 0 ? meWords / partnerWords : 1.0 };
     }
 
-    /**
-     * Support Gap
-     */
     calculateSupportGap(messages) {
-        let meStress = 0;
-        let partnerStress = 0;
-        let meSupported = 0;
-        let partnerSupported = 0;
-
-        let activeStressMeTs = null;
-        let activeStressPartnerTs = null;
+        let meStress = 0, partnerStress = 0, meSupported = 0, partnerSupported = 0;
+        let activeStressMeTs = null, activeStressPartnerTs = null;
         const SUPPORT_WINDOW = 60 * 60 * 1000;
-
         for (const m of messages) {
             const isStress = this.STRESS_RE.test(m.text);
-            
             if (isStress) {
-                if (m.sender === 'ME') {
-                    meStress++;
-                    activeStressMeTs = m.timestamp;
-                } else {
-                    partnerStress++;
-                    activeStressPartnerTs = m.timestamp;
-                }
+                if (m.sender === 'ME') { meStress++; activeStressMeTs = m.timestamp; }
+                else { partnerStress++; activeStressPartnerTs = m.timestamp; }
             }
-
             if (m.sender === 'ME' && activeStressPartnerTs) {
-                if (m.timestamp - activeStressPartnerTs <= SUPPORT_WINDOW && m.words.length > 3) {
-                    partnerSupported++;
-                    activeStressPartnerTs = null;
-                }
+                if (m.timestamp - activeStressPartnerTs <= SUPPORT_WINDOW && m.words.length > 3) { partnerSupported++; activeStressPartnerTs = null; }
             } else if (m.sender === 'PARTNER' && activeStressMeTs) {
-                if (m.timestamp - activeStressMeTs <= SUPPORT_WINDOW && m.words.length > 3) {
-                    meSupported++;
-                    activeStressMeTs = null;
-                }
+                if (m.timestamp - activeStressMeTs <= SUPPORT_WINDOW && m.words.length > 3) { meSupported++; activeStressMeTs = null; }
             }
         }
-
         return {
             ME: { stress_count: meStress, support_received: meSupported },
             PARTNER: { stress_count: partnerStress, support_received: partnerSupported }
         };
     }
 
-    /**
-     * Weekly Aggregation
-     */
-    aggregateWeekly(messages) {
-        const weeks = {};
+    calculateSupportScore(supportInfo) {
+        const totalStress = supportInfo.ME.stress_count + supportInfo.PARTNER.stress_count;
+        const totalSupp = supportInfo.ME.support_received + supportInfo.PARTNER.support_received;
+        if (totalStress === 0) return 100;
+        return Math.round(Math.min(100, (totalSupp / totalStress) * 100));
+    }
 
+    calculateMirroring(messages) {
+        const meFreq = {}, pFreq = {};
         for (const m of messages) {
-            const date = new Date(m.timestamp);
-            const day = date.getDay();
-            const diff = date.getDate() - day + (day === 0 ? -6 : 1);
-            const monday = new Date(date.setDate(diff));
-            monday.setHours(0,0,0,0);
-            
-            const key = monday.toISOString().split('T')[0];
-            if (!weeks[key]) {
-                weeks[key] = {
-                    week_start: key,
-                    volume: 0,
-                    me_count: 0,
-                    partner_count: 0,
-                    latencies: [],
-                    sentiments: []
-                };
-            }
-            
-            weeks[key].volume++;
-            if (m.sender === 'ME') weeks[key].me_count++;
-            else weeks[key].partner_count++;
-
-            if (m.latencyMins !== null) weeks[key].latencies.push(m.latencyMins * 60);
-            if (m.sender === 'PARTNER') weeks[key].sentiments.push(m.sentiment);
+            const target = m.sender === 'ME' ? meFreq : pFreq;
+            for (const word of m.words) target[word] = (target[word] || 0) + 1;
         }
-
-        return Object.values(weeks).map(w => ({
-            ...w,
-            avg_latency_seconds: this._mean(w.latencies) || 0,
-            median_latency: this._median(w.latencies) / 60 || 0,
-            mean_sentiment: this._mean(w.sentiments) || 0
-        }));
-    }
-
-    calculateRiskScore(weeks) {
-        if (!weeks.length) return [];
-        const maxLat = Math.max(...weeks.map(w => w.median_latency)) || 1;
-        const maxVol = Math.max(...weeks.map(w => w.volume)) || 1;
-
-        return weeks.map(w => {
-            const sentimentInv = (1 - w.mean_sentiment) / 2.0;
-            const latencyNorm = w.median_latency / maxLat;
-            const volumeInv = 1.0 - (w.volume / maxVol);
-            const risk = (0.5 * sentimentInv) + (0.3 * latencyNorm) + (0.2 * volumeInv);
-            return { ...w, risk_score: parseFloat(risk.toFixed(4)) };
-        });
-    }
-
-    detectRiskPhases(weeks) {
-        return weeks.map(w => {
-            let phase = 'Stable';
-            if (w.risk_score < 0.3) phase = 'Honeymoon';
-            else if (w.risk_score < 0.6) phase = 'Stable';
-            else if (w.risk_score < 0.85) phase = 'Tension';
-            else phase = 'Danger';
-            return { ...w, phase };
-        });
+        const meTop = Object.keys(meFreq).sort((a,b) => meFreq[b] - meFreq[a]).slice(0, 50);
+        const pTop = new Set(Object.keys(pFreq).sort((a,b) => pFreq[b] - pFreq[a]).slice(0, 50));
+        let common = 0;
+        for (const w of meTop) if (pTop.has(w)) common++;
+        return Math.round((common / 50) * 100);
     }
 
     calculateTopicMix(messages, connectionType) {
@@ -318,17 +174,61 @@ class AnalyticsEngine {
             if (this.CONFLICT_RE.test(m.text)) topics.Conflict++;
             if (this.EXTERNAL_RE.test(m.text)) topics.External++;
         }
-        return topics;
+        const sorted = Object.entries(topics).sort((a,b) => b[1] - a[1]);
+        return {
+            breakdown: topics,
+            top_topic: sorted[0][1] > 0 ? sorted[0][0] : "Random Talk"
+        };
+    }
+
+    aggregateWeekly(messages) {
+        const weeks = {};
+        for (const m of messages) {
+            const d = new Date(m.timestamp);
+            const mon = new Date(d.setDate(d.getDate() - d.getDay() + (d.getDay() === 0 ? -6 : 1)));
+            mon.setHours(0,0,0,0);
+            const key = mon.toISOString().split('T')[0];
+            if (!weeks[key]) weeks[key] = { week_start: key, volume: 0, me_count: 0, partner_count: 0, latencies: [], sentiments: [] };
+            weeks[key].volume++;
+            m.sender === 'ME' ? weeks[key].me_count++ : weeks[key].partner_count++;
+            if (m.latencyMins !== null) weeks[key].latencies.push(m.latencyMins * 60);
+            if (m.sender === 'PARTNER') weeks[key].sentiments.push(m.sentiment);
+        }
+        return Object.values(weeks).map(w => ({
+            ...w,
+            median_latency: this._median(w.latencies) / 60 || 0,
+            mean_sentiment: this._mean(w.sentiments) || 0
+        }));
+    }
+
+    calculateRiskScore(weeks) {
+        if (!weeks.length) return [];
+        const maxLat = Math.max(...weeks.map(w => w.median_latency)) || 1;
+        const maxVol = Math.max(...weeks.map(w => w.volume)) || 1;
+        return weeks.map(w => {
+            const risk = (0.5 * ((1 - w.mean_sentiment) / 2)) + (0.3 * (w.median_latency / maxLat)) + (0.2 * (1 - (w.volume / maxVol)));
+            return { ...w, risk_score: parseFloat(risk.toFixed(4)) };
+        });
+    }
+
+    detectRiskPhases(weeks) {
+        return weeks.map(w => {
+            let p = 'Stable';
+            if (w.risk_score < 0.3) p = 'Honeymoon';
+            else if (w.risk_score < 0.85) p = 'Tension';
+            else p = 'Danger';
+            return { ...w, phase: p };
+        });
     }
 
     _median(arr) {
         if (!arr.length) return 0;
-        const sorted = [...arr].sort((a, b) => a - b);
-        const mid = Math.floor(sorted.length / 2);
-        return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+        const s = [...arr].sort((a,b) => a - b);
+        const m = Math.floor(s.length / 2);
+        return s.length % 2 !== 0 ? s[m] : (s[m-1] + s[m]) / 2;
     }
 
-    _mean(arr) { return arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0; }
+    _mean(arr) { return arr.length ? arr.reduce((a,b) => a+b, 0) / arr.length : 0; }
 }
 
 if (typeof module !== 'undefined') { module.exports = AnalyticsEngine; }
