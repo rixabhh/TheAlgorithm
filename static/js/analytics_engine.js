@@ -48,7 +48,7 @@ class AnalyticsEngine {
         const phases = this.detectRiskPhases(riskAnalysis);
 
         return {
-            weekly: phases,
+            weekly_data: phases,
             initiator_ratio: initiatorInfo,
             power_dynamics: powerInfo,
             support_gap: supportInfo,
