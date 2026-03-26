@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM python:3.11
 
 WORKDIR /app
 
@@ -8,9 +8,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python deps first (cached layer)
+# Pre-create directories for static assets and models
+RUN mkdir -p static models/sentiment uploads
+
+# Install heavyweight Python deps first (cached layer)
+# Explicitly use CPU wheels to keep image small and prevent OOM/freezes
+RUN pip install --no-cache-dir \
+    torch --index-url https://download.pytorch.org/whl/cpu \
+    transformers
+
 COPY requirements.txt .
-RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Pre-download the sentiment model during build (cached layer)
