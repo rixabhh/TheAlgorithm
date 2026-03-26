@@ -21,9 +21,9 @@ RUN python scripts/download_model.py
 # Copy application code
 COPY . .
 
-# Download favicon if missing (stripped from HF push to avoid binary rejection)
+# Create a dummy favicon if missing (stripped from HF push to avoid binary rejection)
 RUN if [ ! -f static/favicon.png ]; then \
-      curl -sL https://media.githubusercontent.com/media/rixabhh/TheAlgorithm/main/static/favicon.png -o static/favicon.png || true; \
+      echo "" > static/favicon.png; \
     fi
 
 # Create uploads directory
