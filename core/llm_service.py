@@ -227,12 +227,12 @@ def call_xai(api_key: str, sys_prompt: str, data_prompt: str) -> dict:
                 try:
                     return json.loads(content)
                 except json.JSONDecodeError as je:
-                    print(f"XAI JSON Parse Error: {je}. Raw content head: {content[:100]}")
+                    pass  # Removed to prevent leaking parsed data
                     raise ValueError(f"Grok returned invalid JSON: {str(je)[:50]}")
             
             # If we get here, status was not 200
             error_text = resp.text
-            print(f"XAI Attempt ({model_id}) Failed: {resp.status_code} - {error_text}")
+            pass  # Removed to prevent leaking potential API keys in error_text
             last_error = f"HTTP {resp.status_code}: {error_text}"
             
             # If it's a 404 (model not found), try the next model
@@ -279,7 +279,7 @@ def generate_report(provider: str, api_key: str, stats_payload: dict, my_name: s
             raise ValueError(f"Unknown provider: {provider}")
     except Exception as e:
         # 🛡️ Sentinel: Mask raw exception strings to prevent information disclosure
-        print(f"LLM API Error: {str(e)}")
+        pass  # Removed to prevent leaking raw error details
         return {
             "pulse_summary": f"The {provider} API returned an error.",
             "time_machine_insights": "We encountered an issue while generating your insights.",
