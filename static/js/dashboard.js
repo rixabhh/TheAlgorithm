@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("Dashboard Initializing (V6.0)...");
+    console.log("Dashboard Initializing (V6.1 - Restoration)...");
     
     // 1. DATA LOADING
     const stored = sessionStorage.getItem('dashboard_data');
@@ -133,7 +133,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Interaction & Copy ---
     const formatSummary = (rep) => {
         const title = "📊 THE ALGORITHM: RELATIONSHIP WRAPPED\n";
-        const body = \`✨ Headline: \${rep.dynamic_headline || 'Complete'}\n🧬 Persona: \${rep.relationship_persona || 'The Duo'}\n📈 Compatibility: \${rep.compatibility_score || 85}/100\n\n💡 Pulse: \${rep.pulse_summary || ''}\`;
+        const body = "✨ Headline: " + (rep.dynamic_headline || 'Complete') + 
+                    "\n🧬 Persona: " + (rep.relationship_persona || 'The Duo') + 
+                    "\n📈 Compatibility: " + (rep.compatibility_score || 85) + "/100" + 
+                    "\n\n💡 Pulse: " + (rep.pulse_summary || '');
         return title + body + "\n\n🔗 the-algorithm.pages.dev";
     };
 
@@ -144,7 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (report.top_shareable_snippet) {
         const snippetEl = document.getElementById('report-snippet');
         const container = document.getElementById('report-snippet-container');
-        if (snippetEl) snippetEl.textContent = \`"\${report.top_shareable_snippet}"\`;
+        if (snippetEl) snippetEl.textContent = '"' + report.top_shareable_snippet + '"';
         if (container) container.classList.remove('hidden');
         document.getElementById('copySnippetBtn')?.addEventListener('click', () => {
             navigator.clipboard.writeText(report.top_shareable_snippet).then(() => showToast('Snippet copied!', 'success'));
