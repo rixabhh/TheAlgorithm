@@ -8,23 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <link rel="stylesheet" href="static/css/style.css">
-    <!-- Pass data to JS (Edge Migration V1.0) -->
-    <script>
-        const _data = JSON.parse(sessionStorage.getItem('dashboard_data') || '{}');
-        const __raw = _data.stats || {};
-        window.algorithmData = __raw.weekly || __raw;
-        window.emojiFreq = __raw.emoji_freq || {};
-        window.initiatorRatio = __raw.initiator_ratio || {};
-        window.powerDynamics = __raw.power_dynamics || {};
-        window.affectionFriction = __raw.affection_friction || {};
-        window.supportGap = __raw.support_gap || {};
-        window.mirroring = __raw.mirroring || {};
-        window.topicMix = __raw.topic_mix || {};
-        window.llmReport = _data.report || "No report found. Try analyzing again.";
-        window.highlights = _data.highlights || [];
-        window.flashbacks = _data.flashbacks || {};
-        window.connectionType = _data.connection_type || 'romantic';
-    </script>
+    <!-- Data handled in dashboard.js -->
 
 
 </head>
@@ -46,7 +30,7 @@
 </header>
 
 <!-- ═══ REPORT HERO ═══ -->
-<section style="background:var(--purple);padding:4rem 0 5rem;position:relative;overflow:hidden">
+<section class="hero-dashboard" style="background:var(--purple);padding:4rem 0 5rem;position:relative;overflow:hidden">
     <!-- Decorative blob -->
     <svg class="animate-float" style="position:absolute;top:-20%;right:-5%;width:300px;opacity:0.15;pointer-events:none" viewBox="0 0 200 200"><path fill="var(--orange)" d="M54.5,-63.9C68.9,-49.2,77.5,-28.5,80.1,-6.6C82.8,15.3,79.5,38.5,66.8,55.9C54.1,73.3,31.9,84.9,8.5,88.4C-15,91.9,-39.6,87.3,-56.9,73.6C-74.2,59.8,-84.1,36.9,-85.4,14.6C-86.7,-7.8,-79.4,-29.7,-64.7,-45.3C-49.9,-61,-25,-70.5,-1,-69.3C23,-68.2,40.1,-78.6,54.5,-63.9Z" transform="translate(100 100)"/></svg>
     <!-- Lightning -->

@@ -41,7 +41,7 @@ export async function onRequestPost(context) {
             time_machine_insights: "Looking back, your early days were much more rapid-fire.",
             chart_insights: {
                 stability: "Your rhythm is consistent across the selected period.",
-                volume: `Totals of ${stats.power_dynamics.me_word_count} vs ${stats.partner_word_count} words show the distribution.`,
+                volume: `Totals of ${stats.power_dynamics.me_words} vs ${stats.power_dynamics.partner_words} words show the distribution.`,
                 latency: "Response times are within a healthy range.",
                 emoji: "Expressive usage is high, keeping the tone light.",
                 initiator: "Initiations are well-distributed between both parties.",
