@@ -9,6 +9,41 @@ document.addEventListener('DOMContentLoaded', () => {
     const mirroring = window.mirroring || {};
     const topicMix = window.topicMix || {};
 
+    // Scroll Progress Bar
+    const progressBarScroll = document.getElementById('scroll-progress');
+    if (progressBarScroll) {
+        window.addEventListener('scroll', () => {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            progressBarScroll.style.width = scrolled + '%';
+        });
+    }
+
+    // Intersection Observer for Progressive Reveal & Animations
+    const observerOptions = {
+        root: null,
+        rootMargin: '0px',
+        threshold: 0.15
+    };
+
+    const revealObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('in-view');
+                // If it's the score card, trigger count up
+                if (entry.target.id === 'score-card-container') {
+                    const compScore = parseInt(report.compatibility_score) || 85;
+                    animateValue('report-compatibility', 0, compScore, 1500);
+                }
+                observer.unobserve(entry.target);
+            }
+        });
+    }, observerOptions);
+
+    // Observe elements with .observe-me class
+    document.querySelectorAll('.observe-me').forEach(el => revealObserver.observe(el));
+
     // 1. V4.0: Narrative & Coaching Elements
     document.getElementById('report-headline').textContent = report.dynamic_headline || "Your Relationship Pulse";
     document.getElementById('report-pulse').textContent = report.pulse_summary || "Could not generate pulse summary.";
@@ -25,38 +60,95 @@ document.addEventListener('DOMContentLoaded', () => {
     const totalSupport = meSupport.support_received + pSupport.support_received;
     const supportScore = totalStress > 0 ? Math.round((totalSupport / totalStress) * 100) : null;
 
-    if (supportScore !== null) {
+    if (supportScore !== null && document.getElementById('support-score')) {
         animateValue('support-score', 0, supportScore, 1500, '%');
-    } else {
+    } else if (document.getElementById('support-score')) {
         document.getElementById('support-score').textContent = '--';
     }
 
     // Mirroring Value
     const mirroringVal = (mirroring['ME_mirroring'] || 0) + (mirroring['PARTNER_mirroring'] || 0);
-    document.getElementById('mirroring-value').textContent = mirroringVal > 0 ? mirroringVal + ' level' : 'Low';
+    const mirEl = document.getElementById('mirroring-value');
+    if (mirEl) mirEl.textContent = mirroringVal > 0 ? mirroringVal + ' level' : 'Low';
 
     // Core Topic
     const sortedTopics = Object.entries(topicMix).sort((a, b) => b[1] - a[1]);
-    document.getElementById('core-topic').textContent = sortedTopics.length > 0 ? sortedTopics[0][0] : 'General';
+    const topicEl = document.getElementById('core-topic');
+    if (topicEl) topicEl.textContent = sortedTopics.length > 0 ? sortedTopics[0][0] : 'General';
+
+    // --- Stat Cards: Populate values + micro-insights ---
+    // Total messages
+    const totalMsgs = data.reduce((sum, w) => sum + (w.me_count || 0) + (w.partner_count || 0), 0);
+    const totalMsgsEl = document.getElementById('stat-total-msgs');
+    if (totalMsgsEl) {
+        totalMsgsEl.textContent = totalMsgs.toLocaleString();
+    }
+    const insightMsgs = document.getElementById('stat-insight-msgs');
+    if (insightMsgs) {
+        if (totalMsgs > 10000) insightMsgs.textContent = 'Deep conversation history';
+        else if (totalMsgs > 3000) insightMsgs.textContent = 'Solid dataset for analysis';
+        else if (totalMsgs > 500) insightMsgs.textContent = 'Good sample size';
+        else insightMsgs.textContent = 'More data = better insights';
+    }
+
+    // Your share %
+    const meTotal = data.reduce((sum, w) => sum + (w.me_count || 0), 0);
+    const mePct = totalMsgs > 0 ? Math.round((meTotal / totalMsgs) * 100) : 50;
+    const mePctEl = document.getElementById('stat-me-pct');
+    if (mePctEl) mePctEl.textContent = mePct + '%';
+    const insightShare = document.getElementById('stat-insight-share');
+    if (insightShare) {
+        if (mePct > 60) insightShare.textContent = 'You drive the conversation';
+        else if (mePct > 45) insightShare.textContent = 'Balanced exchange';
+        else if (mePct > 30) insightShare.textContent = 'Good listener';
+        else insightShare.textContent = 'Very reserved';
+    }
+
+    // Avg response latency
+    const latencies = data.map(w => w.avg_latency_seconds).filter(l => l && l > 0);
+    const avgLatency = latencies.length > 0 ? latencies.reduce((a, b) => a + b, 0) / latencies.length : 0;
+    const avgLatencyEl = document.getElementById('stat-avg-latency');
+    if (avgLatencyEl) {
+        if (avgLatency > 3600) avgLatencyEl.textContent = Math.round(avgLatency / 3600) + 'h';
+        else if (avgLatency > 60) avgLatencyEl.textContent = Math.round(avgLatency / 60) + 'm';
+        else if (avgLatency > 0) avgLatencyEl.textContent = Math.round(avgLatency) + 's';
+        else avgLatencyEl.textContent = '--';
+    }
+    const insightLatency = document.getElementById('stat-insight-latency');
+    if (insightLatency) {
+        if (avgLatency > 0 && avgLatency < 120) insightLatency.textContent = 'Quick replies, high engagement';
+        else if (avgLatency < 600) insightLatency.textContent = 'Responsive communication';
+        else if (avgLatency < 3600) insightLatency.textContent = 'Thoughtful pauses';
+        else if (avgLatency > 0) insightLatency.textContent = 'Relaxed pace';
+        else insightLatency.textContent = '';
+    }
+
+    // Mirroring insight
+    const insightMirror = document.getElementById('stat-insight-mirror');
+    if (insightMirror) {
+        if (mirroringVal >= 3) insightMirror.textContent = 'Strong linguistic sync';
+        else if (mirroringVal >= 1) insightMirror.textContent = 'Moderate alignment';
+        else insightMirror.textContent = 'Independent styles';
+    }
 
     // Repair Tips (Nudges)
     const nudgeContainer = document.getElementById('report-nudges');
-    if (report.repair_tips && Array.isArray(report.repair_tips)) {
+    if (nudgeContainer && report.repair_tips && Array.isArray(report.repair_tips)) {
         nudgeContainer.innerHTML = report.repair_tips.map(tip => `
-            <div class="flex gap-2 items-start bg-white/5 p-3 rounded-xl border border-white/5 hover:border-pink-500/30 transition-colors">
-                <span class="text-pink-400 font-bold">●</span>
-                <span>${escapeHTML(tip)}</span>
+            <div style="display:flex;gap:.5rem;align-items:flex-start;padding:.75rem;border-radius:var(--r-sm);border:1px solid var(--gray-200);margin-bottom:.5rem;background:var(--cream)">
+                <span style="color:var(--pink);font-weight:900">●</span>
+                <span style="font-size:.9rem">${escapeHTML(tip)}</span>
             </div>
         `).join('');
     }
 
     // Milestones
     const milestoneContainer = document.getElementById('report-milestones');
-    if (report.milestones && Array.isArray(report.milestones)) {
+    if (milestoneContainer && report.milestones && Array.isArray(report.milestones)) {
         milestoneContainer.innerHTML = report.milestones.map(m => `
-            <div class="flex items-center gap-3 border-l border-purple-500/30 pl-4 py-1">
-                <div class="w-2 h-2 rounded-full bg-purple-500 -ml-[21px]"></div>
-                <span>${escapeHTML(m)}</span>
+            <div style="display:flex;align-items:center;gap:.75rem;border-left:2px solid var(--purple);padding-left:1rem;padding:.5rem 0 .5rem 1rem">
+                <div style="width:8px;height:8px;border-radius:50%;background:var(--purple);margin-left:-21px;flex-shrink:0"></div>
+                <span style="font-size:.9rem">${escapeHTML(m)}</span>
             </div>
         `).join('');
     }
@@ -83,7 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         copyBtn.innerHTML = originalHTML;
                     }, 2000);
                 }).catch(err => {
-                    /* redacted console out */
+                    console.error('Failed to copy text: ', err);
                 });
             });
         }
@@ -117,29 +209,30 @@ document.addEventListener('DOMContentLoaded', () => {
         const dateEl = document.getElementById('flashback-date');
 
         modal.classList.remove('hidden');
+        modal.classList.add('active');
         dateEl.textContent = `Week of ${week}`;
-        content.innerHTML = '<div class="text-center py-12 text-gray-500">Reliving memories...</div>';
+        content.innerHTML = '<div style="text-align:center;padding:3rem 0;color:var(--gray-400)">Reliving memories...</div>';
 
         try {
             const resp = await fetch(`/flashback?week=${week}`);
             const messages = await resp.json();
 
             if (!messages || messages.length === 0) {
-                content.innerHTML = '<div class="text-center py-12 text-gray-400">No message data available for this week.</div>';
+                content.innerHTML = '<div style="text-align:center;padding:3rem 0;color:var(--gray-400)">No message data available for this week.</div>';
                 return;
             }
 
             content.innerHTML = messages.map(m => `
-                <div class="flex flex-col ${m.sender === 'ME' ? 'items-end' : 'items-start'} space-y-1">
-                    <span class="text-[10px] text-gray-500 uppercase">${m.sender === 'ME' ? 'You' : 'Partner'}</span>
-                    <div class="px-4 py-2 rounded-2xl max-w-[90%] text-sm ${m.sender === 'ME' ? 'bg-brand-600 text-white rounded-tr-none' : 'bg-white/10 text-gray-100 rounded-tl-none border border-white/5'}">
+                <div style="display:flex;flex-direction:column;${m.sender === 'ME' ? 'align-items:flex-end' : 'align-items:flex-start'};margin-bottom:.75rem">
+                    <span style="font-size:.65rem;color:var(--gray-400);text-transform:uppercase;font-weight:700">${m.sender === 'ME' ? 'You' : 'Partner'}</span>
+                    <div style="padding:.5rem 1rem;border-radius:1rem;max-width:90%;font-size:.85rem;${m.sender === 'ME' ? 'background:var(--purple);color:var(--white);border-top-right-radius:4px' : 'background:var(--cream);color:var(--black);border:var(--border);border-top-left-radius:4px'}">
                         ${escapeHTML(m.text)}
                     </div>
                 </div>
             `).join('');
 
         } catch (e) {
-            content.innerHTML = '<div class="text-center py-12 text-red-400">Error loading flashback.</div>';
+            content.innerHTML = '<div style="text-align:center;padding:3rem 0;color:var(--red)">Error loading flashback.</div>';
         }
     }
 
@@ -151,10 +244,10 @@ document.addEventListener('DOMContentLoaded', () => {
         el.innerHTML = items.map(item => `
             <div class="flex items-center gap-2">
                 <span class="text-lg w-6 text-center">${escapeHTML(item.emoji)}</span>
-                <div class="flex-1 h-3 bg-dark-900 rounded-full overflow-hidden">
-                    <div class="h-full rounded-full bg-gradient-to-r from-brand-500 to-pink-500" style="width: ${(item.count / maxCount) * 100}%"></div>
+                <div class="flex-1 h-4 bg-cream rounded-full overflow-hidden border-2 border-black">
+                    <div class="h-full bg-pink border-r-2 border-black" style="width: ${(item.count / maxCount) * 100}%;"></div>
                 </div>
-                <span class="text-xs text-gray-400 w-6 text-right">${item.count}</span>
+                <span class="font-body font-bold text-xs text-black w-6 text-right">${item.count}</span>
             </div>
         `).join('');
     };
@@ -215,36 +308,24 @@ function showToast(message, type = 'info') {
     if (!toastContainer) return;
 
     const toast = document.createElement('div');
-    let accentClass = 'border-brand-500/50 from-brand-500/10 to-transparent shadow-brand-500/20';
+    let bgColor = 'var(--blue)';
     let icon = 'ℹ️';
+    if (type === 'success') { bgColor = 'var(--green)'; icon = '✅'; }
+    else if (type === 'error') { bgColor = 'var(--pink)'; icon = '❌'; }
 
-    if (type === 'success') {
-        accentClass = 'border-emerald-500/50 from-emerald-500/10 to-transparent shadow-emerald-500/20';
-        icon = '✅';
-    } else if (type === 'error') {
-        accentClass = 'border-red-500/50 from-red-500/10 to-transparent shadow-red-500/20';
-        icon = '❌';
-    }
-
-    toast.className = `glass-card p-4 rounded-2xl border ${accentClass} shadow-lg backdrop-blur-md transform transition-all duration-700 translate-y-10 opacity-0 min-w-[300px] max-w-sm pointer-events-auto`;
+    toast.style.cssText = `padding:1rem;border-radius:var(--r-md);border:3px solid var(--black);background:${bgColor};box-shadow:var(--shadow);min-width:280px;max-width:360px;pointer-events:auto;transform:translateY(1rem);opacity:0;transition:all 0.4s ease`;
     toast.innerHTML = `
-        <div class="flex items-center gap-3">
-            <span class="text-lg">${icon}</span>
-            <div class="text-sm text-gray-100 font-medium">${escapeHTML(message)}</div>
+        <div style="display:flex;align-items:center;gap:.75rem">
+            <span style="font-size:1.5rem;flex-shrink:0">${icon}</span>
+            <div style="font-weight:700;color:var(--black)">${escapeHTML(message)}</div>
         </div>
     `;
 
     toastContainer.appendChild(toast);
-
-    // Animate in
-    requestAnimationFrame(() => {
-        toast.classList.remove('translate-y-10', 'opacity-0');
-    });
-
-    // Animate out and remove
+    requestAnimationFrame(() => { toast.style.transform = 'translateY(0)'; toast.style.opacity = '1'; });
     setTimeout(() => {
-        toast.classList.add('translate-y-10', 'opacity-0');
-        setTimeout(() => toast.remove(), 700);
+        toast.style.transform = 'translateY(1rem)'; toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 500);
     }, 5000);
 }
 
@@ -289,6 +370,29 @@ async function downloadWrappedCard() {
         document.getElementById('share-time-machine').textContent = report.time_machine_insights || "Building history.";
         document.getElementById('share-compatibility').textContent = report.compatibility_score || "85";
 
+        // 2b. Populate new stat fields
+        const weeklyData = window.algorithmData || [];
+        const shareTotalMsgs = weeklyData.reduce((s, w) => s + (w.me_count || 0) + (w.partner_count || 0), 0);
+        const shareMeTotal = weeklyData.reduce((s, w) => s + (w.me_count || 0), 0);
+        const shareMePct = shareTotalMsgs > 0 ? Math.round((shareMeTotal / shareTotalMsgs) * 100) : 50;
+        const shareLatencies = weeklyData.map(w => w.avg_latency_seconds).filter(l => l && l > 0);
+        const shareAvgLat = shareLatencies.length > 0 ? shareLatencies.reduce((a, b) => a + b, 0) / shareLatencies.length : 0;
+        const shareMirrorVal = (mirroring['ME_mirroring'] || 0) + (mirroring['PARTNER_mirroring'] || 0);
+
+        const stm = document.getElementById('share-total-msgs');
+        if (stm) stm.textContent = shareTotalMsgs.toLocaleString();
+        const smp = document.getElementById('share-me-pct');
+        if (smp) smp.textContent = shareMePct + '%';
+        const sl = document.getElementById('share-latency');
+        if (sl) {
+            if (shareAvgLat > 3600) sl.textContent = Math.round(shareAvgLat / 3600) + 'h';
+            else if (shareAvgLat > 60) sl.textContent = Math.round(shareAvgLat / 60) + 'm';
+            else if (shareAvgLat > 0) sl.textContent = Math.round(shareAvgLat) + 's';
+            else sl.textContent = '--';
+        }
+        const smr = document.getElementById('share-mirroring');
+        if (smr) smr.textContent = shareMirrorVal > 0 ? 'Level ' + shareMirrorVal : 'Low';
+
         // 3. Unhide, Capture, and Re-hide
         const container = document.getElementById('shareable-capture-container');
         const card = document.getElementById('shareable-card');
@@ -314,7 +418,7 @@ async function downloadWrappedCard() {
         showToast("Vibe card downloaded successfully!", "success");
 
     } catch (err) {
-        /* redacted console out */
+        console.error("Failed to generate wrapped image:", err);
         showToast("Couldn't generate your wrapped image. Please try again.", "error");
     } finally {
         // Hide again
@@ -342,71 +446,47 @@ async function initHighlights() {
 
         if (!highlights || highlights.length === 0) return;
 
-        // Contextual styling based on connection type
-        let accentColor = 'border-brand-500/50 from-brand-500/10 to-transparent shadow-brand-500/20'; // Romantic Default
         let iconHtml = '❤️';
-
-        if (connectionType === 'friend') {
-            accentColor = 'border-blue-500/50 from-blue-500/10 to-transparent shadow-blue-500/20';
-            iconHtml = '🤝';
-        } else if (connectionType === 'professional') {
-            accentColor = 'border-emerald-500/50 from-emerald-500/10 to-transparent shadow-emerald-500/20';
-            iconHtml = '💼';
-        } else if (connectionType === 'family') {
-            accentColor = 'border-purple-500/50 from-purple-500/10 to-transparent shadow-purple-500/20';
-            iconHtml = '🏠';
-        }
+        if (connectionType === 'friend') iconHtml = '🤝';
+        else if (connectionType === 'professional') iconHtml = '💼';
+        else if (connectionType === 'family') iconHtml = '🏠';
 
         let currentIndex = 0;
 
         const showNextHighlight = () => {
-            if (currentIndex >= highlights.length) {
-                currentIndex = 0; // loop back or end. Let's loop back.
-            }
-
+            if (currentIndex >= highlights.length) currentIndex = 0;
             const item = highlights[currentIndex];
             currentIndex++;
 
-            // Create toast element
             const toast = document.createElement('div');
-            toast.className = `glass-card p-4 rounded-2xl border ${accentColor} shadow-lg backdrop-blur-md transform transition-all duration-700 translate-y-10 opacity-0 min-w-[300px] max-w-sm pointer-events-auto`;
+            toast.style.cssText = 'padding:1rem;display:flex;flex-direction:column;gap:.5rem;border-radius:var(--r-md);border:2px solid var(--black);background:var(--cream);box-shadow:var(--shadow);min-width:280px;max-width:360px;pointer-events:auto;transform:translateY(1rem);opacity:0;transition:all 0.4s ease';
 
             toast.innerHTML = `
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-xs font-bold text-gray-300 uppercase tracking-widest flex items-center gap-1">
+                <div style="display:flex;align-items:center;justify-content:space-between">
+                    <span style="font-family:var(--font-heading);font-weight:900;font-size:.65rem;text-transform:uppercase;letter-spacing:.05em;display:flex;align-items:center;gap:.25rem;background:var(--yellow);padding:.1rem .5rem;border:1px solid var(--black);border-radius:4px;box-shadow:1px 1px 0 0 var(--black)">
                         ${iconHtml} ${escapeHTML(item.title)}
                     </span>
-                    <span class="text-[10px] text-gray-500">${escapeHTML(item.timestamp.split(' ')[0])}</span>
+                    <span style="font-weight:700;font-size:.6rem;color:var(--gray-400);border:1px solid var(--gray-300);padding:0 .25rem;border-radius:3px">${escapeHTML(item.timestamp.split(' ')[0])}</span>
                 </div>
-                <div class="text-sm text-gray-100 italic">"${escapeHTML(item.text)}"</div>
-                <div class="mt-2 text-right text-[10px] text-gray-400 font-semibold">— ${escapeHTML(item.sender)}</div>
+                <div style="font-style:italic;font-size:.85rem;padding:.5rem;background:var(--white);border-radius:var(--r-sm);border:1px solid rgba(0,0,0,0.1)">"${escapeHTML(item.text)}"</div>
+                <div style="text-align:right;font-size:.6rem;font-weight:700;color:var(--gray-500);text-transform:uppercase">— ${escapeHTML(item.sender)}</div>
             `;
 
             toastContainer.appendChild(toast);
-
-            // Animate in
-            requestAnimationFrame(() => {
-                toast.classList.remove('translate-y-10', 'opacity-0');
-            });
-
-            // Animate out and remove after 6 seconds
+            requestAnimationFrame(() => { toast.style.transform = 'translateY(0)'; toast.style.opacity = '1'; });
             setTimeout(() => {
-                toast.classList.add('translate-y-10', 'opacity-0');
-                setTimeout(() => {
-                    toast.remove();
-                }, 700); // Wait for transition to finish
+                toast.style.transform = 'translateY(1rem)'; toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 700);
             }, 6000);
         };
 
-        // Start showing highlights after a slight initial delay
         setTimeout(() => {
             showNextHighlight();
-            // Continue showing a new one every 8 seconds
             setInterval(showNextHighlight, 8000);
         }, 3000);
 
     } catch (e) {
-        /* redacted console out */
+        console.error('Failed to load highlights:', e);
     }
 }
 
