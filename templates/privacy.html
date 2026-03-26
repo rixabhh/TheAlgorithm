@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en" style="scroll-behavior:smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy | The Algorithm</title>
+    <meta name="description" content="Learn how The Algorithm protects your chat data with client-side anonymization, RAM-only processing, and instant deletion.">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+</head>
+<body class="comic-dots">
+
+<!-- Nav -->
+<header class="nav">
+    <div class="container">
+        <a href="/" class="nav-logo" style="color:var(--white)">
+            <span style="font-size:1.2rem;margin-right:.25rem">←</span>
+            🧠 The Algorithm
+        </a>
+        <a href="{{ url_for('index') }}" class="nav-link" style="font-size:.8rem">Back to Analyzer</a>
+    </div>
+</header>
+
+<main style="max-width:800px;margin:0 auto;padding:3rem 1.25rem 4rem">
+    <!-- Title -->
+    <div class="text-center" style="margin-bottom:2.5rem">
+        <h1 style="margin-bottom:1rem">Strictly <span style="color:var(--pink)">Private.</span></h1>
+        <p class="pill-label pill-label--white" style="font-style:normal;font-size:.85rem;text-transform:none;max-width:500px;white-space:normal;line-height:1.4;padding:.75rem 1.25rem;display:inline-block">We built The Algorithm with a paranoid-level focus on your security. Your chats belong to you.</p>
+    </div>
+
+    <!-- Content Card -->
+    <div class="card card--xl" style="border-width:4px;box-shadow:8px 8px 0 0 var(--green)">
+        <div style="display:flex;flex-direction:column;gap:2.5rem">
+            <!-- Section 1 -->
+            <section>
+                <h2 style="display:flex;align-items:center;gap:.75rem;margin-bottom:1rem;font-size:1.35rem">
+                    <span style="width:40px;height:40px;border-radius:50%;background:var(--green);color:var(--white);display:flex;align-items:center;justify-content:center;border:2px solid var(--black);box-shadow:2px 2px 0 0 var(--black);font-size:1rem;flex-shrink:0">1</span>
+                    Client-Side Anonymization
+                </h2>
+                <p style="font-size:.95rem;color:var(--gray-600);line-height:1.7;padding:1rem;background:var(--cream);border-radius:var(--r-sm);border:1px solid rgba(0,0,0,0.1)">
+                    If you enable "Sensitive Mode", our JavaScript redacts phone numbers, emails, and full names directly in your browser <strong style="color:var(--black)">before the file ever leaves your device</strong>. The server only sees masked labels like <code style="background:var(--white);padding:2px 6px;border-radius:4px;border:1px solid var(--black);color:var(--pink)">[PARTNER]</code> or <code style="background:var(--white);padding:2px 6px;border-radius:4px;border:1px solid var(--black);color:var(--pink)">[USER]</code>.
+                </p>
+            </section>
+            <!-- Section 2 -->
+            <section>
+                <h2 style="display:flex;align-items:center;gap:.75rem;margin-bottom:1rem;font-size:1.35rem">
+                    <span style="width:40px;height:40px;border-radius:50%;background:var(--blue);color:var(--white);display:flex;align-items:center;justify-content:center;border:2px solid var(--black);box-shadow:2px 2px 0 0 var(--black);font-size:1rem;flex-shrink:0">2</span>
+                    Pure RAM Processing
+                </h2>
+                <p style="font-size:.95rem;color:var(--gray-600);line-height:1.7;padding:1rem;background:var(--cream);border-radius:var(--r-sm);border:1px solid rgba(0,0,0,0.1)">
+                    We intentionally refuse to use a database. When you upload a chat, it is parsed instantly in active memory (RAM). We <strong style="color:var(--black)">never save your chat file to disk</strong>, and we never associate it with a user account because there are no accounts.
+                </p>
+            </section>
+            <!-- Section 3 -->
+            <section>
+                <h2 style="display:flex;align-items:center;gap:.75rem;margin-bottom:1rem;font-size:1.35rem">
+                    <span style="width:40px;height:40px;border-radius:50%;background:var(--pink);color:var(--white);display:flex;align-items:center;justify-content:center;border:2px solid var(--black);box-shadow:2px 2px 0 0 var(--black);font-size:1rem;flex-shrink:0">3</span>
+                    Aggressive File Deletion
+                </h2>
+                <p style="font-size:.95rem;color:var(--gray-600);line-height:1.7;padding:1rem;background:var(--cream);border-radius:var(--r-sm);border:1px solid rgba(0,0,0,0.1)">
+                    The millisecond your analysis finishes, a strict Python <code style="background:var(--white);padding:2px 6px;border-radius:4px;border:1px solid var(--black);color:var(--purple)">finally</code> block executes. This guarantees that all temporary memory associated with your session is permanently destroyed. If you refresh the page, the data is gone forever.
+                </p>
+            </section>
+            <!-- Section 4 -->
+            <section>
+                <h2 style="display:flex;align-items:center;gap:.75rem;margin-bottom:1rem;font-size:1.35rem">
+                    <span style="width:40px;height:40px;border-radius:50%;background:var(--purple);color:var(--white);display:flex;align-items:center;justify-content:center;border:2px solid var(--black);box-shadow:2px 2px 0 0 var(--black);font-size:1rem;flex-shrink:0">4</span>
+                    Safe LLM Analytics
+                </h2>
+                <p style="font-size:.95rem;color:var(--gray-600);line-height:1.7;padding:1rem;background:var(--cream);border-radius:var(--r-sm);border:1px solid rgba(0,0,0,0.1)">
+                    Your raw, line-by-line chat logs are <strong style="color:var(--black)">never</strong> forwarded to OpenAI, Anthropic, or Google. Our backend processes the chats locally and sends only an anonymous, numerical statistical payload to the LLM to generate the coaching report.
+                </p>
+            </section>
+            <!-- Section 5 -->
+            <section>
+                <h2 style="display:flex;align-items:center;gap:.75rem;margin-bottom:1rem;font-size:1.35rem">
+                    <span style="width:40px;height:40px;border-radius:50%;background:var(--yellow);color:var(--black);display:flex;align-items:center;justify-content:center;border:2px solid var(--black);box-shadow:2px 2px 0 0 var(--black);font-size:1rem;flex-shrink:0">5</span>
+                    Self-Hosted & Non-Tracking
+                </h2>
+                <p style="font-size:.95rem;color:var(--gray-600);line-height:1.7;padding:1rem;background:var(--cream);border-radius:var(--r-sm);border:1px solid rgba(0,0,0,0.1)">
+                    We block third-party trackers. Our fonts are self-hosted to prevent Google from tracking your IP, our security headers (CSP) block unauthorized external scripts, and we use zero analytical trackers. You are invisible here.
+                </p>
+            </section>
+        </div>
+    </div>
+</main>
+
+<!-- Footer -->
+<footer style="background:var(--black);text-align:center;padding:2rem 0;border-top:3px solid var(--pink)">
+    <p style="font-size:.85rem;font-weight:700;color:var(--white)">Your secrets are safe here. Built open-source.</p>
+</footer>
+</body>
+</html>

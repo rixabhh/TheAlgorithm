@@ -1,0 +1,12 @@
+uploads/
+__pycache__/
+*.pyc
+.env
+.pytest_cache/
+CHATS/
+.venv/
+models/
+docs/
+stitch.md
+test_chat.txt
+.dummy_chat.txt

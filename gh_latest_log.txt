@@ -1,0 +1,657 @@
+Lint & Syntax Check	Set up job	﻿2026-03-26T09:32:36.6705352Z Current runner version: '2.333.0'
+Lint & Syntax Check	Set up job	2026-03-26T09:32:36.6740791Z ##[group]Runner Image Provisioner
+Lint & Syntax Check	Set up job	2026-03-26T09:32:36.6742045Z Hosted Compute Agent
+Lint & Syntax Check	Set up job	2026-03-26T09:32:36.6742968Z Version: 20260213.493
+Lint & Syntax Check	Set up job	2026-03-26T09:32:36.6744059Z Commit: 5c115507f6dd24b8de37d8bbe0bb4509d0cc0fa3
+Lint & Syntax Check	Set up job	2026-03-26T09:32:36.6745580Z Build Date: 2026-02-13T00:28:41Z
+Lint & Syntax Check	Set up job	2026-03-26T09:32:36.6746661Z Worker ID: {2a5026f4-23cb-4726-b0f2-abb94aae5622}
+Lint & Syntax Check	Set up job	2026-03-26T09:32:36.6747687Z Azure Region: eastus2
+Lint & Syntax Check	Set up job	2026-03-26T09:32:36.6748682Z ##[endgroup]
+Lint & Syntax Check	Set up job	2026-03-26T09:32:36.6751080Z ##[group]Operating System
+Lint & Syntax Check	Set up job	2026-03-26T09:32:36.6752180Z Ubuntu
+Lint & Syntax Check	Set up job	2026-03-26T09:32:36.6752920Z 24.04.4
+Lint & Syntax Check	Set up job	2026-03-26T09:32:36.6753666Z LTS
+Lint & Syntax Check	Set up job	2026-03-26T09:32:36.6754545Z ##[endgroup]
+Lint & Syntax Check	Set up job	2026-03-26T09:32:36.6755723Z ##[group]Runner Image
+Lint & Syntax Check	Set up job	2026-03-26T09:32:36.6756700Z Image: ubuntu-24.04
+Lint & Syntax Check	Set up job	2026-03-26T09:32:36.6757654Z Version: 20260323.65.1
+Lint & Syntax Check	Set up job	2026-03-26T09:32:36.6759902Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260323.65/images/ubuntu/Ubuntu2404-Readme.md
+Lint & Syntax Check	Set up job	2026-03-26T09:32:36.6762995Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260323.65
+Lint & Syntax Check	Set up job	2026-03-26T09:32:36.6764960Z ##[endgroup]
+Lint & Syntax Check	Set up job	2026-03-26T09:32:36.6766794Z ##[group]GITHUB_TOKEN Permissions
+Lint & Syntax Check	Set up job	2026-03-26T09:32:36.6769375Z Contents: read
+Lint & Syntax Check	Set up job	2026-03-26T09:32:36.6770356Z Metadata: read
+Lint & Syntax Check	Set up job	2026-03-26T09:32:36.6771221Z ##[endgroup]
+Lint & Syntax Check	Set up job	2026-03-26T09:32:36.6774251Z Secret source: Actions
+Lint & Syntax Check	Set up job	2026-03-26T09:32:36.6775802Z Prepare workflow directory
+Lint & Syntax Check	Set up job	2026-03-26T09:32:36.7357243Z Prepare all required actions
+Lint & Syntax Check	Set up job	2026-03-26T09:32:36.7402494Z Getting action download info
+Lint & Syntax Check	Set up job	2026-03-26T09:32:36.9882603Z Download action repository 'actions/checkout@v4' (SHA:34e114876b0b11c390a56381ad16ebd13914f8d5)
+Lint & Syntax Check	Set up job	2026-03-26T09:32:37.1613208Z Download action repository 'actions/setup-python@v5' (SHA:a26af69be951a213d495a4c3e4e4022e16d87065)
+Lint & Syntax Check	Set up job	2026-03-26T09:32:37.4133852Z Complete job name: Lint & Syntax Check
+Lint & Syntax Check	Run actions/checkout@v4	﻿2026-03-26T09:32:37.4835878Z ##[group]Run actions/checkout@v4
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.4836763Z with:
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.4837165Z   repository: rixabhh/TheAlgorithm
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.4837839Z   token: ***
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.4838202Z   ssh-strict: true
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.4838584Z   ssh-user: git
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.4838971Z   persist-credentials: true
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.4839406Z   clean: true
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.4839787Z   sparse-checkout-cone-mode: true
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.4840245Z   fetch-depth: 1
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.4840606Z   fetch-tags: false
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.4840991Z   show-progress: true
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.4841380Z   lfs: false
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.4841729Z   submodules: false
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.4842115Z   set-safe-directory: true
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.4842727Z env:
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.4843121Z   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.4843624Z ##[endgroup]
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.5757777Z Syncing repository: rixabhh/TheAlgorithm
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.5759556Z ##[group]Getting Git version info
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.5760346Z Working directory is '/home/runner/work/TheAlgorithm/TheAlgorithm'
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.5761641Z [command]/usr/bin/git version
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.5795988Z git version 2.53.0
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.5817844Z ##[endgroup]
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.5831829Z Temporarily overriding HOME='/home/runner/work/_temp/e5a18db4-7323-45f2-afc1-8baf9dfa6573' before making global git config changes
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.5833203Z Adding repository directory to the temporary git global config as a safe directory
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.5836917Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/TheAlgorithm/TheAlgorithm
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.5869794Z Deleting the contents of '/home/runner/work/TheAlgorithm/TheAlgorithm'
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.5873849Z ##[group]Initializing the repository
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.5878340Z [command]/usr/bin/git init /home/runner/work/TheAlgorithm/TheAlgorithm
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.5976934Z hint: Using 'master' as the name for the initial branch. This default branch name
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.5978606Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.5980128Z hint: to use in all of your new repositories, which will suppress this warning,
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.5980881Z hint: call:
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.5981276Z hint:
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.5981734Z hint: 	git config --global init.defaultBranch <name>
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.5982291Z hint:
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.5982837Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.5983794Z hint: 'development'. The just-created branch can be renamed via this command:
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.5985192Z hint:
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.5985665Z hint: 	git branch -m <name>
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.5986108Z hint:
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.5986667Z hint: Disable this message with "git config set advice.defaultBranchName false"
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.5987674Z Initialized empty Git repository in /home/runner/work/TheAlgorithm/TheAlgorithm/.git/
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.5990170Z [command]/usr/bin/git remote add origin https://github.com/rixabhh/TheAlgorithm
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.6020331Z ##[endgroup]
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.6021066Z ##[group]Disabling automatic garbage collection
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.6024114Z [command]/usr/bin/git config --local gc.auto 0
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.6051941Z ##[endgroup]
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.6052637Z ##[group]Setting up auth
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.6058984Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.6088747Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.6390356Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.6420415Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.6660624Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.6699317Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.6938905Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.6976048Z ##[endgroup]
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.6977292Z ##[group]Fetching the repository
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.6986335Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +88d1c2dec325a45f277650aa83dd6d2080f67e8f:refs/remotes/origin/main
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.9120604Z From https://github.com/rixabhh/TheAlgorithm
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.9121722Z  * [new ref]         88d1c2dec325a45f277650aa83dd6d2080f67e8f -> origin/main
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.9147629Z ##[endgroup]
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.9148408Z ##[group]Determining the checkout info
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.9150606Z ##[endgroup]
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.9156352Z [command]/usr/bin/git sparse-checkout disable
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.9195982Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.9223203Z ##[group]Checking out the ref
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:37.9228103Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:38.2386141Z Switched to a new branch 'main'
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:38.2388126Z branch 'main' set up to track 'origin/main'.
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:38.2618108Z ##[endgroup]
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:38.2656774Z [command]/usr/bin/git log -1 --format=%H
+Lint & Syntax Check	Run actions/checkout@v4	2026-03-26T09:32:38.2678656Z 88d1c2dec325a45f277650aa83dd6d2080f67e8f
+Lint & Syntax Check	Set up Python	﻿2026-03-26T09:32:38.2994514Z ##[group]Run actions/setup-python@v5
+Lint & Syntax Check	Set up Python	2026-03-26T09:32:38.2995907Z with:
+Lint & Syntax Check	Set up Python	2026-03-26T09:32:38.2996631Z   python-version: 3.11
+Lint & Syntax Check	Set up Python	2026-03-26T09:32:38.2997482Z   check-latest: false
+Lint & Syntax Check	Set up Python	2026-03-26T09:32:38.2998583Z   token: ***
+Lint & Syntax Check	Set up Python	2026-03-26T09:32:38.2999352Z   update-environment: true
+Lint & Syntax Check	Set up Python	2026-03-26T09:32:38.3000302Z   allow-prereleases: false
+Lint & Syntax Check	Set up Python	2026-03-26T09:32:38.3001226Z   freethreaded: false
+Lint & Syntax Check	Set up Python	2026-03-26T09:32:38.3002252Z env:
+Lint & Syntax Check	Set up Python	2026-03-26T09:32:38.3003006Z   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+Lint & Syntax Check	Set up Python	2026-03-26T09:32:38.3004113Z ##[endgroup]
+Lint & Syntax Check	Set up Python	2026-03-26T09:32:38.4258948Z ##[group]Installed versions
+Lint & Syntax Check	Set up Python	2026-03-26T09:32:38.4362035Z (node:2365) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+Lint & Syntax Check	Set up Python	2026-03-26T09:32:38.4366751Z (Use `node --trace-deprecation ...` to show where the warning was created)
+Lint & Syntax Check	Set up Python	2026-03-26T09:32:38.4369318Z Successfully set up CPython (3.11.15)
+Lint & Syntax Check	Set up Python	2026-03-26T09:32:38.4371836Z ##[endgroup]
+Lint & Syntax Check	Install dependencies	﻿2026-03-26T09:32:38.4533204Z ##[group]Run pip install --upgrade pip
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:38.4534495Z [36;1mpip install --upgrade pip[0m
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:38.4535864Z [36;1mpip install flake8[0m
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:38.4536864Z [36;1mpip install -r requirements.txt[0m
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:38.4582711Z shell: /usr/bin/bash -e {0}
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:38.4583635Z env:
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:38.4584380Z   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:38.4586032Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.15/x64
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:38.4587790Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib/pkgconfig
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:38.4589500Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:38.4590994Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:38.4592503Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:38.4594059Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:38.4595613Z ##[endgroup]
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:39.1418280Z Requirement already satisfied: pip in /opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/site-packages (26.0.1)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:39.7889333Z Collecting flake8
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:39.8561353Z   Downloading flake8-7.3.0-py2.py3-none-any.whl.metadata (3.8 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:39.8723297Z Collecting mccabe<0.8.0,>=0.7.0 (from flake8)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:39.8797553Z   Downloading mccabe-0.7.0-py2.py3-none-any.whl.metadata (5.0 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:39.8968819Z Collecting pycodestyle<2.15.0,>=2.14.0 (from flake8)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:39.9041204Z   Downloading pycodestyle-2.14.0-py2.py3-none-any.whl.metadata (4.5 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:39.9211386Z Collecting pyflakes<3.5.0,>=3.4.0 (from flake8)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:39.9287456Z   Downloading pyflakes-3.4.0-py2.py3-none-any.whl.metadata (3.5 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:39.9398967Z Downloading flake8-7.3.0-py2.py3-none-any.whl (57 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:39.9596352Z Downloading mccabe-0.7.0-py2.py3-none-any.whl (7.3 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:39.9687433Z Downloading pycodestyle-2.14.0-py2.py3-none-any.whl (31 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:39.9790939Z Downloading pyflakes-3.4.0-py2.py3-none-any.whl (63 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:40.0009555Z Installing collected packages: pyflakes, pycodestyle, mccabe, flake8
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:40.1123003Z 
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:40.1133150Z Successfully installed flake8-7.3.0 mccabe-0.7.0 pycodestyle-2.14.0 pyflakes-3.4.0
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:40.5332527Z Collecting flask>=3.0.0 (from -r requirements.txt (line 1))
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:40.5994230Z   Downloading flask-3.1.3-py3-none-any.whl.metadata (3.2 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:40.6281958Z Collecting werkzeug>=3.0.1 (from -r requirements.txt (line 2))
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:40.6363727Z   Downloading werkzeug-3.1.7-py3-none-any.whl.metadata (4.0 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:40.7765226Z Collecting pandas>=2.0.0 (from -r requirements.txt (line 3))
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:40.7849160Z   Downloading pandas-3.0.1-cp311-cp311-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl.metadata (79 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:41.0297004Z Collecting numpy>=1.24.0 (from -r requirements.txt (line 4))
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:41.0384452Z   Downloading numpy-2.4.3-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (6.6 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:41.0574163Z Collecting beautifulsoup4>=4.12.0 (from -r requirements.txt (line 5))
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:41.0646019Z   Downloading beautifulsoup4-4.14.3-py3-none-any.whl.metadata (3.8 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:41.0826806Z Collecting pdfplumber>=0.10.0 (from -r requirements.txt (line 6))
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:41.0906612Z   Downloading pdfplumber-0.11.9-py3-none-any.whl.metadata (43 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:41.1193881Z Collecting requests>=2.31.0 (from -r requirements.txt (line 8))
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:41.1270669Z   Downloading requests-2.33.0-py3-none-any.whl.metadata (5.1 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:41.1767890Z Collecting sentencepiece>=0.1.99 (from -r requirements.txt (line 9))
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:41.1842804Z   Downloading sentencepiece-0.2.1-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (10 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:41.3661211Z Collecting protobuf>=4.21.0 (from -r requirements.txt (line 10))
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:41.3737254Z   Downloading protobuf-7.34.1-cp310-abi3-manylinux2014_x86_64.whl.metadata (595 bytes)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:41.3938149Z Collecting emoji>=2.0.0 (from -r requirements.txt (line 11))
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:41.4018208Z   Downloading emoji-2.15.0-py3-none-any.whl.metadata (5.7 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:41.4212798Z Collecting gunicorn>=21.2.0 (from -r requirements.txt (line 12))
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:41.4285111Z   Downloading gunicorn-25.2.0-py3-none-any.whl.metadata (5.5 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:41.4457778Z Collecting blinker>=1.9.0 (from flask>=3.0.0->-r requirements.txt (line 1))
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:41.4529473Z   Downloading blinker-1.9.0-py3-none-any.whl.metadata (1.6 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:41.4713585Z Collecting click>=8.1.3 (from flask>=3.0.0->-r requirements.txt (line 1))
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:41.4787253Z   Downloading click-8.3.1-py3-none-any.whl.metadata (2.6 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:41.4927195Z Collecting itsdangerous>=2.2.0 (from flask>=3.0.0->-r requirements.txt (line 1))
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:41.4998816Z   Downloading itsdangerous-2.2.0-py3-none-any.whl.metadata (1.9 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:41.5166616Z Collecting jinja2>=3.1.2 (from flask>=3.0.0->-r requirements.txt (line 1))
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:41.5237288Z   Downloading jinja2-3.1.6-py3-none-any.whl.metadata (2.9 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:41.5765081Z Collecting markupsafe>=2.1.1 (from flask>=3.0.0->-r requirements.txt (line 1))
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:41.5840709Z   Downloading markupsafe-3.0.3-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.7 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:41.6040555Z Collecting python-dateutil>=2.8.2 (from pandas>=2.0.0->-r requirements.txt (line 3))
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:41.6116589Z   Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl.metadata (8.4 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:41.6318611Z Collecting soupsieve>=1.6.1 (from beautifulsoup4>=4.12.0->-r requirements.txt (line 5))
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:41.6390508Z   Downloading soupsieve-2.8.3-py3-none-any.whl.metadata (4.6 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:41.6606427Z Collecting typing-extensions>=4.0.0 (from beautifulsoup4>=4.12.0->-r requirements.txt (line 5))
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:41.6680437Z   Downloading typing_extensions-4.15.0-py3-none-any.whl.metadata (3.3 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:41.6845325Z Collecting pdfminer.six==20251230 (from pdfplumber>=0.10.0->-r requirements.txt (line 6))
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:41.6918768Z   Downloading pdfminer_six-20251230-py3-none-any.whl.metadata (4.3 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:41.8613684Z Collecting Pillow>=9.1 (from pdfplumber>=0.10.0->-r requirements.txt (line 6))
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:41.8688450Z   Downloading pillow-12.1.1-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (8.8 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:41.9522974Z Collecting pypdfium2>=4.18.0 (from pdfplumber>=0.10.0->-r requirements.txt (line 6))
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:41.9600483Z   Downloading pypdfium2-5.6.0-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (68 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:42.0877878Z Collecting charset-normalizer>=2.0.0 (from pdfminer.six==20251230->pdfplumber>=0.10.0->-r requirements.txt (line 6))
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:42.0954473Z   Downloading charset_normalizer-3.4.6-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (40 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:42.2724406Z Collecting cryptography>=36.0.0 (from pdfminer.six==20251230->pdfplumber>=0.10.0->-r requirements.txt (line 6))
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:42.2800197Z   Downloading cryptography-46.0.6-cp311-abi3-manylinux_2_34_x86_64.whl.metadata (5.7 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:42.3030298Z Collecting idna<4,>=2.5 (from requests>=2.31.0->-r requirements.txt (line 8))
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:42.3100264Z   Downloading idna-3.11-py3-none-any.whl.metadata (8.4 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:42.3344409Z Collecting urllib3<3,>=1.26 (from requests>=2.31.0->-r requirements.txt (line 8))
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:42.3415646Z   Downloading urllib3-2.6.3-py3-none-any.whl.metadata (6.9 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:42.3667198Z Collecting certifi>=2023.5.7 (from requests>=2.31.0->-r requirements.txt (line 8))
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:42.3739068Z   Downloading certifi-2026.2.25-py3-none-any.whl.metadata (2.5 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:42.3968131Z Collecting packaging (from gunicorn>=21.2.0->-r requirements.txt (line 12))
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:42.4040911Z   Downloading packaging-26.0-py3-none-any.whl.metadata (3.3 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:42.5032539Z Collecting cffi>=2.0.0 (from cryptography>=36.0.0->pdfminer.six==20251230->pdfplumber>=0.10.0->-r requirements.txt (line 6))
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:42.5110713Z   Downloading cffi-2.0.0-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (2.6 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:42.5267030Z Collecting pycparser (from cffi>=2.0.0->cryptography>=36.0.0->pdfminer.six==20251230->pdfplumber>=0.10.0->-r requirements.txt (line 6))
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:42.5339179Z   Downloading pycparser-3.0-py3-none-any.whl.metadata (8.2 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:42.5556774Z Collecting six>=1.5 (from python-dateutil>=2.8.2->pandas>=2.0.0->-r requirements.txt (line 3))
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:42.5629279Z   Downloading six-1.17.0-py2.py3-none-any.whl.metadata (1.7 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:42.5754110Z Downloading flask-3.1.3-py3-none-any.whl (103 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:42.5951914Z Downloading werkzeug-3.1.7-py3-none-any.whl (226 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:42.6236877Z Downloading pandas-3.0.1-cp311-cp311-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (11.3 MB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:42.8917306Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 11.3/11.3 MB 44.4 MB/s  0:00:00
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:42.8993235Z Downloading numpy-2.4.3-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (16.9 MB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:43.0147942Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 16.9/16.9 MB 147.8 MB/s  0:00:00
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:43.0228299Z Downloading beautifulsoup4-4.14.3-py3-none-any.whl (107 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:43.0324960Z Downloading pdfplumber-0.11.9-py3-none-any.whl (60 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:43.0423140Z Downloading pdfminer_six-20251230-py3-none-any.whl (6.6 MB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:43.0740147Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.6/6.6 MB 215.7 MB/s  0:00:00
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:43.0814138Z Downloading requests-2.33.0-py3-none-any.whl (65 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:43.0912367Z Downloading charset_normalizer-3.4.6-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (204 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:43.1008739Z Downloading idna-3.11-py3-none-any.whl (71 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:43.1113718Z Downloading urllib3-2.6.3-py3-none-any.whl (131 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:43.1214054Z Downloading sentencepiece-0.2.1-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (1.4 MB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:43.1309459Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.4/1.4 MB 180.6 MB/s  0:00:00
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:43.1382993Z Downloading protobuf-7.34.1-cp310-abi3-manylinux2014_x86_64.whl (324 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:43.1484034Z Downloading emoji-2.15.0-py3-none-any.whl (608 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:43.1540224Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 608.4/608.4 kB 110.5 MB/s  0:00:00
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:43.1613095Z Downloading gunicorn-25.2.0-py3-none-any.whl (211 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:43.1715155Z Downloading blinker-1.9.0-py3-none-any.whl (8.5 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:43.1806961Z Downloading certifi-2026.2.25-py3-none-any.whl (153 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:43.1911544Z Downloading click-8.3.1-py3-none-any.whl (108 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:43.2010376Z Downloading cryptography-46.0.6-cp311-abi3-manylinux_2_34_x86_64.whl (4.5 MB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:43.2214060Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.5/4.5 MB 236.2 MB/s  0:00:00
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:43.2291385Z Downloading cffi-2.0.0-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (215 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:43.2388407Z Downloading itsdangerous-2.2.0-py3-none-any.whl (16 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:43.2483623Z Downloading jinja2-3.1.6-py3-none-any.whl (134 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:43.2579808Z Downloading markupsafe-3.0.3-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (22 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:43.2679157Z Downloading pillow-12.1.1-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (7.0 MB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:43.2957174Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 7.0/7.0 MB 272.9 MB/s  0:00:00
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:43.3034530Z Downloading pypdfium2-5.6.0-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (3.6 MB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:43.3179974Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.6/3.6 MB 279.2 MB/s  0:00:00
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:43.3257342Z Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl (229 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:43.3356592Z Downloading six-1.17.0-py2.py3-none-any.whl (11 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:43.3448941Z Downloading soupsieve-2.8.3-py3-none-any.whl (37 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:43.3542362Z Downloading typing_extensions-4.15.0-py3-none-any.whl (44 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:43.3636619Z Downloading packaging-26.0-py3-none-any.whl (74 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:43.3731870Z Downloading pycparser-3.0-py3-none-any.whl (48 kB)
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:43.5143368Z Installing collected packages: urllib3, typing-extensions, soupsieve, six, sentencepiece, pypdfium2, pycparser, protobuf, Pillow, packaging, numpy, markupsafe, itsdangerous, idna, emoji, click, charset-normalizer, certifi, blinker, werkzeug, requests, python-dateutil, jinja2, gunicorn, cffi, beautifulsoup4, pandas, flask, cryptography, pdfminer.six, pdfplumber
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:51.3631041Z 
+Lint & Syntax Check	Install dependencies	2026-03-26T09:32:51.3653267Z Successfully installed Pillow-12.1.1 beautifulsoup4-4.14.3 blinker-1.9.0 certifi-2026.2.25 cffi-2.0.0 charset-normalizer-3.4.6 click-8.3.1 cryptography-46.0.6 emoji-2.15.0 flask-3.1.3 gunicorn-25.2.0 idna-3.11 itsdangerous-2.2.0 jinja2-3.1.6 markupsafe-3.0.3 numpy-2.4.3 packaging-26.0 pandas-3.0.1 pdfminer.six-20251230 pdfplumber-0.11.9 protobuf-7.34.1 pycparser-3.0 pypdfium2-5.6.0 python-dateutil-2.9.0.post0 requests-2.33.0 sentencepiece-0.2.1 six-1.17.0 soupsieve-2.8.3 typing-extensions-4.15.0 urllib3-2.6.3 werkzeug-3.1.7
+Lint & Syntax Check	Lint with flake8	﻿2026-03-26T09:32:51.5937050Z ##[group]Run # Stop build on syntax errors or undefined names
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:51.5937507Z [36;1m# Stop build on syntax errors or undefined names[0m
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:51.5938035Z [36;1mflake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --exclude=.venv,__pycache__,models[0m
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:51.5938528Z [36;1m# Warnings (non-blocking)[0m
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:51.5939051Z [36;1mflake8 . --count --exit-zero --max-complexity=10 --max-line-length=140 --statistics --exclude=.venv,__pycache__,models[0m
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:51.5967641Z shell: /usr/bin/bash -e {0}
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:51.5967861Z env:
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:51.5968053Z   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:51.5968381Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.15/x64
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:51.5968792Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib/pkgconfig
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:51.5969184Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:51.5969527Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:51.5969906Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:51.5970263Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:51.5970547Z ##[endgroup]
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.3770075Z 0
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6443855Z ./app.py:3:1: F401 'shutil' imported but unused
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6445284Z ./app.py:7:1: F401 'werkzeug.utils.secure_filename' imported but unused
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6446028Z ./app.py:8:1: F401 'traceback' imported but unused
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6446605Z ./app.py:23:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6447349Z ./app.py:32:1: E305 expected 2 blank lines after class or function definition, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6448173Z ./app.py:38:42: E261 at least two spaces before inline comment
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6449219Z ./app.py:62:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6449770Z ./app.py:73:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6450503Z ./app.py:79:1: E305 expected 2 blank lines after class or function definition, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6451267Z ./app.py:82:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6451853Z ./app.py:93:141: E501 line too long (144 > 140 characters)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6452433Z ./app.py:117:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6452997Z ./app.py:121:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6453552Z ./app.py:130:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6454105Z ./app.py:134:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6454961Z ./app.py:138:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6455565Z ./app.py:139:1: C901 'process_chat' is too complex (26)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6456137Z ./app.py:147:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6456715Z ./app.py:175:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6457314Z ./app.py:177:10: E111 indentation is not a multiple of 4
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6457852Z ./app.py:177:10: E117 over-indented
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6458354Z ./app.py:180:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6458939Z ./app.py:197:18: E111 indentation is not a multiple of 4
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6459467Z ./app.py:197:18: E117 over-indented
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6459949Z ./app.py:206:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6460498Z ./app.py:216:13: E303 too many blank lines (2)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6461048Z ./app.py:234:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6461599Z ./app.py:240:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6462184Z ./app.py:242:141: E501 line too long (144 > 140 characters)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6462768Z ./app.py:243:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6463309Z ./app.py:252:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6463987Z ./app.py:268:9: F841 local variable 'e' is assigned to but never used
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6464862Z ./app.py:271:13: E303 too many blank lines (2)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6465874Z ./app.py:274:33: E701 multiple statements on one line (colon)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6466548Z ./app.py:275:37: E701 multiple statements on one line (colon)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6467214Z ./app.py:276:42: E701 multiple statements on one line (colon)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6467836Z ./app.py:278:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6468473Z ./app.py:282:45: E261 at least two spaces before inline comment
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6469087Z ./app.py:283:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6469642Z ./app.py:287:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6470269Z ./app.py:296:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6470836Z ./app.py:298:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6471389Z ./app.py:303:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6471940Z ./app.py:308:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6472478Z ./app.py:315:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6472991Z ./app.py:320:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6473499Z ./app.py:323:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6474029Z ./app.py:345:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6474557Z ./app.py:348:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6475701Z ./app.py:362:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6476206Z ./app.py:366:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6476741Z ./app.py:370:14: E111 indentation is not a multiple of 4
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6477228Z ./app.py:370:14: E117 over-indented
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6477671Z ./app.py:372:14: E111 indentation is not a multiple of 4
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6478138Z ./app.py:372:14: E117 over-indented
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6478875Z ./app.py:374:14: E111 indentation is not a multiple of 4
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6479339Z ./app.py:374:14: E117 over-indented
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6479749Z ./app.py:375:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6480246Z ./app.py:377:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6480728Z ./app.py:384:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6481237Z ./cloud_api/app.py:6:1: F401 'json' imported but unused
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6481809Z ./cloud_api/app.py:29:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6482390Z ./cloud_api/app.py:32:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6483011Z ./cloud_api/app.py:41:14: E111 indentation is not a multiple of 4
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6483551Z ./cloud_api/app.py:41:14: E117 over-indented
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6484089Z ./cloud_api/app.py:46:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6485012Z ./cloud_api/app.py:52:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6485619Z ./cloud_api/app.py:55:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6486211Z ./cloud_api/app.py:65:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6486780Z ./cloud_api/app.py:67:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6487368Z ./cloud_api/app.py:73:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6487950Z ./cloud_api/app.py:77:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6488545Z ./core/analytics.py:29:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6489160Z ./core/analytics.py:35:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6489828Z ./core/analytics.py:42:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6490371Z ./core/analytics.py:46:38: W291 trailing whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6490845Z ./core/analytics.py:47:31: W291 trailing whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6491397Z ./core/analytics.py:53:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6491989Z ./core/analytics.py:78:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6492578Z ./core/analytics.py:82:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6493193Z ./core/analytics.py:84:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6493784Z ./core/analytics.py:87:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6494578Z ./core/analytics.py:90:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6495438Z ./core/analytics.py:95:1: C901 'apply_sentiment' is too complex (19)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6496096Z ./core/analytics.py:95:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6496711Z ./core/analytics.py:98:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6497281Z ./core/analytics.py:103:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6497866Z ./core/analytics.py:105:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6498447Z ./core/analytics.py:115:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6499027Z ./core/analytics.py:119:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6499656Z ./core/analytics.py:120:26: E261 at least two spaces before inline comment
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6500321Z ./core/analytics.py:122:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6500892Z ./core/analytics.py:124:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6501461Z ./core/analytics.py:127:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6502067Z ./core/analytics.py:134:141: E501 line too long (155 > 140 characters)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6502669Z ./core/analytics.py:157:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6503257Z ./core/analytics.py:163:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6503819Z ./core/analytics.py:172:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6504399Z ./core/analytics.py:177:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6505258Z ./core/analytics.py:188:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6505841Z ./core/analytics.py:203:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6506589Z ./core/analytics.py:207:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6507155Z ./core/analytics.py:210:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6507733Z ./core/analytics.py:213:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6508317Z ./core/analytics.py:226:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6508893Z ./core/analytics.py:230:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6509469Z ./core/analytics.py:247:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6510024Z ./core/analytics.py:252:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6510601Z ./core/analytics.py:254:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6511156Z ./core/analytics.py:258:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6511713Z ./core/analytics.py:262:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6512273Z ./core/analytics.py:269:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6512892Z ./core/analytics.py:270:23: E701 multiple statements on one line (colon)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6513526Z ./core/analytics.py:271:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6514081Z ./core/analytics.py:274:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6514867Z ./core/analytics.py:282:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6515450Z ./core/analytics.py:291:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6516015Z ./core/analytics.py:294:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6516571Z ./core/analytics.py:299:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6517120Z ./core/analytics.py:302:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6517729Z ./core/analytics.py:305:23: E701 multiple statements on one line (colon)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6518380Z ./core/analytics.py:306:25: E701 multiple statements on one line (colon)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6519060Z ./core/analytics.py:307:26: E701 multiple statements on one line (colon)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6519792Z ./core/analytics.py:308:13: E701 multiple statements on one line (colon)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6520482Z ./core/analytics.py:309:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6521327Z ./core/analytics.py:314:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6522032Z ./core/analytics.py:316:32: E701 multiple statements on one line (colon)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6522740Z ./core/analytics.py:317:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6523366Z ./core/analytics.py:323:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6524012Z ./core/analytics.py:326:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6524828Z ./core/analytics.py:329:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6525498Z ./core/analytics.py:336:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6526209Z ./core/analytics.py:338:32: E701 multiple statements on one line (colon)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6526911Z ./core/analytics.py:339:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6527585Z ./core/analytics.py:342:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6528255Z ./core/analytics.py:346:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6528920Z ./core/analytics.py:352:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6529625Z ./core/analytics.py:354:47: E701 multiple statements on one line (colon)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6530348Z ./core/analytics.py:355:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6531004Z ./core/analytics.py:373:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6531623Z ./core/analytics.py:376:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6532255Z ./core/analytics.py:381:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6532899Z ./core/analytics.py:388:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6533543Z ./core/analytics.py:393:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6534238Z ./core/analytics.py:395:24: E261 at least two spaces before inline comment
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6535348Z ./core/analytics.py:404:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6535970Z ./core/analytics.py:410:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6536561Z ./core/analytics.py:413:20: E701 multiple statements on one line (colon)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6537161Z ./core/analytics.py:414:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6537682Z ./core/analytics.py:419:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6538311Z ./core/analytics.py:425:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6538955Z ./core/analytics.py:429:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6539580Z ./core/analytics.py:432:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6540207Z ./core/analytics.py:438:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6540838Z ./core/analytics.py:456:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6541455Z ./core/analytics.py:459:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6542117Z ./core/analytics.py:461:32: E701 multiple statements on one line (colon)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6542780Z ./core/analytics.py:462:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6543441Z ./core/analytics.py:472:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6544107Z ./core/analytics.py:476:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6545019Z ./core/analytics.py:479:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6545686Z ./core/analytics.py:482:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6546357Z ./core/analytics.py:496:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6547018Z ./core/analytics.py:500:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6547682Z ./core/analytics.py:504:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6548336Z ./core/analytics.py:510:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6549008Z ./core/analytics.py:513:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6549682Z ./core/analytics.py:517:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6550345Z ./core/analytics.py:520:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6551227Z ./core/llm_service.py:4:141: E501 line too long (143 > 140 characters)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6551966Z ./core/llm_service.py:10:141: E501 line too long (219 > 140 characters)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6552731Z ./core/llm_service.py:24:141: E501 line too long (194 > 140 characters)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6553467Z ./core/llm_service.py:25:141: E501 line too long (344 > 140 characters)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6554200Z ./core/llm_service.py:26:141: E501 line too long (162 > 140 characters)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6555075Z ./core/llm_service.py:27:141: E501 line too long (208 > 140 characters)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6555771Z ./core/llm_service.py:28:141: E501 line too long (176 > 140 characters)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6556468Z ./core/llm_service.py:29:141: E501 line too long (185 > 140 characters)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6557219Z ./core/llm_service.py:30:141: E501 line too long (323 > 140 characters)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6557977Z ./core/llm_service.py:35:141: E501 line too long (218 > 140 characters)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6558722Z ./core/llm_service.py:36:141: E501 line too long (245 > 140 characters)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6559465Z ./core/llm_service.py:37:141: E501 line too long (169 > 140 characters)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6560166Z ./core/llm_service.py:38:141: E501 line too long (180 > 140 characters)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6560881Z ./core/llm_service.py:39:141: E501 line too long (160 > 140 characters)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6561599Z ./core/llm_service.py:41:141: E501 line too long (222 > 140 characters)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6562214Z ./core/llm_service.py:43:141: E501 line too long (182 > 140 characters)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6562820Z ./core/llm_service.py:57:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6563444Z ./core/llm_service.py:57:141: E501 line too long (158 > 140 characters)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6564378Z ./core/llm_service.py:71:40: E261 at least two spaces before inline comment
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6565290Z ./core/llm_service.py:73:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6566037Z ./core/llm_service.py:77:39: E701 multiple statements on one line (colon)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6566902Z ./core/llm_service.py:78:40: E701 multiple statements on one line (colon)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6567605Z ./core/llm_service.py:79:39: E701 multiple statements on one line (colon)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6568262Z ./core/llm_service.py:86:141: E501 line too long (223 > 140 characters)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6568925Z ./core/llm_service.py:88:141: E501 line too long (203 > 140 characters)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6569623Z ./core/llm_service.py:90:141: E501 line too long (154 > 140 characters)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6570426Z ./core/llm_service.py:92:141: E501 line too long (151 > 140 characters)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6571098Z ./core/llm_service.py:100:41: W291 trailing whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6571726Z ./core/llm_service.py:104:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6572419Z ./core/llm_service.py:111:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6573158Z ./core/llm_service.py:118:27: E261 at least two spaces before inline comment
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6573862Z ./core/llm_service.py:129:28: W291 trailing whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6574487Z ./core/llm_service.py:133:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6575377Z ./core/llm_service.py:155:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6576023Z ./core/llm_service.py:163:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6576631Z ./core/llm_service.py:181:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6577204Z ./core/llm_service.py:185:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6577749Z ./core/llm_service.py:189:1: C901 'call_xai' is too complex (12)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6578302Z ./core/llm_service.py:189:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6578847Z ./core/llm_service.py:196:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6579438Z ./core/llm_service.py:211:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6580073Z ./core/llm_service.py:218:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6580898Z ./core/llm_service.py:226:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6581513Z ./core/llm_service.py:232:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6582136Z ./core/llm_service.py:237:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6582742Z ./core/llm_service.py:256:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6583401Z ./core/llm_service.py:256:141: E501 line too long (191 > 140 characters)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6584072Z ./core/llm_service.py:265:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6584984Z ./core/llm_service.py:267:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6585737Z ./core/llm_service.py:280:5: F841 local variable 'e' is assigned to but never used
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6586515Z ./core/parsers.py:9:1: F811 redefinition of unused 'sys' from line 4
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6587211Z ./core/parsers.py:25:141: E501 line too long (151 > 140 characters)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6587882Z ./core/parsers.py:28:141: E501 line too long (328 > 140 characters)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6588533Z ./core/parsers.py:35:141: E501 line too long (156 > 140 characters)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6589203Z ./core/parsers.py:54:1: C901 'standardize_entities' is too complex (11)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6589846Z ./core/parsers.py:54:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6590483Z ./core/parsers.py:59:16: E701 multiple statements on one line (colon)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6591134Z ./core/parsers.py:60:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6591724Z ./core/parsers.py:65:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6592311Z ./core/parsers.py:68:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6592956Z ./core/parsers.py:69:17: E261 at least two spaces before inline comment
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6593809Z ./core/parsers.py:71:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6594454Z ./core/parsers.py:78:34: E701 multiple statements on one line (colon)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6595306Z ./core/parsers.py:80:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6595916Z ./core/parsers.py:88:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6596523Z ./core/parsers.py:103:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6597147Z ./core/parsers.py:113:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6597764Z ./core/parsers.py:115:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6598361Z ./core/parsers.py:126:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6598976Z ./core/parsers.py:127:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6599506Z ./core/parsers.py:133:17: E117 over-indented
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6600096Z ./core/parsers.py:138:43: E701 multiple statements on one line (colon)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6600812Z ./core/parsers.py:138:50: E261 at least two spaces before inline comment
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6601508Z ./core/parsers.py:146:26: E111 indentation is not a multiple of 4
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6602068Z ./core/parsers.py:146:26: E117 over-indented
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6602647Z ./core/parsers.py:146:30: E261 at least two spaces before inline comment
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6603399Z ./core/parsers.py:148:26: E114 indentation is not a multiple of 4 (comment)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6604049Z ./core/parsers.py:148:26: E117 over-indented (comment)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6604846Z ./core/parsers.py:149:26: E111 indentation is not a multiple of 4
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6605432Z ./core/parsers.py:149:26: E117 over-indented
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6606022Z ./core/parsers.py:159:5: C901 'Parsers.parse_telegram' is too complex (11)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6606717Z ./core/parsers.py:161:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6607319Z ./core/parsers.py:168:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6607968Z ./core/parsers.py:170:35: E701 multiple statements on one line (colon)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6608655Z ./core/parsers.py:170:42: E261 at least two spaces before inline comment
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6609526Z ./core/parsers.py:173:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6610127Z ./core/parsers.py:178:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6610735Z ./core/parsers.py:181:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6611360Z ./core/parsers.py:185:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6611977Z ./core/parsers.py:190:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6612576Z ./core/parsers.py:202:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6613191Z ./core/parsers.py:207:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6613782Z ./core/parsers.py:231:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6614432Z ./core/parsers.py:237:24: E701 multiple statements on one line (colon)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6615437Z ./core/parsers.py:240:39: E701 multiple statements on one line (colon)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6616199Z ./core/parsers.py:240:46: E261 at least two spaces before inline comment
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6616921Z ./core/parsers.py:247:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6617628Z ./core/parsers.py:260:9: F841 local variable 'e' is assigned to but never used
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6618373Z ./core/parsers.py:275:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6618990Z ./core/parsers.py:279:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6619774Z ./core/parsers.py:290:9: E306 expected 1 blank line before a nested definition, found 0
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6620582Z ./core/parsers.py:291:21: E701 multiple statements on one line (colon)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6621206Z ./core/parsers.py:295:13: E722 do not use bare 'except'
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6621823Z ./core/parsers.py:299:38: E701 multiple statements on one line (colon)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6622522Z ./core/parsers.py:299:45: E261 at least two spaces before inline comment
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6623399Z ./core/parsers.py:303:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6624004Z ./core/parsers.py:310:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6625154Z ./core/parsers.py:321:38: E701 multiple statements on one line (colon)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6625792Z ./core/parsers.py:321:45: E261 at least two spaces before inline comment
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6626332Z ./core/parsers.py:340:38: E701 multiple statements on one line (colon)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6626850Z ./core/parsers.py:340:45: E261 at least two spaces before inline comment
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6627351Z ./core/parsers.py:341:44: E701 multiple statements on one line (colon)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6627827Z ./core/parsers.py:347:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6628290Z ./core/parsers.py:365:38: E701 multiple statements on one line (colon)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6628795Z ./core/parsers.py:365:45: E261 at least two spaces before inline comment
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6629278Z ./core/parsers.py:369:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6629703Z ./core/parsers.py:381:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6630132Z ./core/parsers.py:382:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6630561Z ./core/parsers.py:393:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6631011Z ./core/parsers.py:395:10: E111 indentation is not a multiple of 4
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6631413Z ./core/parsers.py:395:10: E117 over-indented
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6631790Z ./core/parsers.py:400:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6632216Z ./core/parsers.py:402:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6632660Z ./core/parsers.py:405:141: E501 line too long (205 > 140 characters)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6633111Z ./core/parsers.py:406:1: W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6633614Z ./tests/test_bolt_optimizations.py:4:1: F401 'numpy as np' imported but unused
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6634203Z ./tests/test_bolt_optimizations.py:7:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6635055Z ./tests/test_bolt_optimizations.py:13:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6635824Z ./tests/test_bolt_optimizations.py:45:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6636400Z ./tests/test_bolt_optimizations.py:71:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6637010Z ./tests/test_bolt_optimizations.py:75:55: E261 at least two spaces before inline comment
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6637623Z ./tests/test_cloud_api_security.py:1:1: F401 'pytest' imported but unused
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6638178Z ./tests/test_cloud_api_security.py:11:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6638738Z ./tests/test_cloud_api_security.py:26:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6639276Z ./tests/test_dos_protection.py:1:1: F401 'pytest' imported but unused
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6639803Z ./tests/test_dos_protection.py:2:1: F401 'pandas as pd' imported but unused
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6640364Z ./tests/test_dos_protection.py:8:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6640832Z ./tests/test_dos_protection.py:22:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6641276Z ./tests/test_dos_protection.py:27:141: E501 line too long (204 > 140 characters)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6641719Z ./tests/test_dos_protection.py:38:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6642137Z ./tests/test_dos_protection.py:55:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6642547Z ./tests/test_dos_protection.py:69:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6642964Z ./tests/test_dos_protection.py:86:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6643374Z ./tests/test_gemini_payload.py:1:1: F401 'pytest' imported but unused
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6643796Z ./tests/test_gemini_payload.py:5:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6644204Z ./tests/test_json_parsers.py:2:1: F401 'pytest' imported but unused
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6645166Z ./tests/test_json_parsers.py:5:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6645613Z ./tests/test_json_parsers.py:19:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6646031Z ./tests/test_json_parsers.py:30:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6646473Z ./tests/test_json_parsers.py:43:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6646901Z ./tests/test_security_hardening.py:5:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6647360Z ./tests/test_security_hardening.py:11:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6647814Z ./tests/test_security_hardening.py:47:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6648256Z ./tests/test_security_hardening.py:59:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6648701Z ./tests/test_security_hardening.py:70:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6649146Z ./tests/test_security_hardening.py:105:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6649608Z ./tests/test_security_hardening.py:124:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6650046Z ./tests/test_sentinel_fixes.py:6:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6650490Z ./tests/test_sentinel_fixes.py:12:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6650916Z ./tests/test_sentinel_fixes.py:30:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6651328Z ./tests/test_sentinel_fixes.py:54:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6651747Z ./tests/test_sentinel_fixes.py:59:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6652186Z ./tests/test_sentinel_hardened.py:2:1: F401 'pandas as pd' imported but unused
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6652659Z ./tests/test_sentinel_hardened.py:6:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6653109Z ./tests/test_sentinel_hardened.py:21:1: E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6653487Z 5     C901 'process_chat' is too complex (26)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6653763Z 9     E111 indentation is not a multiple of 4
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6654048Z 1     E114 indentation is not a multiple of 4 (comment)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6654482Z 11    E117 over-indented
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6654884Z 16    E261 at least two spaces before inline comment
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6655177Z 72    E302 expected 2 blank lines, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6655424Z 2     E303 too many blank lines (2)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6655757Z 2     E305 expected 2 blank lines after class or function definition, found 1
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6656185Z 1     E306 expected 1 blank line before a nested definition, found 0
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6656516Z 30    E501 line too long (144 > 140 characters)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6656798Z 28    E701 multiple statements on one line (colon)
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6657064Z 1     E722 do not use bare 'except'
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6657302Z 11    F401 'shutil' imported but unused
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6657565Z 1     F811 redefinition of unused 'sys' from line 4
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6657894Z 3     F841 local variable 'e' is assigned to but never used
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6658185Z 4     W291 trailing whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6658413Z 137   W293 blank line contains whitespace
+Lint & Syntax Check	Lint with flake8	2026-03-26T09:32:52.6658648Z 334
+Lint & Syntax Check	Verify imports	﻿2026-03-26T09:32:52.6712053Z ##[group]Run python -c "from core.parsers import process_file; from core.analytics import run_analytics_pipeline; from core.llm_service import generate_report; print('All imports OK')"
+Lint & Syntax Check	Verify imports	2026-03-26T09:32:52.6713331Z [36;1mpython -c "from core.parsers import process_file; from core.analytics import run_analytics_pipeline; from core.llm_service import generate_report; print('All imports OK')"[0m
+Lint & Syntax Check	Verify imports	2026-03-26T09:32:52.6741210Z shell: /usr/bin/bash -e {0}
+Lint & Syntax Check	Verify imports	2026-03-26T09:32:52.6741439Z env:
+Lint & Syntax Check	Verify imports	2026-03-26T09:32:52.6741630Z   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+Lint & Syntax Check	Verify imports	2026-03-26T09:32:52.6741957Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.15/x64
+Lint & Syntax Check	Verify imports	2026-03-26T09:32:52.6742366Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib/pkgconfig
+Lint & Syntax Check	Verify imports	2026-03-26T09:32:52.6742922Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+Lint & Syntax Check	Verify imports	2026-03-26T09:32:52.6743277Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+Lint & Syntax Check	Verify imports	2026-03-26T09:32:52.6743634Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.15/x64
+Lint & Syntax Check	Verify imports	2026-03-26T09:32:52.6744025Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.15/x64/lib
+Lint & Syntax Check	Verify imports	2026-03-26T09:32:52.6744321Z ##[endgroup]
+Lint & Syntax Check	Verify imports	2026-03-26T09:32:53.6687004Z Traceback (most recent call last):
+Lint & Syntax Check	Verify imports	2026-03-26T09:32:53.6695680Z   File "<string>", line 1, in <module>
+Lint & Syntax Check	Verify imports	2026-03-26T09:32:53.6696292Z   File "/home/runner/work/TheAlgorithm/TheAlgorithm/core/analytics.py", line 7, in <module>
+Lint & Syntax Check	Verify imports	2026-03-26T09:32:53.6696814Z     from transformers import pipeline
+Lint & Syntax Check	Verify imports	2026-03-26T09:32:53.6697154Z ModuleNotFoundError: No module named 'transformers'
+Lint & Syntax Check	Verify imports	2026-03-26T09:32:53.7280448Z ##[error]Process completed with exit code 1.
+Lint & Syntax Check	Post Run actions/checkout@v4	﻿2026-03-26T09:32:53.7389663Z Post job cleanup.
+Lint & Syntax Check	Post Run actions/checkout@v4	2026-03-26T09:32:53.8171218Z [command]/usr/bin/git version
+Lint & Syntax Check	Post Run actions/checkout@v4	2026-03-26T09:32:53.8207619Z git version 2.53.0
+Lint & Syntax Check	Post Run actions/checkout@v4	2026-03-26T09:32:53.8244822Z Temporarily overriding HOME='/home/runner/work/_temp/303383fa-2667-4c18-b933-4dfa0ef844c5' before making global git config changes
+Lint & Syntax Check	Post Run actions/checkout@v4	2026-03-26T09:32:53.8245786Z Adding repository directory to the temporary git global config as a safe directory
+Lint & Syntax Check	Post Run actions/checkout@v4	2026-03-26T09:32:53.8250494Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/TheAlgorithm/TheAlgorithm
+Lint & Syntax Check	Post Run actions/checkout@v4	2026-03-26T09:32:53.8287477Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+Lint & Syntax Check	Post Run actions/checkout@v4	2026-03-26T09:32:53.8321040Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+Lint & Syntax Check	Post Run actions/checkout@v4	2026-03-26T09:32:53.8547758Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+Lint & Syntax Check	Post Run actions/checkout@v4	2026-03-26T09:32:53.8571265Z http.https://github.com/.extraheader
+Lint & Syntax Check	Post Run actions/checkout@v4	2026-03-26T09:32:53.8581656Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+Lint & Syntax Check	Post Run actions/checkout@v4	2026-03-26T09:32:53.8613088Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+Lint & Syntax Check	Post Run actions/checkout@v4	2026-03-26T09:32:53.8867326Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+Lint & Syntax Check	Post Run actions/checkout@v4	2026-03-26T09:32:53.8898154Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Lint & Syntax Check	Complete job	﻿2026-03-26T09:32:53.9240676Z Cleaning up orphan processes
+Lint & Syntax Check	Complete job	2026-03-26T09:32:53.9556347Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-python@v5. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
