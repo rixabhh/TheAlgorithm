@@ -30,10 +30,10 @@ def get_sentiment_pipeline():
     """Lazy load and quantize the Hinglish sentiment model on CPU."""
     global sentiment_pipeline
     if sentiment_pipeline is None:
-        print("Loading and quantizing multilingual sentiment model...")
-        model_name = "cardiffnlp/twitter-xlm-roberta-base-sentiment"
+        print("Loading and quantizing Hinglish sentiment model...")
+        model_name = "pascalrai/hinglish-twitter-roberta-base-sentiment"
         
-        # Use pre-downloaded model dir (Docker) or fall back to HuggingFace cache (local dev)
+        # Determine device-downloaded model dir (Docker) or fall back to HuggingFace cache (local dev)
         model_dir = os.environ.get("MODEL_DIR")
         model_kwargs = {"model": model_name, "device": -1}
         if model_dir and os.path.isdir(model_dir):

@@ -18,10 +18,10 @@ app.add_middleware(
 )
 
 # Initialize model once on boot
-print("Loading XLM-RoBERTa Sentiment Pipeline into GPU...")
-model_name = "cardiffnlp/twitter-xlm-roberta-base-sentiment"
+print("Loading Hinglish Sentiment Pipeline into GPU...")
+model_name = "pascalrai/hinglish-twitter-roberta-base-sentiment"
 # 🛡️ Sentinel: Pin model revision for supply chain integrity
-REVISION = "f2f1202"
+REVISION = "main"
 # device=0 targets the first available GPU (Lightning Studio T4/L4)
 sentiment_pipeline = pipeline("sentiment-analysis", model=model_name, device=0, revision=REVISION)
 print("Model loaded successfully.")
