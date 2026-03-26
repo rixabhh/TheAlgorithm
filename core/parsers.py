@@ -1,3 +1,4 @@
+import io
 import os
 import re
 import sys
@@ -91,7 +92,7 @@ def standardize_entities(df: pd.DataFrame, my_name: str, partner_name: str) -> p
         # The remaining person must be the partner!
         partner_file_name = remaining_top[0]
         mapping[partner_file_name] = 'PARTNER'
-        print(f"Smart Mapping: Nickname '{partner_name}' mapped to file sender '{partner_file_name}'")
+        pass  # Removed to prevent leaking names
         remaining_top.remove(partner_file_name)
 
     # If we mapped 'PARTNER' but not 'ME' (unlikely but possible)...
@@ -104,11 +105,11 @@ def standardize_entities(df: pd.DataFrame, my_name: str, partner_name: str) -> p
     if not mapping and len(top_senders) >= 2:
         mapping[top_senders[0]] = 'ME'
         mapping[top_senders[1]] = 'PARTNER'
-        print(f"Smart Mapping: Phase C fallback triggered. Mapped top 2 senders.")
+        pass  # Removed to prevent leaking mapping logic
     elif not mapping and len(top_senders) == 1:
         mapping[top_senders[0]] = 'ME'
 
-    print(f"Final Mapping Registry: {mapping}")
+    pass  # Removed to prevent leaking final mapping registry containing user names
     
     df['sender_mapped'] = df['sender'].map(mapping).fillna('UNKNOWN')
     
@@ -125,10 +126,10 @@ def standardize_entities(df: pd.DataFrame, my_name: str, partner_name: str) -> p
 class Parsers:
     
     @staticmethod
-    def parse_whatsapp(file_path: str) -> pd.DataFrame:
+    def parse_whatsapp(file_bytes: bytes) -> pd.DataFrame:
         dt_strs, senders, texts = [], [], []
-        with open(file_path, 'r', encoding='utf-8') as f:
-            for line in f:
+        text_data = file_bytes.decode('utf-8', errors='replace')
+        for line in text_data.splitlines():
                 line = sanitize_text(line).strip()
                 if not line:
                     continue
@@ -155,13 +156,12 @@ class Parsers:
         return df
 
     @staticmethod
-    def parse_telegram(file_path: str) -> pd.DataFrame:
+    def parse_telegram(file_bytes: bytes) -> pd.DataFrame:
         dt_strs, senders, texts = [], [], []
         
         # We bypass BeautifulSoup entirely to prevent massive memory spikes on 50MB+ HTML files
         # Telegram exports are highly structured, so string-splitting combined with Regex is 50x faster.
-        with open(file_path, 'r', encoding='utf-8') as f:
-            content = sanitize_text(f.read())
+        content = sanitize_text(file_bytes.decode('utf-8', errors='replace'))
 
         blocks = content.split('<div class="message ')
         current_sender = "UNKNOWN"
@@ -215,10 +215,10 @@ class Parsers:
         return df
 
     @staticmethod
-    def parse_pdf(file_path: str) -> pd.DataFrame:
+    def parse_pdf(file_bytes: bytes) -> pd.DataFrame:
         """Extracts text from PDF and applies WhatsApp parsing loosely."""
         extracted_text = []
-        with pdfplumber.open(file_path) as pdf:
+        with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
             for page in pdf.pages:
                 text = page.extract_text()
                 if text:
@@ -253,14 +253,13 @@ class Parsers:
         return df
 
     @staticmethod
-    def parse_json(file_path: str) -> pd.DataFrame:
+    def parse_json(file_bytes: bytes) -> pd.DataFrame:
         """Determines if JSON is Instagram, Discord, or Telegram and parses accordingly."""
-        with open(file_path, 'r', encoding='utf-8') as f:
-            try:
-                data = json.loads(sanitize_text(f.read()))
-            except Exception as e:
-                print(f"JSON Parse Error: {e}")
-                return pd.DataFrame()
+        try:
+            data = json.loads(sanitize_text(file_bytes.decode('utf-8', errors='replace')))
+        except Exception as e:
+            pass  # Removed to prevent leaking internal error info
+            return pd.DataFrame()
 
         # Telegram JSON Detection
         if isinstance(data, dict) and data.get('type') == 'personal_chat' and 'messages' in data:
@@ -282,7 +281,7 @@ class Parsers:
         if isinstance(data, dict) and 'messages' in data and 'channel' in data:
             return Parsers._parse_discord_exporter(data)
 
-        print("JSON Format not recognized.")
+        pass  # Removed to prevent internal format logic info
         return pd.DataFrame()
 
     @staticmethod
@@ -380,24 +379,24 @@ class Parsers:
             df['timestamp'] = pd.to_datetime(df['timestamp'])
         return df
         
-def process_file(file_path: str, my_name: str, partner_name: str) -> pd.DataFrame:
+def process_file(filename: str, file_bytes: bytes, my_name: str, partner_name: str) -> pd.DataFrame:
     """Takes a file, directs it to the correct parser natively, and standardizes entities."""
-    ext = os.path.splitext(file_path)[1].lower()
+    ext = os.path.splitext(filename)[1].lower()
     if ext == '.html':
-        df = Parsers.parse_telegram(file_path)
+        df = Parsers.parse_telegram(file_bytes)
     elif ext == '.pdf':
-        df = Parsers.parse_pdf(file_path)
+        df = Parsers.parse_pdf(file_bytes)
     elif ext == '.json':
-        df = Parsers.parse_json(file_path)
+        df = Parsers.parse_json(file_bytes)
     else:
-        df = Parsers.parse_whatsapp(file_path)
+        df = Parsers.parse_whatsapp(file_bytes)
         
     if df.empty:
          return df
 
     # 🛡️ Sentinel: Enforce per-file message limit to prevent memory exhaustion (DoS)
     if len(df) > 50000:
-        raise ValueError(f"File too large: {os.path.basename(file_path)} contains {len(df)} messages. Maximum 50,000 allowed per file.")
+        raise ValueError(f"File too large: {filename} contains {len(df)} messages. Maximum 50,000 allowed per file.")
          
     processed_df = standardize_entities(df, my_name, partner_name)
     

@@ -14,6 +14,21 @@ from core.parsers import process_file
 from core.analytics import run_analytics_pipeline
 from core.llm_service import generate_report
 
+
+from collections import defaultdict
+import time
+
+request_counts = defaultdict(list)
+
+def is_rate_limited(ip: str, limit: int = 10, window: int = 60) -> bool:
+    """Allow max `limit` requests per `window` seconds per IP."""
+    now = time.time()
+    request_counts[ip] = [t for t in request_counts[ip] if now - t < window]
+    if len(request_counts[ip]) >= limit:
+        return True
+    request_counts[ip].append(now)
+    return False
+
 app = Flask(__name__)
 # 🛡️ Sentinel: Secure secret key using environment variable with a robust random fallback
 app.secret_key = os.environ.get('FLASK_SECRET_KEY', os.urandom(32).hex())
@@ -40,6 +55,21 @@ SYSTEM_PHRASES_RE = re.compile(
 # 🛡️ Sentinel: Strict file extension allowlist
 ALLOWED_EXTENSIONS = {'txt', 'html', 'json', 'pdf'}
 
+
+MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
+ALLOWED_EXTENSIONS_SET = {'.txt', '.html', '.json'}
+
+def validate_upload(file) -> tuple[bool, str]:
+    """Returns (is_valid, error_message)"""
+    if file.content_length and file.content_length > MAX_FILE_SIZE:
+        return False, "File too large (max 10MB)"
+
+    ext = os.path.splitext(file.filename)[1].lower()
+    if ext not in ALLOWED_EXTENSIONS_SET:
+        return False, "File type not supported"
+
+    return True, ""
+
 def allowed_file(filename):
     """Check if the uploaded file has a permitted extension."""
     return '.' in filename and \
@@ -50,44 +80,39 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # ── Security Headers ──
 @app.after_request
-def set_security_headers(response):
-    """Apply security headers to every response."""
-    # Content Security Policy — only allow resources from same origin + specific CDNs
-    # 🛡️ Sentinel: Added frame-ancestors to prevent clickjacking while allowing HF embedding
+def add_security_headers(response):
+    # Prevent MIME sniffing
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    # Control referrer information
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    # Strict Transport Security
+    response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains; preload'
+    # Content Security Policy - allow embedding in HF, while providing clickjacking protection via frame-ancestors
     response.headers['Content-Security-Policy'] = (
         "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' "
-            "https://cdn.tailwindcss.com "
-            "https://cdn.jsdelivr.net "
-            "https://html2canvas.hertzen.com; "
-        "style-src 'self' 'unsafe-inline'; "
-        "font-src 'self'; "
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://html2canvas.hertzen.com; "
+        "style-src 'self' 'unsafe-inline' cdn.tailwindcss.com fonts.googleapis.com; "
+        "font-src 'self' fonts.gstatic.com; "
         "img-src 'self' data: blob:; "
-        "connect-src 'self' "
-            "https://*.lit.ai; "
-        "base-uri 'self'; "
-        "form-action 'self'; "
+        "connect-src 'self' https://*.lit.ai; "
         "object-src 'none'; "
         "frame-ancestors 'self' https://*.huggingface.co https://huggingface.co https://*.pages.dev https://*.workers.dev;"
     )
-    # Prevent clickjacking is removed to allow Hugging Face Spaces iframe embedding
-    # Prevent MIME sniffing
-    response.headers['X-Content-Type-Options'] = 'nosniff'
-    # Referrer policy — don't leak URLs
-    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
-    # 🛡️ Sentinel: Enforce HSTS (1 year) with preload for top-tier security
-    response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains; preload'
-    # Permissions policy — disable unnecessary browser features
-    response.headers['Permissions-Policy'] = 'camera=(), microphone=(), geolocation=()'
 
-    # No-cache on sensitive routes to prevent browser history leaking results
-    # 🛡️ Sentinel: Fix typo and add /highlights, /flashback and /clear to protect sensitive data
     if request.path in ('/process', '/dashboard', '/flashback', '/highlights', '/clear'):
         response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
         response.headers['Pragma'] = 'no-cache'
         response.headers['Expires'] = '0'
 
     return response
+
+
+@app.errorhandler(Exception)
+def handle_error(e):
+    # Log the full error internally
+    app.logger.error(f"Unhandled error: {str(e)}", exc_info=True)
+    # Return generic message to client
+    return jsonify({"error": "An error occurred. Please try again."}), 500
 
 @app.route('/')
 def index():
@@ -112,6 +137,11 @@ def privacy():
 
 @app.route('/process', methods=['POST'])
 def process_chat():
+
+    client_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+    if is_rate_limited(client_ip, limit=5, window=60):
+        return jsonify({'error': 'Rate limit exceeded. Please try again later.'}), 429
+
     if 'chat_files' not in request.files:
         return jsonify({'error': 'No file part'}), 400
     
@@ -154,12 +184,14 @@ def process_chat():
             # 1. Save files temporarily
             for file in files:
                 if file and file.filename:
-                    if not allowed_file(file.filename):
-                        return jsonify({'error': f"File type not allowed: {file.filename}"}), 400
-                    filename = secure_filename(file.filename)
-                    filepath = os.path.join(upload_dir, filename)
-                    file.save(filepath)
-                    saved_files.append(filepath)
+                    is_valid, err_msg = validate_upload(file)
+                    if not is_valid:
+                        return jsonify({'error': f"{err_msg}: {file.filename}"}), 400
+
+                    file_bytes = file.read()
+                    if len(file_bytes) > MAX_FILE_SIZE:
+                        return jsonify({'error': f"File too large: {file.filename}"}), 400
+                    saved_files.append((file.filename, file_bytes))
 
             if not saved_files:
                  return jsonify({'error': 'No valid files uploaded'}), 400
@@ -170,7 +202,7 @@ def process_chat():
             # 🛡️ Sentinel: Cap max workers to prevent CPU starvation in smaller environments
             with ThreadPoolExecutor(max_workers=min(8, len(saved_files) + 4)) as executor:
                 # Submit all parsing tasks
-                future_to_filepath = {executor.submit(process_file, fp, my_name, partner_name): fp for fp in saved_files}
+                future_to_filepath = {executor.submit(process_file, fn, fb, my_name, partner_name): fn for fn, fb in saved_files}
                 
                 for future in as_completed(future_to_filepath):
                     try:
@@ -179,7 +211,7 @@ def process_chat():
                             dfs.append(df)
                     except Exception as exc:
                         parsing_errors.append(str(exc))
-                        print(f"File parsing generated an exception: {exc}")
+
 
             if not dfs:
                 if parsing_errors:
@@ -234,9 +266,14 @@ def process_chat():
             return jsonify({'message': 'Processing completed successfully'})
 
         except Exception as e:
-            print(f"Server Error: {e}")
-            traceback.print_exc()
+
+
             return jsonify({'error': 'An internal server error occurred while processing your request.'}), 500
+        finally:
+            # 🛡️ Sentinel: Explicitly free memory by deleting references to large DataFrames
+            if 'dfs' in locals(): del dfs
+            if 'full_df' in locals(): del full_df
+            if 'flashback_df' in locals(): del flashback_df
 
 @app.route('/dashboard')
 def dashboard():

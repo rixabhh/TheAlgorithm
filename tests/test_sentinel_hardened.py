@@ -12,7 +12,7 @@ def test_per_file_message_limit():
 
     try:
         with pytest.raises(ValueError) as excinfo:
-            process_file(large_file_path, "Rahul", "Priya")
+            process_file(large_file_path, open(large_file_path, "rb").read(), "Rahul", "Priya")
         assert "Maximum 50,000 allowed per file" in str(excinfo.value)
     finally:
         if os.path.exists(large_file_path):
@@ -27,7 +27,7 @@ def test_normal_file_passes_limit():
             f.write(f"01/01/2023, 12:{i:02d} - Priya: reply {i}\n")
 
     try:
-        df = process_file(normal_file_path, "Rahul", "Priya")
+        df = process_file(normal_file_path, open(normal_file_path, "rb").read(), "Rahul", "Priya")
         assert not df.empty
         assert len(df) == 20
     finally:
