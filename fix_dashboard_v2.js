@@ -1,4 +1,6 @@
-document.addEventListener('DOMContentLoaded', () => {
+const fs = require('fs');
+const path = 'd:/PROJECTS/TheAlgorithm/static/js/dashboard.js';
+const code = `document.addEventListener('DOMContentLoaded', () => {
     console.log("Dashboard Initializing (V6.0)...");
     
     // 1. DATA LOADING
@@ -47,12 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Compatibility Animation
     const compScore = parseInt(report.compatibility_score) || 85;
-    if (typeof animateValue === 'function') {
-        animateValue('report-compatibility', 0, compScore, 1500);
-    } else {
-        const el = document.getElementById('report-compatibility');
-        if (el) el.textContent = compScore;
-    }
+    animateValue('report-compatibility', 0, compScore, 1500);
 
     // Support Score
     const meSupport = supportGap['ME'] || { stress_count: 0, support_received: 0 };
@@ -62,20 +59,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const supportScoreVal = totalStress > 0 ? Math.round((totalSupport / totalStress) * 100) : null;
 
     if (supportScoreVal !== null && document.getElementById('support-score')) {
-        if (typeof animateValue === 'function') animateValue('support-score', 0, supportScoreVal, 1500, '%');
-        else document.getElementById('support-score').textContent = supportScoreVal + '%';
+        animateValue('support-score', 0, supportScoreVal, 1500, '%');
     }
 
     // Mirroring & Topic
     const mirroringVal = (mirroring['ME_mirroring'] || 0) + (mirroring['PARTNER_mirroring'] || 0);
     const mirEl = document.getElementById('mirroring-value');
-    if (mirEl) mirEl.textContent = mirroringVal > 0 ? (mirroringVal > 5 ? 'High' : 'Moderate') : 'Stable';
+    if (mirEl) mirEl.textContent = mirroringVal > 0 ? mirroringVal + ' Level' : 'Stable';
 
     const sortedTopics = Object.entries(topicMix).sort((a, b) => b[1] - a[1]);
     const topicEl = document.getElementById('core-topic');
-    if (topicEl) topicEl.textContent = sortedTopics.length > 0 ? sortedTopics[0][0].charAt(0).toUpperCase() + sortedTopics[0][0].slice(1) : 'General';
+    if (topicEl) topicEl.textContent = sortedTopics.length > 0 ? sortedTopics[0][0] : 'Chatting';
 
-    // --- Stats Cards ---
+    // --- Stats Logic ---
     const totalMsgs = data.reduce((sum, w) => sum + (w.me_count || 0) + (w.partner_count || 0), 0);
     const totalMsgsEl = document.getElementById('stat-total-msgs');
     if (totalMsgsEl) totalMsgsEl.textContent = totalMsgs.toLocaleString();
@@ -112,49 +108,81 @@ document.addEventListener('DOMContentLoaded', () => {
         if (el && text) el.textContent = text;
     });
 
-    // --- Emoji Lists ---
-    const renderEmoji = (id, items) => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        if (!items || !items.length) { el.innerHTML = '<p style="color:var(--gray-400);font-size:.8rem">No emojis found</p>'; return; }
-        el.innerHTML = items.slice(0, 5).map(i => `
-            <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.25rem">
-                <span style="font-size:1.2rem">${i.emoji}</span>
-                <div style="flex:1;height:8px;background:var(--cream);border-radius:4px;overflow:hidden;border:1px solid rgba(0,0,0,0.1)">
-                    <div style="height:100%;background:var(--pink);width:${(i.count / items[0].count) * 100}%"></div>
-                </div>
-                <span style="font-size:.7rem;font-weight:700">${i.count}</span>
-            </div>
-        `).join('');
+    // --- Deep Dive Interactivity ---
+    const deepDiveDetails = document.getElementById('deep-dive-details');
+    if (deepDiveDetails) {
+        deepDiveDetails.addEventListener('toggle', () => {
+            if (deepDiveDetails.open) {
+                // Initiator
+                animateValue('meInitCount', 0, initiatorRatio.me_initiations || 0, 1000);
+                animateValue('partnerInitCount', 0, initiatorRatio.partner_initiations || 0, 1000);
+                
+                const totalInit = (initiatorRatio.me_initiations || 0) + (initiatorRatio.partner_initiations || 0);
+                if (totalInit > 0) {
+                    document.getElementById('meInitiatorBar').style.width = \`\${((initiatorRatio.me_initiations || 0) / totalInit) * 100}%\`;
+                    document.getElementById('partnerInitiatorBar').style.width = \`\${((initiatorRatio.partner_initiations || 0) / totalInit) * 100}%\`;
+                }
+
+                // Power Dynamics
+                const ratioVal = powerDynamics.power_ratio || 1.0;
+                animateValue('powerRatioValue', 0, ratioVal, 1000, 'x', 1);
+
+                // Affection
+                const affCount = affectionFriction.affirmative_count || 0;
+                const disCount = affectionFriction.dismissive_count || 0;
+                animateValue('affCount', 0, affCount, 1000);
+                animateValue('disCount', 0, disCount, 1000);
+                const totalAf = affCount + disCount;
+                if (totalAf > 0) {
+                    document.getElementById('affBar').style.width = \`\${(affCount / totalAf) * 100}%\`;
+                    document.getElementById('disBar').style.width = \`\${(disCount / totalAf) * 100}%\`;
+                }
+            }
+        }, { once: true });
+    }
+
+    // --- Copy Functionality ---
+    const formatReportSummary = (rep) => {
+        let text = \"📊 THE ALGORITHM: RELATIONSHIP WRAPPED\\n\";
+        text += \"✨ Headline: \" + (rep.dynamic_headline || \"Analysis Complete\") + \"\\n\";
+        text += \"🧬 Persona: \" + (rep.relationship_persona || \"The Duo\") + \"\\n\";
+        text += \"📈 Compatibility: \" + (rep.compatibility_score || \"--\") + \"/100\\n\\n\";
+        text += \"💡 Pulse: \" + (rep.pulse_summary || \"\") + \"\\n\\n\";
+        if (rep.repair_tips && rep.repair_tips.length) {
+            text += \"🛠 Repair Tips:\\n\" + rep.repair_tips.map(t => \"• \" + t).join('\\n') + \"\\n\\n\";
+        }
+        text += \"🔗 Generated locally via the-algorithm.pages.dev\";
+        return text;
     };
-    renderEmoji('emojiListMe', emojiFreq['ME']);
-    renderEmoji('emojiListPartner', emojiFreq['PARTNER']);
 
-    // --- Interaction & Copy ---
-    const formatSummary = (rep) => {
-        const title = "📊 THE ALGORITHM: RELATIONSHIP WRAPPED\n";
-        const body = \`✨ Headline: \${rep.dynamic_headline || 'Complete'}\n🧬 Persona: \${rep.relationship_persona || 'The Duo'}\n📈 Compatibility: \${rep.compatibility_score || 85}/100\n\n💡 Pulse: \${rep.pulse_summary || ''}\`;
-        return title + body + "\n\n🔗 the-algorithm.pages.dev";
-    };
-
-    document.getElementById('copySummaryBtn')?.addEventListener('click', () => {
-        navigator.clipboard.writeText(formatSummary(report)).then(() => showToast('Summary copied!', 'success'));
-    });
-
-    if (report.top_shareable_snippet) {
-        const snippetEl = document.getElementById('report-snippet');
-        const container = document.getElementById('report-snippet-container');
-        if (snippetEl) snippetEl.textContent = \`"\${report.top_shareable_snippet}"\`;
-        if (container) container.classList.remove('hidden');
-        document.getElementById('copySnippetBtn')?.addEventListener('click', () => {
-            navigator.clipboard.writeText(report.top_shareable_snippet).then(() => showToast('Snippet copied!', 'success'));
+    const copySummaryBtn = document.getElementById('copySummaryBtn');
+    if (copySummaryBtn) {
+        copySummaryBtn.addEventListener('click', () => {
+            const summary = formatReportSummary(report);
+            navigator.clipboard.writeText(summary).then(() => showToast('Summary copied!', 'success'));
         });
     }
 
-    // --- Late Init ---
-    setTimeout(initHighlights, 1500);
+    const copySnippetBtn = document.getElementById('copySnippetBtn');
+    if (copySnippetBtn) {
+        const snippetText = report.top_shareable_snippet;
+        if (snippetText) {
+            document.getElementById('report-snippet').textContent = '\"' + snippetText + '\"';
+            document.getElementById('report-snippet-container').classList.remove('hidden');
+            copySnippetBtn.addEventListener('click', () => {
+                navigator.clipboard.writeText(snippetText).then(() => showToast('Snippet copied!', 'success'));
+            });
+        }
+    }
+
+    // --- Insights Cards Popup ---
+    setTimeout(initHighlights, 1000);
 });
 
 async function initHighlights() {
-    console.log("Highlights logic ready.");
+    console.log(\"Highlights initialized.\");
 }
+\`;
+
+fs.writeFileSync(path, code);
+console.log('Fixed dashboard.js completely via Node');
