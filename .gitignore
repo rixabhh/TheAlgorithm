@@ -10,3 +10,5 @@ docs/
 stitch.md
 test_chat.txt
 .dummy_chat.txt
+.wrangler/
+node_modules/

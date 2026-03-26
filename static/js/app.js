@@ -316,7 +316,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (errorContainer) { errorContainer.classList.add('hidden'); errorContainer.textContent = ''; }
     };
 
-    // --- Form Submission ---
+    // --- Form Submission (Edge Migration V1.0) ---
     if (uploadForm) {
         uploadForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -325,32 +325,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const analyzeBtn = document.getElementById('analyzeBtn');
             const originalBtnContent = analyzeBtn.innerHTML;
 
-            if (fileInput.files.length === 0) {
+            if (!fileInput.files.length) {
                 showError('Please select at least one chat export file.');
-                return;
-            }
-
-            const apiKey = sessionStorage.getItem('_llm_token') ? atob(sessionStorage.getItem('_llm_token')) : '';
-            if (!apiKey) {
-                const errorHtml = `
-                    <div style="display:flex;flex-direction:column;gap:1rem">
-                        <div class="flex items-center gap-3">
-                            <span style="font-size:2rem;flex-shrink:0">🔑</span>
-                            <div>
-                                <p style="font-family:var(--font-heading);font-weight:900;font-size:1rem;margin:0 0 .25rem;text-transform:uppercase">API Key Required</p>
-                                <p style="font-size:.85rem;color:var(--gray-600);margin:0">An AI API Key is needed to generate your relationship insights.</p>
-                            </div>
-                        </div>
-                        <div class="flex gap-3">
-                            <button type="button" id="configKeyBtn" class="btn btn--purple" style="font-size:.7rem;padding:.4rem 1rem;flex:1">Configure Key</button>
-                            <a href="/instructions#api-keys" class="btn btn--yellow" style="font-size:.7rem;padding:.4rem 1rem;flex:1;text-decoration:none;text-align:center">Get Free Key</a>
-                        </div>
-                    </div>`;
-                showError(errorHtml, true);
-                const configBtn = document.getElementById('configKeyBtn');
-                if (configBtn) configBtn.addEventListener('click', () => {
-                    if (settingsBtn) settingsBtn.click();
-                });
                 return;
             }
 
@@ -360,131 +336,93 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const progressUI = document.getElementById('progressUI');
             const loadingOverlay = document.getElementById('loading-overlay');
-            if (progressUI) { progressUI.classList.remove('hidden'); progressUI.style.display = 'flex'; }
-            if (loadingOverlay) { loadingOverlay.classList.remove('hidden'); }
-
-            const formData = new FormData();
-            formData.append('my_name', document.getElementById('myName').value);
-            formData.append('partner_name', document.getElementById('partnerName').value);
-            formData.append('connection_type', document.getElementById('connectionType').value);
-            formData.append('output_language', document.getElementById('outputLanguage').value);
-            formData.append('user_context', document.getElementById('userContext')?.value || '');
-
-            const analysisTone = document.getElementById('analysisTone')?.value || 'balanced';
-            formData.append('analysis_tone', analysisTone);
-
-            formData.append('api_key', apiKey);
-            formData.append('llm_provider', localStorage.getItem('llm_provider') || 'openai');
-            formData.append('hf_url', localStorage.getItem('hf_url') || '');
-
-            // --- PII Scrubbing ---
-            const scrubPII = async (file) => {
-                return new Promise((resolve, reject) => {
-                    if (!['text/plain', 'text/html', 'application/json'].includes(file.type) && !file.name.endsWith('.txt') && !file.name.endsWith('.html')) {
-                        return resolve(file);
-                    }
-                    const reader = new FileReader();
-                    reader.onload = (ev) => {
-                        let text = ev.target.result;
-                        const phoneRegex = /(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/g;
-                        const emailRegex = /([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/g;
-
-                        if (file.type === 'application/json' || file.name.endsWith('.json')) {
-                            try {
-                                const jsonObj = JSON.parse(text);
-                                const recurse = (obj) => {
-                                    if (typeof obj === 'string') return obj.replace(phoneRegex, '[PHONE_REDACTED]').replace(emailRegex, '[EMAIL_REDACTED]');
-                                    if (Array.isArray(obj)) return obj.map(recurse);
-                                    if (obj !== null && typeof obj === 'object') {
-                                        const newObj = {};
-                                        for (let key in obj) newObj[key] = recurse(obj[key]);
-                                        return newObj;
-                                    }
-                                    return obj;
-                                };
-                                text = JSON.stringify(recurse(jsonObj));
-                            } catch (err) { console.warn("JSON scrub failed", err); }
-                        } else {
-                            text = text.replace(phoneRegex, '[PHONE_REDACTED]').replace(emailRegex, '[EMAIL_REDACTED]');
-                        }
-
-                        const blob = new Blob([text], { type: file.type || 'text/plain' });
-                        resolve(new File([blob], file.name, { type: file.type || 'text/plain', lastModified: Date.now() }));
-                    };
-                    reader.onerror = reject;
-                    reader.readAsText(file);
-                });
-            };
-
-            try {
-                const indicator = document.getElementById('scrubbingIndicator');
-                if (fileInput.files.length > 0 && indicator) {
-                    indicator.classList.remove('hidden');
-                    indicator.style.display = 'flex';
-                }
-                const scrubbedFiles = await Promise.all(Array.from(fileInput.files).map(f => scrubPII(f)));
-                scrubbedFiles.forEach(f => formData.append('chat_files', f));
-                if (indicator) setTimeout(() => { indicator.classList.add('hidden'); indicator.style.display = 'none'; }, 1000);
-            } catch (err) {
-                console.error("Scrub error:", err);
-                showError("An error occurred while locally preparing your files.");
-                analyzeBtn.classList.remove('hidden'); analyzeBtn.innerHTML = originalBtnContent; analyzeBtn.disabled = false;
-                if (progressUI) { progressUI.classList.add('hidden'); progressUI.style.display = 'none'; }
-                if (loadingOverlay) loadingOverlay.classList.add('hidden');
-                return;
-            }
-
-            // --- Progress Steps ---
-            const steps = [
-                "Uploading files securely...", "Running NLP Extractors...",
-                "Initializing NLP Transformers on CPU...", "Scoring Sentiments (Private Local Quantization)...",
-                "Calculating Risk Scores & Latency...", "Erasing raw text data...",
-                "Requesting LLM Assessment...", "Finalizing Report..."
-            ];
-            let stepIdx = 0, timeRemaining = 25;
             const statusText = document.getElementById('statusText');
             const progressBar = document.getElementById('progressBar');
-            const estimatedTime = document.getElementById('estimatedTime');
-            const progressBarContainer = document.getElementById('progressBarContainer');
 
-            const stepInterval = setInterval(() => {
-                if (stepIdx < steps.length && statusText) {
-                    statusText.textContent = steps[stepIdx];
-                    const pct = ((stepIdx + 1) / steps.length) * 100;
-                    if (progressBar) progressBar.style.width = `${pct}%`;
-                    if (progressBarContainer) progressBarContainer.setAttribute('aria-valuenow', Math.round(pct));
-                    stepIdx++;
-                }
-            }, 2500);
+            if (progressUI) { progressUI.classList.remove('hidden'); progressUI.style.display = 'flex'; }
+            if (loadingOverlay) loadingOverlay.classList.remove('hidden');
 
-            const timeInterval = setInterval(() => {
-                timeRemaining--;
-                if (estimatedTime) {
-                    estimatedTime.textContent = timeRemaining > 0 ? `Est: ~${timeRemaining}s` : "Almost done...";
-                }
-            }, 1000);
+            const parser = new ChatParser();
+            const analytics = new AnalyticsEngine();
 
             try {
-                const response = await fetch('/process', { method: 'POST', body: formData });
-                clearInterval(stepInterval);
-                clearInterval(timeInterval);
+                // 1. READ & PARSE (Locally)
+                statusText.textContent = "Accessing files...";
+                if (progressBar) progressBar.style.width = '10%';
+                
+                const file = fileInput.files[0];
+                const content = await file.text();
+                
+                statusText.textContent = "Parsing & Scrubbing PII...";
+                if (progressBar) progressBar.style.width = '30%';
 
-                if (response.ok) {
-                    if (progressBar) progressBar.style.width = '100%';
-                    if (progressBarContainer) progressBarContainer.setAttribute('aria-valuenow', 100);
-                    window.location.href = '/dashboard';
-                } else {
-                    const err = await response.json();
-                    showError(`Error: ${err.error}`);
-                    analyzeBtn.disabled = false; analyzeBtn.innerHTML = originalBtnContent; analyzeBtn.classList.remove('hidden');
-                    if (progressUI) { progressUI.classList.add('hidden'); progressUI.style.display = 'none'; }
-                    if (loadingOverlay) loadingOverlay.classList.add('hidden');
+                let rawMessages = [];
+                if (file.name.endsWith('.html')) rawMessages = parser.parseTelegram(content);
+                else if (file.name.endsWith('.json')) rawMessages = parser.parseInstagram(content);
+                else rawMessages = parser.parseWhatsApp(content);
+
+                if (!rawMessages.length) throw new Error("Could not extract messages. Check file format.");
+
+                // 2. STANDARDIZE
+                statusText.textContent = "Mapping personalities...";
+                if (progressBar) progressBar.style.width = '50%';
+                
+                const myName = document.getElementById('myName').value;
+                const partnerName = document.getElementById('partnerName').value;
+                const filteredMessages = parser.standardizeEntities(rawMessages, myName, partnerName);
+                
+                if (!filteredMessages.length) {
+                    throw new Error(`Name mismatch! '${myName}' or '${partnerName}' not found in chat.`);
                 }
-            } catch (error) {
-                clearInterval(stepInterval);
-                clearInterval(timeInterval);
-                showError('Network Error. Ensure backend is running.');
-                analyzeBtn.disabled = false; analyzeBtn.innerHTML = originalBtnContent; analyzeBtn.classList.remove('hidden');
+
+                // 3. ANALYZE
+                statusText.textContent = "Calculating emotional patterns...";
+                if (progressBar) progressBar.style.width = '70%';
+                
+                const connectionType = document.getElementById('connectionType').value;
+                const analyticsResult = analytics.runPipeline(filteredMessages, connectionType);
+
+                // 4. GENERATE REPORT (Worker Proxy)
+                statusText.textContent = "AI Verdict Generation...";
+                if (progressBar) progressBar.style.width = '90%';
+
+                const payload = {
+                    stats: analyticsResult,
+                    my_name: myName,
+                    partner_name: partnerName,
+                    connection_type: connectionType,
+                    tone: document.getElementById('analysisTone').value,
+                    context: document.getElementById('userContext')?.value || '',
+                    api_key: sessionStorage.getItem('_llm_token') ? atob(sessionStorage.getItem('_llm_token')) : '',
+                    provider: localStorage.getItem('llm_provider') || 'openai'
+                };
+
+                const response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.error || "AI generation failed.");
+                }
+
+                const result = await response.json();
+                
+                // Store result for dashboard
+                sessionStorage.setItem('dashboard_data', JSON.stringify({
+                    stats: analyticsResult,
+                    report: result.report
+                }));
+
+                if (progressBar) progressBar.style.width = '100%';
+                window.location.href = '/dashboard';
+
+            } catch (err) {
+                showError(err.message);
+                analyzeBtn.disabled = false;
+                analyzeBtn.classList.remove('hidden');
                 if (progressUI) { progressUI.classList.add('hidden'); progressUI.style.display = 'none'; }
                 if (loadingOverlay) loadingOverlay.classList.add('hidden');
             }
