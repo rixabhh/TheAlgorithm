@@ -13,7 +13,7 @@ def test_whatsapp_early_exit():
         tmp_path = tmp.name
 
     try:
-        df = Parsers.parse_whatsapp(tmp_path)
+        df = Parsers.parse_whatsapp(open(tmp_path, "rb").read())
         assert len(df) == 50001
     finally:
         if os.path.exists(tmp_path):
@@ -29,7 +29,7 @@ def test_telegram_html_early_exit():
         tmp_path = tmp.name
 
     try:
-        df = Parsers.parse_telegram(tmp_path)
+        df = Parsers.parse_telegram(open(tmp_path, "rb").read())
         assert len(df) == 50001
     finally:
         if os.path.exists(tmp_path):
@@ -46,7 +46,7 @@ def test_instagram_json_early_exit():
         tmp_path = tmp.name
 
     try:
-        df = Parsers.parse_json(tmp_path)
+        df = Parsers.parse_json(open(tmp_path, "rb").read())
         assert len(df) == 50001
     finally:
         if os.path.exists(tmp_path):
@@ -60,7 +60,7 @@ def test_discord_native_json_early_exit():
         tmp_path = tmp.name
 
     try:
-        df = Parsers.parse_json(tmp_path)
+        df = Parsers.parse_json(open(tmp_path, "rb").read())
         assert len(df) == 50001
     finally:
         if os.path.exists(tmp_path):
@@ -77,7 +77,7 @@ def test_telegram_json_early_exit():
         tmp_path = tmp.name
 
     try:
-        df = Parsers.parse_json(tmp_path)
+        df = Parsers.parse_json(open(tmp_path, "rb").read())
         assert len(df) == 50001
     finally:
         if os.path.exists(tmp_path):
@@ -94,7 +94,7 @@ def test_discord_exporter_json_early_exit():
         tmp_path = tmp.name
 
     try:
-        df = Parsers.parse_json(tmp_path)
+        df = Parsers.parse_json(open(tmp_path, "rb").read())
         assert len(df) == 50001
     finally:
         if os.path.exists(tmp_path):
