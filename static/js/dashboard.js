@@ -1,10 +1,10 @@
 /**
- * The Algorithm - Dashboard Controller (V8.0 Final)
- * Complete restoration of charts, download, and AI insights.
+ * The Algorithm - Dashboard Controller (V9.0 Premium)
+ * Fixes missing details in Vibe Card and Dashboard stats.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("Dashboard Initializing (V8.0 Final)...");
+    console.log("Dashboard Initializing (V9.0 Premium)...");
     
     // 1. DATA LOADING
     const stored = sessionStorage.getItem('dashboard_data');
@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
     
-    // Global exposure for download function
+    // Global exposure
     window.dashboardData = dashboardData;
     const report = dashboardData.report || {};
     window.llmReport = report;
@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const el = document.getElementById(id);
         if (!el) return;
         if (!items || !items.length) { el.innerHTML = '<p style="color:var(--gray-400);font-size:.75rem">No data for this section.</p>'; return; }
-        el.innerHTML = items.map(i => '<div style="margin-bottom:.5rem;font-size:.85rem;display:flex;gap:.5rem"><span>✨</span><span>' + i + '</span></div>').join('');
+        el.innerHTML = items.slice(0, 3).map(i => '<div style="margin-bottom:.5rem;font-size:.85rem;display:flex;gap:.5rem"><span>✨</span><span>' + i + '</span></div>').join('');
     };
 
     // --- 2. HERO & NARRATIVE ---
@@ -58,7 +58,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // AI Detail Cards
     renderList('report-milestones', report.milestones);
     renderList('report-nudges', report.repair_tips);
-    setText('report-predictive-path', report.predictive_path);
+    setText('report-milestones', (report.milestones || []).join(' ')); // Fallback if list rendering fails
+    renderList('report-milestones', report.milestones); // Re-render properly
+
+    // Road Ahead Special ID (if exists)
+    const roadAhead = document.getElementById('report-milestones')?.parentElement?.querySelector('h3');
+    if (roadAhead && report.predictive_path) {
+        const p = document.createElement('p');
+        p.style.fontSize = '0.85rem';
+        p.style.marginTop = '0.5rem';
+        p.textContent = report.predictive_path;
+        document.getElementById('report-milestones')?.parentElement?.appendChild(p);
+    }
 
     // --- 3. STAT CARDS ---
     const totalMsgs = weeklyData.reduce((sum, w) => sum + (w.me_count || 0) + (w.partner_count || 0), 0);
@@ -68,13 +79,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const mePct = totalMsgs > 0 ? Math.round((meTotal / totalMsgs) * 100) : 50;
     setText('stat-me-pct', mePct + '%');
 
-    const latencies = weeklyData.map(w => w.avg_latency_seconds).filter(l => l > 0);
+    const latencies = weeklyData.map(w => w.avg_latency_seconds || 0).filter(l => l > 0);
     const avgLat = latencies.length > 0 ? latencies.reduce((a, b) => a + b, 0) / latencies.length : 0;
+    let latencyDisplay = '0s';
     if (avgLat > 0) {
-        if (avgLat > 3600) setText('stat-avg-latency', Math.round(avgLat / 3600) + 'h');
-        else if (avgLat > 60) setText('stat-avg-latency', Math.round(avgLat / 60) + 'm');
-        else setText('stat-avg-latency', Math.round(avgLat) + 's');
+        if (avgLat > 3600) latencyDisplay = Math.round(avgLat / 3600) + 'h';
+        else if (avgLat > 60) latencyDisplay = Math.round(avgLat / 60) + 'm';
+        else latencyDisplay = Math.round(avgLat) + 's';
     }
+    setText('stat-avg-latency', latencyDisplay);
+
+    const mirror = report.mirroring_score || stats.mirroring || 0;
+    setText('mirroring-value', mirror + '%');
 
     // --- 4. DEEP DIVE INSIGHTS ---
     const insights = report.chart_insights || {};
@@ -91,11 +107,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const renderEmoji = (id, items) => {
         const el = document.getElementById(id);
         if (!el) return;
-        if (!items || !items.length) { el.innerHTML = '<p style="color:var(--gray-400);font-size:.75rem">No emojis detected</p>'; return; }
+        if (!items || !items.length) { el.innerHTML = '<p style="color:var(--gray-400);font-size:.7rem">No emojis detected</p>'; return; }
         el.innerHTML = items.slice(0, 5).map(i => 
             '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem">' +
                 '<span style="font-size:1.2rem">' + i.emoji + '</span>' +
-                '<div style="flex:1;height:8px;background:var(--cream);border-radius:4px;overflow:hidden;border:1px solid rgba(0,0,0,0.05)">' +
+                '<div style="flex:1;height:8px;background:var(--cream);border-radius:4px;overflow:hidden">' +
                     '<div style="height:100%;background:var(--pink);width:' + (i.count / items[0].count * 100) + '%"></div>' +
                 '</div>' +
                 '<span style="font-size:.7rem;font-weight:700">' + i.count + '</span>' +
@@ -111,74 +127,80 @@ document.addEventListener('DOMContentLoaded', () => {
     const meInitPct = totalInits > 0 ? Math.round((inits.me_initiations / totalInits) * 100) : 50;
     setText('meInitCount', inits.me_initiations || 0);
     setText('partnerInitCount', inits.partner_initiations || 0);
-    document.getElementById('meInitiatorBar').style.width = meInitPct + '%';
-    document.getElementById('partnerInitiatorBar').style.width = (100 - meInitPct) + '%';
+    const meBar = document.getElementById('meInitiatorBar');
+    const pBar = document.getElementById('partnerInitiatorBar');
+    if (meBar) meBar.style.width = meInitPct + '%';
+    if (pBar) pBar.style.width = (100 - meInitPct) + '%';
 
     // Power & Affection
     const power = stats.power_dynamics || { power_ratio: 1.0 };
-    setText('powerRatioValue', parseFloat(power.power_ratio).toFixed(1) + '×');
+    setText('powerRatioValue', parseFloat(power.power_ratio || 1.0).toFixed(1) + '×');
 
     const support = stats.support_gap || { ME: { support_received: 0, stress_count: 0 }, PARTNER: { support_received: 0, stress_count: 0 } };
-    const totalAff = support.ME.support_received + support.PARTNER.support_received;
-    const totalStress = support.ME.stress_count + support.PARTNER.stress_count;
+    const totalAff = (support.ME.support_received || 0) + (support.PARTNER.support_received || 0);
+    const totalStress = (support.ME.stress_count || 0) + (support.PARTNER.stress_count || 0);
     setText('affCount', totalAff);
     setText('disCount', totalStress);
     const affTotal = (totalAff + totalStress) || 1;
-    document.getElementById('affBar').style.width = (totalAff / affTotal * 100) + '%';
-    document.getElementById('disBar').style.width = (totalStress / affTotal * 100) + '%';
+    const affBar = document.getElementById('affBar');
+    const disBar = document.getElementById('disBar');
+    if (affBar) affBar.style.width = (totalAff / affTotal * 100) + '%';
+    if (disBar) disBar.style.width = (totalStress / affTotal * 100) + '%';
 
     // --- 5. INITIALIZE VISUALS ---
     setTimeout(() => {
         document.querySelectorAll('.skeleton').forEach(el => el.classList.remove('skeleton'));
-    }, 800);
+        // Final visibility safety
+        const hero = document.querySelector('.hero-dashboard');
+        if (hero) {
+            hero.style.opacity = '1';
+            hero.style.visibility = 'visible';
+        }
+    }, 500);
 
-    // RESTORE CHARTS
     if (window.Chart && weeklyData.length > 1) {
         initVolumeChart(weeklyData);
     }
 });
 
 function initVolumeChart(weeks) {
-    const ctx = document.createElement('canvas');
-    ctx.style.maxHeight = '200px';
+    const canvas = document.createElement('canvas');
+    canvas.style.maxHeight = '220px';
+    canvas.style.marginTop = '1rem';
     const container = document.getElementById('deep-dive-details');
     if (!container) return;
-    
-    // Inject at the top of the details
-    const div = document.createElement('div');
-    div.style.marginBottom = '2rem';
-    div.innerHTML = '<h3 style="margin-bottom:1rem">Chat Volume Intensity</h3>';
-    div.appendChild(ctx);
-    container.querySelector('div').prepend(div);
-
-    new Chart(ctx, {
+    const inner = container.querySelector('div');
+    if (inner) {
+        const h3 = document.createElement('h3');
+        h3.style.marginBottom = '0.5rem';
+        h3.textContent = "Chat Volume Trends";
+        inner.prepend(canvas);
+        inner.prepend(h3);
+    }
+    new Chart(canvas, {
         type: 'line',
         data: {
             labels: weeks.map(w => w.week_start),
             datasets: [{
                 label: 'Messages',
+                count: weeks.map(w => w.volume),
                 data: weeks.map(w => w.volume),
                 borderColor: '#E040FB',
                 backgroundColor: 'rgba(224, 64, 251, 0.1)',
-                tension: 0.4,
                 fill: true,
-                borderWidth: 3
+                tension: 0.4,
+                borderWidth: 4
             }]
         },
         options: {
-            responsive: true,
-            maintainAspectRatio: false,
             plugins: { legend: { display: false } },
-            scales: {
-                y: { beginAtZero: true, grid: { display: false } },
-                x: { grid: { display: false } }
-            }
+            scales: { x: { display: false }, y: { beginAtZero: true } }
         }
     });
 }
 
 /**
- * html2canvas Card Generation
+ * Robust Vibe Card Generation
  */
 async function downloadWrappedCard() {
     const btn = document.getElementById('downloadVibeBtn');
@@ -192,32 +214,39 @@ async function downloadWrappedCard() {
         const report = window.llmReport || {};
         
         // Final map of shareable fields
-        const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val || '--'; };
+        const setVal = (id, val) => { 
+            const el = document.getElementById(id); 
+            if (el) { el.textContent = val || ''; el.parentElement.style.opacity = '1'; }
+        };
+
         setVal('share-headline', report.dynamic_headline);
         setVal('share-persona', report.relationship_persona);
         setVal('share-compatibility', report.compatibility_score);
-        setVal('share-total-msgs', document.getElementById('stat-total-msgs').textContent);
-        setVal('share-me-pct', document.getElementById('stat-me-pct').textContent);
-        setVal('share-latency', document.getElementById('stat-avg-latency').textContent);
-        setVal('share-mirroring', document.getElementById('mirroring-value').textContent);
-        setVal('share-snippet', report.top_shareable_snippet);
+        setVal('share-total-msgs', document.getElementById('stat-total-msgs')?.textContent || '--');
+        setVal('share-me-pct', document.getElementById('stat-me-pct')?.textContent || '--');
+        setVal('share-latency', document.getElementById('stat-avg-latency')?.textContent || '--');
+        setVal('share-mirroring', document.getElementById('mirroring-value')?.textContent || '--');
+        setVal('share-topic', report.main_topic || 'Random Talk');
+        setVal('share-support', (report.support_score || '0') + '/100');
+        setVal('share-snippet', report.top_shareable_snippet ? '"' + report.top_shareable_snippet + '"' : '');
 
         const canvas = await html2canvas(card, {
             scale: 2,
             backgroundColor: "#FFF8F0",
             logging: false,
-            useCORS: true
+            useCORS: true,
+            allowTaint: true
         });
 
         const link = document.createElement('a');
-        link.download = 'VibeCard_TheAlgorithm.png';
+        link.download = 'TheAlgorithm_Wrapped.png';
         link.href = canvas.toDataURL('image/png');
         link.click();
         
-        if (window.showToast) showToast('Vibe Card Downloaded!', 'success');
+        if (window.showToast) showToast('Vibe Card Saved!', 'success');
     } catch (err) {
         console.error("Download failed:", err);
-        if (window.showToast) showToast('Download error. Try again.', 'error');
+        if (window.showToast) showToast('Download failed. Please try again.', 'error');
     } finally {
         btn.disabled = false;
         btn.textContent = originalText;
