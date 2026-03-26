@@ -1,24 +1,24 @@
 /**
- * The Algorithm - Local Analytics Engine (V1.0 Edge)
+ * The Algorithm - Local Analytics Engine (V2.0 Hinglish Optimized)
  * Ports the complex relationship scoring logic from analytics.py to JavaScript.
  */
 
 class AnalyticsEngine {
     constructor() {
-        // Regex Patterns (Ported from analytics.py)
-        this.STRESS_RE = /work|tired|sad|stressed|deadline|exhausted|unhappy|worry|anxious|sick|bad day|hard time/i;
-        this.AFFIRMATIVE_RE = /love|thanks|happy|we|miss|appreciate|glad|proud|beautiful|care/i;
-        this.DISMISSIVE_RE = /whatever|fine|okay|sure|k|ok|busy|tired|idk|anyway/i;
+        // Regex Patterns (Hinglish Supported)
+        this.STRESS_RE = /work|tired|sad|stressed|deadline|exhausted|unhappy|worry|anxious|sick|bad day|hard time|presure|dukh|pareshan|tension|thak|beemar/i;
+        this.AFFIRMATIVE_RE = /love|thanks|happy|we|miss|appreciate|glad|proud|beautiful|care|pyaar|shukriya|accha|theek|badhiya|jaan|sona/i;
+        this.DISMISSIVE_RE = /whatever|fine|okay|sure|k|ok|busy|tired|idk|anyway|thik h|hmmm|hmm|okey/i;
         
         // Topic Mix Regexes
-        this.LOGISTICS_RE = /dinner|lunch|bill|home|work|done|todo|buy|shop|cleaning/i;
-        this.EXTERNAL_RE = /friends|party|movie|news|gym|weather|job/i;
-        this.CONFLICT_RE = /sorry|why|fight|angry|stop|listen|mean|hurt|annoyed/i;
-        this.INTIMACY_RE = /love|miss|baby|darling|honey|kiss|hug|beautiful|forever/i;
+        this.LOGISTICS_RE = /dinner|lunch|bill|home|work|done|todo|buy|shop|cleaning|khana|ghar|paisa|office/i;
+        this.EXTERNAL_RE = /friends|party|movie|news|gym|weather|job|dost|bahar|ghumna/i;
+        this.CONFLICT_RE = /sorry|why|fight|angry|stop|listen|mean|hurt|annoyed|galti|kyu|gussa|chup/i;
+        this.INTIMACY_RE = /love|miss|baby|darling|honey|kiss|hug|beautiful|forever|miss u|pyaar|jaan/i;
         
         // Sentiment Keyword Map
-        this.POS_WORDS = new Set(['love', 'happy', 'great', 'awesome', 'good', 'nice', 'thanks', 'wonderful', 'beautiful', 'yay', 'yes', 'perfect', 'glad', 'proud']);
-        this.NEG_WORDS = new Set(['hate', 'sad', 'bad', 'angry', 'hurt', 'sorry', 'no', 'stop', 'upset', 'annoyed', 'tired', 'sick', 'worry', 'fail']);
+        this.POS_WORDS = new Set(['love', 'happy', 'great', 'awesome', 'good', 'nice', 'thanks', 'wonderful', 'beautiful', 'yay', 'yes', 'perfect', 'glad', 'proud', 'accha', 'mast', 'top']);
+        this.NEG_WORDS = new Set(['hate', 'sad', 'bad', 'angry', 'hurt', 'sorry', 'no', 'stop', 'upset', 'annoyed', 'tired', 'sick', 'worry', 'fail', 'bekar', 'gussa', 'bura']);
     }
 
     /**
@@ -37,6 +37,7 @@ class AnalyticsEngine {
         // 2. Metrics
         const latencyInfo = this.calculateLatency(processed);
         const sentimentInfo = this.applySentiment(processed);
+        const emojiStats = this.extractEmojiStats(processed);
         const initiatorInfo = this.calculateInitiatorRatio(latencyInfo);
         const powerInfo = this.calculatePowerDynamics(processed);
         const supportInfo = this.calculateSupportGap(processed);
@@ -49,6 +50,7 @@ class AnalyticsEngine {
 
         return {
             weekly_data: phases,
+            emoji_frequency: emojiStats,
             initiator_ratio: initiatorInfo,
             power_dynamics: powerInfo,
             support_gap: supportInfo,
@@ -84,7 +86,7 @@ class AnalyticsEngine {
     }
 
     /**
-     * Keyword Sentiment Engine (Browser Optimized)
+     * Sentiment Analysis
      */
     applySentiment(messages) {
         let partnerTotal = 0;
@@ -99,7 +101,10 @@ class AnalyticsEngine {
                 else if (this.NEG_WORDS.has(word)) score -= 1;
             }
             
-            // Clamp score
+            // Regex boost
+            if (this.AFFIRMATIVE_RE.test(m.text)) score += 1;
+            if (this.DISMISSIVE_RE.test(m.text)) score -= 1;
+
             m.sentiment = Math.max(-1, Math.min(1, score));
             
             if (m.sender === 'PARTNER') {
@@ -118,6 +123,36 @@ class AnalyticsEngine {
     }
 
     /**
+     * Emoji Frequency Extraction
+     */
+    extractEmojiStats(messages) {
+        const emojiRegex = /(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])/g;
+        const stats = { ME: {}, PARTNER: {} };
+
+        for (const m of messages) {
+            const matches = m.text.match(emojiRegex);
+            if (matches) {
+                const target = stats[m.sender];
+                for (const emoji of matches) {
+                    target[emoji] = (target[emoji] || 0) + 1;
+                }
+            }
+        }
+
+        const finalize = (obj) => {
+            return Object.entries(obj)
+                .map(([emoji, count]) => ({ emoji, count }))
+                .sort((a, b) => b.count - a.count)
+                .slice(0, 10);
+        };
+
+        return {
+            ME: finalize(stats.ME),
+            PARTNER: finalize(stats.PARTNER)
+        };
+    }
+
+    /**
      * Initiations (> 4 hour gap)
      */
     calculateInitiatorRatio(messages) {
@@ -125,7 +160,6 @@ class AnalyticsEngine {
         let partnerInits = 0;
         const GAP_THRESHOLD = 240; // 4 hours
 
-        // First message is initiation
         if (messages.length > 0) {
             if (messages[0].sender === 'ME') meInits++;
             else partnerInits++;
@@ -166,7 +200,7 @@ class AnalyticsEngine {
     }
 
     /**
-     * Support Gap (Stress messages)
+     * Support Gap
      */
     calculateSupportGap(messages) {
         let meStress = 0;
@@ -174,10 +208,9 @@ class AnalyticsEngine {
         let meSupported = 0;
         let partnerSupported = 0;
 
-        // Tracks active stress states
         let activeStressMeTs = null;
         let activeStressPartnerTs = null;
-        const SUPPORT_WINDOW = 60 * 60 * 1000; // 1 hour
+        const SUPPORT_WINDOW = 60 * 60 * 1000;
 
         for (const m of messages) {
             const isStress = this.STRESS_RE.test(m.text);
@@ -192,7 +225,6 @@ class AnalyticsEngine {
                 }
             }
 
-            // Check if this message is a response to the other's stress
             if (m.sender === 'ME' && activeStressPartnerTs) {
                 if (m.timestamp - activeStressPartnerTs <= SUPPORT_WINDOW && m.words.length > 3) {
                     partnerSupported++;
@@ -219,7 +251,6 @@ class AnalyticsEngine {
         const weeks = {};
 
         for (const m of messages) {
-            // Anchor to Monday
             const date = new Date(m.timestamp);
             const day = date.getDay();
             const diff = date.getDate() - day + (day === 0 ? -6 : 1);
@@ -242,25 +273,20 @@ class AnalyticsEngine {
             if (m.sender === 'ME') weeks[key].me_count++;
             else weeks[key].partner_count++;
 
-            if (m.latencyMins !== null) weeks[key].latencies.push(m.latencyMins * 60); // Store in seconds
+            if (m.latencyMins !== null) weeks[key].latencies.push(m.latencyMins * 60);
             if (m.sender === 'PARTNER') weeks[key].sentiments.push(m.sentiment);
         }
 
         return Object.values(weeks).map(w => ({
             ...w,
             avg_latency_seconds: this._mean(w.latencies) || 0,
-            median_latency: this._median(w.latencies) / 60 || 0, // minutes for internal use
+            median_latency: this._median(w.latencies) / 60 || 0,
             mean_sentiment: this._mean(w.sentiments) || 0
         }));
-
     }
 
-    /**
-     * The Algorithm Risk Score
-     */
     calculateRiskScore(weeks) {
         if (!weeks.length) return [];
-        
         const maxLat = Math.max(...weeks.map(w => w.median_latency)) || 1;
         const maxVol = Math.max(...weeks.map(w => w.volume)) || 1;
 
@@ -268,12 +294,8 @@ class AnalyticsEngine {
             const sentimentInv = (1 - w.mean_sentiment) / 2.0;
             const latencyNorm = w.median_latency / maxLat;
             const volumeInv = 1.0 - (w.volume / maxVol);
-            
             const risk = (0.5 * sentimentInv) + (0.3 * latencyNorm) + (0.2 * volumeInv);
-            return {
-                ...w,
-                risk_score: parseFloat(risk.toFixed(4))
-            };
+            return { ...w, risk_score: parseFloat(risk.toFixed(4)) };
         });
     }
 
@@ -284,14 +306,12 @@ class AnalyticsEngine {
             else if (w.risk_score < 0.6) phase = 'Stable';
             else if (w.risk_score < 0.85) phase = 'Tension';
             else phase = 'Danger';
-            
             return { ...w, phase };
         });
     }
 
     calculateTopicMix(messages, connectionType) {
         const topics = { Logistics: 0, Intimacy: 0, Conflict: 0, External: 0 };
-        
         for (const m of messages) {
             if (this.LOGISTICS_RE.test(m.text)) topics.Logistics++;
             if (this.INTIMACY_RE.test(m.text)) topics.Intimacy++;
@@ -308,11 +328,7 @@ class AnalyticsEngine {
         return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
     }
 
-    _mean(arr) {
-        return arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
-    }
+    _mean(arr) { return arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0; }
 }
 
-if (typeof module !== 'undefined') {
-    module.exports = AnalyticsEngine;
-}
+if (typeof module !== 'undefined') { module.exports = AnalyticsEngine; }

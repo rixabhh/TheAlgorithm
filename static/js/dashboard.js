@@ -1,5 +1,10 @@
+/**
+ * The Algorithm - Dashboard Controller (V8.0 Final)
+ * Complete restoration of charts, download, and AI insights.
+ */
+
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("Dashboard Initializing (V6.1 - Restoration)...");
+    console.log("Dashboard Initializing (V8.0 Final)...");
     
     // 1. DATA LOADING
     const stored = sessionStorage.getItem('dashboard_data');
@@ -16,148 +21,205 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
     
-    // Populate window variables for utility compatibility
-    window.algorithmData = dashboardData.stats?.weekly_data || [];
-    window.llmReport = dashboardData.report || {};
-    window.highlights = dashboardData.highlights || [];
-    window.flashbacks = dashboardData.flashbacks || {};
-    window.connectionType = dashboardData.connection_type || 'romantic';
-
-    const data = Array.isArray(window.algorithmData) ? window.algorithmData : [];
-    const report = window.llmReport;
+    // Global exposure for download function
+    window.dashboardData = dashboardData;
+    const report = dashboardData.report || {};
+    window.llmReport = report;
     const stats = dashboardData.stats || {};
-    const emojiFreq = stats.emoji_frequency || {};
-    const initiatorRatio = stats.initiator_ratio || {};
-    const powerDynamics = stats.power_dynamics || {};
-    const affectionFriction = stats.affection_friction || {};
-    const supportGap = stats.support_gap || {};
-    const mirroring = stats.mirroring || {};
-    const topicMix = stats.topic_mix || {};
+    const weeklyData = stats.weekly_data || [];
 
-    // --- UI POPULATION ---
-
-    // Narrative Elements
-    const hHeadline = document.getElementById('report-headline');
-    const hPulse = document.getElementById('report-pulse');
-    const hPersona = document.getElementById('report-persona');
-    
-    if (hHeadline) hHeadline.textContent = report.dynamic_headline || "Your Relationship Pulse";
-    if (hPulse) hPulse.textContent = report.pulse_summary || "Analyzing your digital footprint...";
-    if (hPersona) hPersona.textContent = report.relationship_persona || "The Balanced Duo";
-
-    // Compatibility Animation
-    const compScore = parseInt(report.compatibility_score) || 85;
-    if (typeof animateValue === 'function') {
-        animateValue('report-compatibility', 0, compScore, 1500);
-    } else {
-        const el = document.getElementById('report-compatibility');
-        if (el) el.textContent = compScore;
-    }
-
-    // Support Score
-    const meSupport = supportGap['ME'] || { stress_count: 0, support_received: 0 };
-    const pSupport = supportGap['PARTNER'] || { stress_count: 0, support_received: 0 };
-    const totalStress = (meSupport.stress_count || 0) + (pSupport.stress_count || 0);
-    const totalSupport = (meSupport.support_received || 0) + (pSupport.support_received || 0);
-    const supportScoreVal = totalStress > 0 ? Math.round((totalSupport / totalStress) * 100) : null;
-
-    if (supportScoreVal !== null && document.getElementById('support-score')) {
-        if (typeof animateValue === 'function') animateValue('support-score', 0, supportScoreVal, 1500, '%');
-        else document.getElementById('support-score').textContent = supportScoreVal + '%';
-    }
-
-    // Mirroring & Topic
-    const mirroringVal = (mirroring['ME_mirroring'] || 0) + (mirroring['PARTNER_mirroring'] || 0);
-    const mirEl = document.getElementById('mirroring-value');
-    if (mirEl) mirEl.textContent = mirroringVal > 0 ? (mirroringVal > 5 ? 'High' : 'Moderate') : 'Stable';
-
-    const sortedTopics = Object.entries(topicMix).sort((a, b) => b[1] - a[1]);
-    const topicEl = document.getElementById('core-topic');
-    if (topicEl) topicEl.textContent = sortedTopics.length > 0 ? sortedTopics[0][0].charAt(0).toUpperCase() + sortedTopics[0][0].slice(1) : 'General';
-
-    // --- Stats Cards ---
-    const totalMsgs = data.reduce((sum, w) => sum + (w.me_count || 0) + (w.partner_count || 0), 0);
-    const totalMsgsEl = document.getElementById('stat-total-msgs');
-    if (totalMsgsEl) totalMsgsEl.textContent = totalMsgs.toLocaleString();
-
-    const meTotal = data.reduce((sum, w) => sum + (w.me_count || 0), 0);
-    const mePct = totalMsgs > 0 ? Math.round((meTotal / totalMsgs) * 100) : 50;
-    const mePctEl = document.getElementById('stat-me-pct');
-    if (mePctEl) mePctEl.textContent = mePct + '%';
-
-    const latencies = data.map(w => w.avg_latency_seconds).filter(l => l && l > 0);
-    const avgLatency = latencies.length > 0 ? latencies.reduce((a, b) => a + b, 0) / latencies.length : 0;
-    const avgLatencyEl = document.getElementById('stat-avg-latency');
-    if (avgLatencyEl) {
-        if (avgLatency > 3600) avgLatencyEl.textContent = Math.round(avgLatency / 3600) + 'h';
-        else if (avgLatency > 60) avgLatencyEl.textContent = Math.round(avgLatency / 60) + 'm';
-        else if (avgLatency > 0) avgLatencyEl.textContent = Math.round(avgLatency) + 's';
-        else avgLatencyEl.textContent = '--';
-    }
-
-    // --- Chart Insights (Text Injection) ---
-    const insights = report.chart_insights || {};
-    const insightMap = {
-        'insight-stability': insights.stability,
-        'insight-volume': insights.volume,
-        'insight-latency': insights.latency,
-        'insight-emoji': insights.emoji,
-        'insight-initiator': insights.initiator,
-        'insight-power': insights.power,
-        'insight-affection': insights.affection
+    // --- 1. UI HELPERS ---
+    const setText = (id, text) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = text || '';
     };
 
-    Object.entries(insightMap).forEach(([id, text]) => {
+    const renderList = (id, items) => {
         const el = document.getElementById(id);
-        if (el && text) el.textContent = text;
-    });
+        if (!el) return;
+        if (!items || !items.length) { el.innerHTML = '<p style="color:var(--gray-400);font-size:.75rem">No data for this section.</p>'; return; }
+        el.innerHTML = items.map(i => '<div style="margin-bottom:.5rem;font-size:.85rem;display:flex;gap:.5rem"><span>✨</span><span>' + i + '</span></div>').join('');
+    };
 
-    // --- Emoji Lists ---
+    // --- 2. HERO & NARRATIVE ---
+    setText('report-headline', report.dynamic_headline || "Your Analysis");
+    setText('report-pulse', report.pulse_summary || "Analyzing your digital footprint...");
+    setText('report-persona', report.relationship_persona || "The Balanced Duo");
+    setText('report-persona-text', report.persona_summary || "Predicting your communication spirit based on the data...");
+    
+    if (report.top_shareable_snippet) {
+        setText('report-snippet', '"' + report.top_shareable_snippet + '"');
+    }
+
+    const compScore = parseInt(report.compatibility_score) || 85;
+    if (window.animateValue) animateValue('report-compatibility', 0, compScore, 1500);
+    else setText('report-compatibility', compScore);
+
+    // AI Detail Cards
+    renderList('report-milestones', report.milestones);
+    renderList('report-nudges', report.repair_tips);
+    setText('report-predictive-path', report.predictive_path);
+
+    // --- 3. STAT CARDS ---
+    const totalMsgs = weeklyData.reduce((sum, w) => sum + (w.me_count || 0) + (w.partner_count || 0), 0);
+    setText('stat-total-msgs', totalMsgs.toLocaleString());
+
+    const meTotal = weeklyData.reduce((sum, w) => sum + (w.me_count || 0), 0);
+    const mePct = totalMsgs > 0 ? Math.round((meTotal / totalMsgs) * 100) : 50;
+    setText('stat-me-pct', mePct + '%');
+
+    const latencies = weeklyData.map(w => w.avg_latency_seconds).filter(l => l > 0);
+    const avgLat = latencies.length > 0 ? latencies.reduce((a, b) => a + b, 0) / latencies.length : 0;
+    if (avgLat > 0) {
+        if (avgLat > 3600) setText('stat-avg-latency', Math.round(avgLat / 3600) + 'h');
+        else if (avgLat > 60) setText('stat-avg-latency', Math.round(avgLat / 60) + 'm');
+        else setText('stat-avg-latency', Math.round(avgLat) + 's');
+    }
+
+    // --- 4. DEEP DIVE INSIGHTS ---
+    const insights = report.chart_insights || {};
+    setText('insight-stability', insights.stability);
+    setText('insight-volume', insights.volume);
+    setText('insight-latency', insights.latency);
+    setText('insight-emoji', insights.emoji);
+    setText('insight-initiator', insights.initiator);
+    setText('insight-power', insights.power);
+    setText('insight-affection', insights.affection);
+
+    // Emoji Lists
+    const emojiFreq = stats.emoji_frequency || { ME: [], PARTNER: [] };
     const renderEmoji = (id, items) => {
         const el = document.getElementById(id);
         if (!el) return;
-        if (!items || !items.length) { el.innerHTML = '<p style="color:var(--gray-400);font-size:.8rem">No emojis found</p>'; return; }
-        el.innerHTML = items.slice(0, 5).map(i => `
-            <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.25rem">
-                <span style="font-size:1.2rem">${i.emoji}</span>
-                <div style="flex:1;height:8px;background:var(--cream);border-radius:4px;overflow:hidden;border:1px solid rgba(0,0,0,0.1)">
-                    <div style="height:100%;background:var(--pink);width:${(i.count / items[0].count) * 100}%"></div>
-                </div>
-                <span style="font-size:.7rem;font-weight:700">${i.count}</span>
-            </div>
-        `).join('');
+        if (!items || !items.length) { el.innerHTML = '<p style="color:var(--gray-400);font-size:.75rem">No emojis detected</p>'; return; }
+        el.innerHTML = items.slice(0, 5).map(i => 
+            '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem">' +
+                '<span style="font-size:1.2rem">' + i.emoji + '</span>' +
+                '<div style="flex:1;height:8px;background:var(--cream);border-radius:4px;overflow:hidden;border:1px solid rgba(0,0,0,0.05)">' +
+                    '<div style="height:100%;background:var(--pink);width:' + (i.count / items[0].count * 100) + '%"></div>' +
+                '</div>' +
+                '<span style="font-size:.7rem;font-weight:700">' + i.count + '</span>' +
+            '</div>'
+        ).join('');
     };
-    renderEmoji('emojiListMe', emojiFreq['ME']);
-    renderEmoji('emojiListPartner', emojiFreq['PARTNER']);
+    renderEmoji('emojiListMe', emojiFreq.ME);
+    renderEmoji('emojiListPartner', emojiFreq.PARTNER);
 
-    // --- Interaction & Copy ---
-    const formatSummary = (rep) => {
-        const title = "📊 THE ALGORITHM: RELATIONSHIP WRAPPED\n";
-        const body = "✨ Headline: " + (rep.dynamic_headline || 'Complete') + 
-                    "\n🧬 Persona: " + (rep.relationship_persona || 'The Duo') + 
-                    "\n📈 Compatibility: " + (rep.compatibility_score || 85) + "/100" + 
-                    "\n\n💡 Pulse: " + (rep.pulse_summary || '');
-        return title + body + "\n\n🔗 the-algorithm.pages.dev";
-    };
+    // Initiator Bars
+    const inits = stats.initiator_ratio || { me_initiations: 0, partner_initiations: 0 };
+    const totalInits = (inits.me_initiations || 0) + (inits.partner_initiations || 0);
+    const meInitPct = totalInits > 0 ? Math.round((inits.me_initiations / totalInits) * 100) : 50;
+    setText('meInitCount', inits.me_initiations || 0);
+    setText('partnerInitCount', inits.partner_initiations || 0);
+    document.getElementById('meInitiatorBar').style.width = meInitPct + '%';
+    document.getElementById('partnerInitiatorBar').style.width = (100 - meInitPct) + '%';
 
-    document.getElementById('copySummaryBtn')?.addEventListener('click', () => {
-        navigator.clipboard.writeText(formatSummary(report)).then(() => showToast('Summary copied!', 'success'));
-    });
+    // Power & Affection
+    const power = stats.power_dynamics || { power_ratio: 1.0 };
+    setText('powerRatioValue', parseFloat(power.power_ratio).toFixed(1) + '×');
 
-    if (report.top_shareable_snippet) {
-        const snippetEl = document.getElementById('report-snippet');
-        const container = document.getElementById('report-snippet-container');
-        if (snippetEl) snippetEl.textContent = '"' + report.top_shareable_snippet + '"';
-        if (container) container.classList.remove('hidden');
-        document.getElementById('copySnippetBtn')?.addEventListener('click', () => {
-            navigator.clipboard.writeText(report.top_shareable_snippet).then(() => showToast('Snippet copied!', 'success'));
-        });
+    const support = stats.support_gap || { ME: { support_received: 0, stress_count: 0 }, PARTNER: { support_received: 0, stress_count: 0 } };
+    const totalAff = support.ME.support_received + support.PARTNER.support_received;
+    const totalStress = support.ME.stress_count + support.PARTNER.stress_count;
+    setText('affCount', totalAff);
+    setText('disCount', totalStress);
+    const affTotal = (totalAff + totalStress) || 1;
+    document.getElementById('affBar').style.width = (totalAff / affTotal * 100) + '%';
+    document.getElementById('disBar').style.width = (totalStress / affTotal * 100) + '%';
+
+    // --- 5. INITIALIZE VISUALS ---
+    setTimeout(() => {
+        document.querySelectorAll('.skeleton').forEach(el => el.classList.remove('skeleton'));
+    }, 800);
+
+    // RESTORE CHARTS
+    if (window.Chart && weeklyData.length > 1) {
+        initVolumeChart(weeklyData);
     }
-
-    // --- Late Init ---
-    setTimeout(initHighlights, 1500);
 });
 
-async function initHighlights() {
-    console.log("Highlights logic ready.");
+function initVolumeChart(weeks) {
+    const ctx = document.createElement('canvas');
+    ctx.style.maxHeight = '200px';
+    const container = document.getElementById('deep-dive-details');
+    if (!container) return;
+    
+    // Inject at the top of the details
+    const div = document.createElement('div');
+    div.style.marginBottom = '2rem';
+    div.innerHTML = '<h3 style="margin-bottom:1rem">Chat Volume Intensity</h3>';
+    div.appendChild(ctx);
+    container.querySelector('div').prepend(div);
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: weeks.map(w => w.week_start),
+            datasets: [{
+                label: 'Messages',
+                data: weeks.map(w => w.volume),
+                borderColor: '#E040FB',
+                backgroundColor: 'rgba(224, 64, 251, 0.1)',
+                tension: 0.4,
+                fill: true,
+                borderWidth: 3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, grid: { display: false } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+}
+
+/**
+ * html2canvas Card Generation
+ */
+async function downloadWrappedCard() {
+    const btn = document.getElementById('downloadVibeBtn');
+    if (!btn || btn.disabled) return;
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = "Processing...";
+
+    try {
+        const card = document.getElementById('shareable-card');
+        const report = window.llmReport || {};
+        
+        // Final map of shareable fields
+        const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val || '--'; };
+        setVal('share-headline', report.dynamic_headline);
+        setVal('share-persona', report.relationship_persona);
+        setVal('share-compatibility', report.compatibility_score);
+        setVal('share-total-msgs', document.getElementById('stat-total-msgs').textContent);
+        setVal('share-me-pct', document.getElementById('stat-me-pct').textContent);
+        setVal('share-latency', document.getElementById('stat-avg-latency').textContent);
+        setVal('share-mirroring', document.getElementById('mirroring-value').textContent);
+        setVal('share-snippet', report.top_shareable_snippet);
+
+        const canvas = await html2canvas(card, {
+            scale: 2,
+            backgroundColor: "#FFF8F0",
+            logging: false,
+            useCORS: true
+        });
+
+        const link = document.createElement('a');
+        link.download = 'VibeCard_TheAlgorithm.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        
+        if (window.showToast) showToast('Vibe Card Downloaded!', 'success');
+    } catch (err) {
+        console.error("Download failed:", err);
+        if (window.showToast) showToast('Download error. Try again.', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
+    }
 }
