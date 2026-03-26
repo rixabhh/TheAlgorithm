@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en" style="scroll-behavior:smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Report | The Algorithm</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="static/css/style.css">
+    <!-- Pass data to JS (Edge Migration V1.0) -->
+    <script>
+        const _data = JSON.parse(sessionStorage.getItem('dashboard_data') || '{}');
+        const __raw = _data.stats || {};
+        window.algorithmData = __raw.weekly || __raw;
+        window.emojiFreq = __raw.emoji_freq || {};
+        window.initiatorRatio = __raw.initiator_ratio || {};
+        window.powerDynamics = __raw.power_dynamics || {};
+        window.affectionFriction = __raw.affection_friction || {};
+        window.supportGap = __raw.support_gap || {};
+        window.mirroring = __raw.mirroring || {};
+        window.topicMix = __raw.topic_mix || {};
+        window.llmReport = _data.report || "No report found. Try analyzing again.";
+    </script>
+
+</head>
+
+<body class="comic-dots dashboard-body">
+
+<!-- Scroll Progress Bar -->
+<div id="scroll-progress" class="scroll-progress"></div>
+
+<!-- ═══ NAV ═══ -->
+<header class="nav">
+    <div class="container">
+        <a href="/" class="nav-logo" style="color:var(--white)">
+            <span style="font-size:1.2rem;margin-right:0.25rem">←</span>
+            The Algorithm
+        </a>
+        <span style="font-family:var(--font-heading);font-weight:700;color:var(--yellow);font-size:0.9rem;text-transform:uppercase;letter-spacing:0.05em">Your Report</span>
+    </div>
+</header>
+
+<!-- ═══ REPORT HERO ═══ -->
+<section style="background:var(--purple);padding:4rem 0 5rem;position:relative;overflow:hidden">
+    <!-- Decorative blob -->
+    <svg class="animate-float" style="position:absolute;top:-20%;right:-5%;width:300px;opacity:0.15;pointer-events:none" viewBox="0 0 200 200"><path fill="var(--orange)" d="M54.5,-63.9C68.9,-49.2,77.5,-28.5,80.1,-6.6C82.8,15.3,79.5,38.5,66.8,55.9C54.1,73.3,31.9,84.9,8.5,88.4C-15,91.9,-39.6,87.3,-56.9,73.6C-74.2,59.8,-84.1,36.9,-85.4,14.6C-86.7,-7.8,-79.4,-29.7,-64.7,-45.3C-49.9,-61,-25,-70.5,-1,-69.3C23,-68.2,40.1,-78.6,54.5,-63.9Z" transform="translate(100 100)"/></svg>
+    <!-- Lightning -->
+    <span class="lightning" style="position:absolute;top:15%;left:8%;font-size:2rem;opacity:0.3">⚡</span>
+    <span class="lightning" style="position:absolute;bottom:20%;right:10%;font-size:1.5rem;opacity:0.25;animation-delay:1.5s">⚡</span>
+
+    <div class="container text-center relative" style="z-index:1">
+        <h1 id="report-headline" style="color:var(--white);text-shadow:4px 4px 0 var(--black);margin-bottom:1.5rem">
+            Reading Your Energy...
+        </h1>
+        <p id="report-pulse" style="color:rgba(255,255,255,0.85);font-size:1.1rem;font-weight:500;max-width:600px;margin:0 auto 2rem"></p>
+
+        <!-- Score Badge -->
+        <div class="card" style="display:inline-block;padding:1.5rem 2.5rem;border-width:4px;box-shadow:var(--shadow-lg);transform:rotate(-1deg)">
+            <span class="pill-label pill-label--yellow mb-2 inline-block" style="font-size:.65rem">overall score</span>
+            <div style="display:flex;align-items:baseline;justify-content:center;gap:.25rem">
+                <span id="report-compatibility" style="font-family:var(--font-heading);font-weight:900;font-size:3.5rem;color:var(--purple);line-height:1" aria-live="polite">--</span>
+                <span style="font-size:1.25rem;color:var(--gray-400);font-weight:600">/100</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Wave bottom -->
+    <svg style="position:absolute;bottom:0;left:0;width:100%;transform:translateY(98%) scaleY(-1)" preserveAspectRatio="none" viewBox="0 0 1440 64"><path fill="var(--purple)" d="M0,32L120,37.3C240,43,480,53,720,48C960,43,1200,37,1320,34.7L1440,32L1440,64L0,64Z"/></svg>
+</section>
+
+<!-- ═══ STAT CARDS ═══ -->
+<section data-phase="1" class="section-py" style="padding-top:6rem;padding-bottom:3rem">
+    <div class="container">
+        <div class="text-center mb-8">
+            <span class="pill-label pill-label--purple mb-3 inline-block">quick stats</span>
+            <h2>The Numbers</h2>
+        </div>
+
+        <div class="grid gap-6" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
+            <!-- Stat 1: Messages -->
+            <div class="stat-card rotate-left">
+                <span class="pill-label pill-label--pink" style="font-size:.6rem">total messages</span>
+                <div class="stat-card__value" id="stat-total-msgs">--</div>
+                <div class="stat-card__label">messages analyzed</div>
+                <div class="stat-card__insight" id="stat-insight-msgs" style="font-size:.7rem;color:var(--gray-500);font-weight:600;margin-top:.35rem;min-height:1.1em"></div>
+            </div>
+            <!-- Stat 2: Your Share -->
+            <div class="stat-card rotate-right">
+                <span class="pill-label pill-label--blue" style="font-size:.6rem">your share</span>
+                <div class="stat-card__value" id="stat-me-pct">--</div>
+                <div class="stat-card__label">of conversation</div>
+                <div class="stat-card__insight" id="stat-insight-share" style="font-size:.7rem;color:var(--gray-500);font-weight:600;margin-top:.35rem;min-height:1.1em"></div>
+            </div>
+            <!-- Stat 3: Avg Response -->
+            <div class="stat-card rotate-left">
+                <span class="pill-label pill-label--green" style="font-size:.6rem">avg response</span>
+                <div class="stat-card__value" id="stat-avg-latency">--</div>
+                <div class="stat-card__label">median reply time</div>
+                <div class="stat-card__insight" id="stat-insight-latency" style="font-size:.7rem;color:var(--gray-500);font-weight:600;margin-top:.35rem;min-height:1.1em"></div>
+            </div>
+            <!-- Stat 4: Vibe Match -->
+            <div class="stat-card rotate-right">
+                <span class="pill-label pill-label--orange" style="font-size:.6rem">vibe match</span>
+                <div class="stat-card__value" id="mirroring-value">--</div>
+                <div class="stat-card__label">linguistic mirroring</div>
+                <div class="stat-card__insight" id="stat-insight-mirror" style="font-size:.7rem;color:var(--gray-500);font-weight:600;margin-top:.35rem;min-height:1.1em"></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══ AI INSIGHT CARDS ═══ -->
+<section class="section-py" style="padding-top:2rem">
+    <div class="container">
+        <div class="text-center mb-8">
+            <span class="pill-label pill-label--yellow mb-3 inline-block">ai insights</span>
+            <h2>The Deep Dive</h2>
+        </div>
+
+        <div class="grid gap-6" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr))">
+            <!-- Persona -->
+            <div class="insight-card skeleton" data-phase="2">
+                <span class="pill-label pill-label--pink mb-3 inline-block" style="font-size:.65rem">your persona</span>
+                <h3 id="report-persona">Determining...</h3>
+                <p id="report-persona-text"></p>
+            </div>
+
+            <!-- Snippet / Quote -->
+            <div class="insight-card skeleton" data-phase="2">
+                <span class="pill-label pill-label--purple mb-3 inline-block" style="font-size:.65rem">key quote</span>
+                <blockquote id="report-snippet" style="font-family:var(--font-heading);font-style:italic;font-size:1.1rem;color:var(--purple);border-left:4px solid var(--pink);padding-left:1rem;margin:0"></blockquote>
+                <div style="margin-top:1rem">
+                    <button id="copySnippetBtn" type="button" class="btn btn--white" style="font-size:.65rem;padding:.3rem .75rem">Copy</button>
+                </div>
+            </div>
+
+            <!-- Road Ahead -->
+            <div class="insight-card skeleton" data-phase="2">
+                <span class="pill-label pill-label--green mb-3 inline-block" style="font-size:.65rem">the road ahead</span>
+                <h3>🔮 Predictive Path</h3>
+                <div id="report-milestones" style="margin-top:.75rem"></div>
+            </div>
+
+            <!-- Seeds for Growth -->
+            <div class="insight-card skeleton" data-phase="2">
+                <span class="pill-label pill-label--orange mb-3 inline-block" style="font-size:.65rem">growth seeds</span>
+                <h3>🌱 Areas to Nurture</h3>
+                <div id="report-nudges" style="margin-top:.75rem"></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══ DEEP DIVE ANALYTICS ═══ -->
+<section class="section-py" style="padding-top:1rem">
+    <div class="container">
+        <details id="deep-dive-details" style="border:var(--border-thick);border-radius:var(--r-lg);box-shadow:var(--shadow-lg);background:var(--white);overflow:hidden">
+            <summary style="display:flex;align-items:center;justify-content:space-between;padding:1.5rem 2rem;cursor:pointer;font-family:var(--font-heading);font-weight:900;font-size:1.25rem;color:var(--black);list-style:none">
+                <span>📊 Deep Dive Analytics (Raw Data)</span>
+                <span style="font-size:1.5rem;transition:transform 0.3s" class="details-chevron">▼</span>
+            </summary>
+
+            <div style="padding:2rem;border-top:var(--border-thick)">
+                <!-- Row 1: Insights -->
+                <div class="grid gap-6 mb-8" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr))">
+                    <!-- Emotional Vibe -->
+                    <div class="card" style="border-left:5px solid var(--red)">
+                        <span class="pill-label pill-label--red mb-3 inline-block" style="font-size:.6rem">❤️‍🔥 emotional vibe</span>
+                        <p id="insight-stability" style="font-size:.9rem;color:var(--gray-600)">...</p>
+                    </div>
+                    <!-- Texting Rhythm -->
+                    <div class="card" style="border-left:5px solid var(--blue)">
+                        <span class="pill-label pill-label--blue mb-3 inline-block" style="font-size:.6rem">🌈 texting rhythm</span>
+                        <p id="insight-volume" style="font-size:.9rem;color:var(--gray-600)">...</p>
+                    </div>
+                    <!-- Response Time -->
+                    <div class="card" style="border-left:5px solid var(--green)">
+                        <span class="pill-label pill-label--green mb-3 inline-block" style="font-size:.6rem">⏱️ response time</span>
+                        <p id="insight-latency" style="font-size:.9rem;color:var(--gray-600)">...</p>
+                    </div>
+                </div>
+
+                <!-- Row 2: Emoji & Initiator -->
+                <div class="grid gap-6 mb-8" style="grid-template-columns:1fr 1fr">
+                    <!-- Top Emojis -->
+                    <div class="card">
+                        <h3 style="margin-bottom:.5rem">😀 Top Emojis</h3>
+                        <p id="insight-emoji" style="font-size:.8rem;color:var(--gray-400);font-style:italic;margin-bottom:1rem">...</p>
+                        <div class="grid grid-2 gap-4">
+                            <div>
+                                <p style="font-size:.75rem;font-weight:700;color:var(--pink);text-transform:uppercase;margin-bottom:.5rem">You</p>
+                                <div id="emojiListMe" style="font-size:.9rem"></div>
+                            </div>
+                            <div>
+                                <p style="font-size:.75rem;font-weight:700;color:var(--purple);text-transform:uppercase;margin-bottom:.5rem">Partner</p>
+                                <div id="emojiListPartner" style="font-size:.9rem"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Who Texts First? -->
+                    <div class="card">
+                        <h3 style="margin-bottom:.5rem">💬 Who Texts First?</h3>
+                        <p id="insight-initiator" style="font-size:.8rem;color:var(--gray-400);font-style:italic;margin-bottom:1rem">...</p>
+                        <div style="display:flex;flex-direction:column;gap:1.25rem">
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <span style="font-weight:700;color:var(--pink);font-size:.85rem">You</span>
+                                    <span id="meInitCount" style="font-weight:900;font-size:1.25rem" aria-live="polite">0</span>
+                                </div>
+                                <div class="progress-container" style="height:.75rem">
+                                    <div id="meInitiatorBar" class="progress-bar" style="width:0%;background:var(--pink)"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <span style="font-weight:700;color:var(--purple);font-size:.85rem">Partner</span>
+                                    <span id="partnerInitCount" style="font-weight:900;font-size:1.25rem" aria-live="polite">0</span>
+                                </div>
+                                <div class="progress-container" style="height:.75rem">
+                                    <div id="partnerInitiatorBar" class="progress-bar" style="width:0%;background:var(--purple)"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row 3: Power Dynamics & Affection -->
+                <div class="grid gap-6" style="grid-template-columns:1fr 1fr">
+                    <!-- Chat Balance -->
+                    <div class="card">
+                        <h3 style="margin-bottom:.5rem;color:var(--pink)">Chat Balance</h3>
+                        <p id="insight-power" style="font-size:.8rem;color:var(--gray-400);font-style:italic;margin-bottom:1rem">...</p>
+                        <div class="text-center" style="padding:1.5rem;background:var(--cream);border:var(--border);border-radius:var(--r-sm)">
+                            <div id="powerRatioValue" style="font-family:var(--font-heading);font-weight:900;font-size:2.5rem;color:var(--purple)" aria-live="polite">1.0×</div>
+                            <div id="powerRatioText" style="font-size:.85rem;color:var(--gray-500);margin-top:.25rem">Perfectly balanced communication.</div>
+                        </div>
+                    </div>
+
+                    <!-- Warmth vs Coldness -->
+                    <div class="card">
+                        <h3 style="margin-bottom:.5rem;color:var(--orange)">Warmth vs. Coldness</h3>
+                        <p id="insight-affection" style="font-size:.8rem;color:var(--gray-400);font-style:italic;margin-bottom:1rem">...</p>
+                        <div style="display:flex;flex-direction:column;gap:1rem">
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <span style="font-weight:700;color:var(--green);font-size:.85rem">Warm Words</span>
+                                    <span id="affCount" style="font-weight:900;font-size:1.1rem" aria-live="polite">0</span>
+                                </div>
+                                <div class="progress-container" style="height:.75rem">
+                                    <div id="affBar" class="progress-bar" style="width:0%;background:var(--green)"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <span style="font-weight:700;color:var(--red);font-size:.85rem">Cold Words</span>
+                                    <span id="disCount" style="font-weight:900;font-size:1.1rem" aria-live="polite">0</span>
+                                </div>
+                                <div class="progress-container" style="height:.75rem">
+                                    <div id="disBar" class="progress-bar" style="width:0%;background:var(--red)"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </details>
+    </div>
+</section>
+
+<!-- ═══ SHAREABLE CAPTURE CARD (Hidden) ═══ -->
+<div id="shareable-capture-container" style="position:absolute;left:-9999px;top:-9999px" aria-hidden="true">
+    <div id="shareable-card" style="width:1080px;min-height:1920px;font-family:'DM Sans',sans-serif;background:#FFF8F0;color:#1a1a1a;padding:3.5rem;border:8px solid #1a1a1a">
+        <!-- Header -->
+        <div style="border-bottom:4px solid #1a1a1a;padding-bottom:1.5rem;margin-bottom:2rem;display:flex;align-items:center;gap:1rem">
+            <img src="{{ url_for('static', filename='favicon.png', _external=True) }}" alt="Logo" style="width:50px;height:50px;border-radius:50%;border:3px solid #1a1a1a">
+            <div>
+                <h1 style="font-size:2rem;font-weight:900;color:#1a1a1a;letter-spacing:-0.03em">The Algorithm</h1>
+                <p style="font-size:1rem;font-weight:600;color:#777">Relationship Wrapped</p>
+            </div>
+        </div>
+
+        <!-- Headline -->
+        <h2 id="share-headline" style="font-size:3rem;font-weight:900;color:#1a1a1a;margin-bottom:2rem;letter-spacing:-0.03em">Your Vibe</h2>
+
+        <!-- Persona -->
+        <div style="background:#E040FB;border:4px solid #1a1a1a;border-radius:16px;padding:2rem;margin-bottom:1.5rem;box-shadow:6px 6px 0 0 #1a1a1a">
+            <span style="font-size:.85rem;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;color:rgba(255,255,255,0.7);display:block;margin-bottom:.5rem">The Persona</span>
+            <div id="share-persona" style="font-size:2.5rem;font-weight:900;color:#fff"></div>
+        </div>
+
+        <!-- Stats Grid: 4 cells -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem">
+            <div style="background:#FFD600;border:3px solid #1a1a1a;border-radius:12px;padding:1.5rem;box-shadow:4px 4px 0 0 #1a1a1a">
+                <span style="font-size:.75rem;text-transform:uppercase;letter-spacing:0.08em;font-weight:700;color:rgba(0,0,0,0.5);display:block;margin-bottom:.3rem">Total Messages</span>
+                <div id="share-total-msgs" style="font-size:2rem;font-weight:900">--</div>
+            </div>
+            <div style="background:#FF4081;border:3px solid #1a1a1a;border-radius:12px;padding:1.5rem;box-shadow:4px 4px 0 0 #1a1a1a">
+                <span style="font-size:.75rem;text-transform:uppercase;letter-spacing:0.08em;font-weight:700;color:rgba(255,255,255,0.6);display:block;margin-bottom:.3rem">Your Share</span>
+                <div id="share-me-pct" style="font-size:2rem;font-weight:900;color:#fff">--</div>
+            </div>
+            <div style="background:#7C4DFF;border:3px solid #1a1a1a;border-radius:12px;padding:1.5rem;box-shadow:4px 4px 0 0 #1a1a1a">
+                <span style="font-size:.75rem;text-transform:uppercase;letter-spacing:0.08em;font-weight:700;color:rgba(255,255,255,0.6);display:block;margin-bottom:.3rem">Avg Response</span>
+                <div id="share-latency" style="font-size:2rem;font-weight:900;color:#fff">--</div>
+            </div>
+            <div style="background:#00E676;border:3px solid #1a1a1a;border-radius:12px;padding:1.5rem;box-shadow:4px 4px 0 0 #1a1a1a">
+                <span style="font-size:.75rem;text-transform:uppercase;letter-spacing:0.08em;font-weight:700;color:rgba(0,0,0,0.5);display:block;margin-bottom:.3rem">Mirroring</span>
+                <div id="share-mirroring" style="font-size:2rem;font-weight:900">--</div>
+            </div>
+        </div>
+
+        <!-- Topic + Support row -->
+        <div style="display:flex;gap:1rem;margin-bottom:1.5rem">
+            <div style="flex:1;background:#fff;border:3px solid #1a1a1a;border-radius:12px;padding:1.5rem;box-shadow:4px 4px 0 0 #1a1a1a">
+                <span style="font-size:.8rem;text-transform:uppercase;letter-spacing:0.08em;font-weight:700;color:#777;display:block;margin-bottom:.3rem">Main Topic</span>
+                <div id="share-topic" style="font-size:1.8rem;font-weight:900"></div>
+            </div>
+            <div style="flex:1;background:#fff;border:3px solid #1a1a1a;border-radius:12px;padding:1.5rem;box-shadow:4px 4px 0 0 #1a1a1a">
+                <span style="font-size:.8rem;text-transform:uppercase;letter-spacing:0.08em;font-weight:700;color:#777;display:block;margin-bottom:.3rem">Support Score</span>
+                <div id="share-support" style="font-size:1.8rem;font-weight:900"></div>
+            </div>
+        </div>
+
+        <!-- Snippet -->
+        <div id="share-snippet" style="font-size:1.6rem;font-style:italic;border-left:6px solid #E040FB;padding-left:1.5rem;margin-bottom:1.5rem;line-height:1.5;color:#333"></div>
+
+        <!-- Compatibility Score -->
+        <div style="background:#FF6D00;border:4px solid #1a1a1a;border-radius:16px;padding:2rem;margin-bottom:1.5rem;box-shadow:6px 6px 0 0 #1a1a1a">
+            <h3 style="font-size:1rem;text-transform:uppercase;letter-spacing:0.08em;font-weight:700;margin-bottom:.5rem;color:rgba(255,255,255,0.7)">Compatibility Score</h3>
+            <div style="font-size:3rem;font-weight:900;display:flex;align-items:baseline;gap:.5rem;color:#fff">
+                <span id="share-compatibility">--</span><span style="font-size:1.1rem;opacity:0.6">/ 100</span>
+            </div>
+        </div>
+
+        <!-- Predictive + Time Machine -->
+        <div id="share-predictive" style="font-size:1.3rem;margin-bottom:1rem;line-height:1.5;color:#555"></div>
+        <div id="share-time-machine" style="font-size:1.3rem;margin-bottom:1.5rem;line-height:1.5;color:#555"></div>
+
+        <!-- Footer -->
+        <div style="text-align:center;border-top:3px solid #1a1a1a;padding-top:1.5rem;font-size:1rem;font-weight:700;color:#999">
+            Generated by The Algorithm
+        </div>
+    </div>
+</div>
+
+<!-- ═══ RESTART CTA ═══ -->
+<section style="background:var(--yellow);padding:3rem 0;border-top:var(--border-thick);border-bottom:var(--border-thick);position:relative">
+    <svg style="position:absolute;top:0;left:0;width:100%;transform:translateY(-98%)" preserveAspectRatio="none" viewBox="0 0 1440 64"><path fill="var(--yellow)" d="M0,32L120,37.3C240,43,480,53,720,48C960,43,1200,37,1320,34.7L1440,32L1440,64L0,64Z"/></svg>
+    <div class="container text-center">
+        <h2 style="margin-bottom:1rem">Want to try another chat?</h2>
+        <div class="flex justify-center gap-4 flex-wrap">
+            <a href="/" class="btn btn--dark btn--lg">Start Over</a>
+            <button id="downloadVibeBtn" onclick="downloadWrappedCard()" class="btn btn--primary btn--lg" aria-live="polite">
+                Download Vibe Card
+            </button>
+            <button id="copySummaryBtn" type="button" class="btn btn--purple btn--lg">
+                Copy Summary
+            </button>
+        </div>
+    </div>
+</section>
+
+<!-- ═══ ACCURACY FOOTER ═══ -->
+<footer style="background:var(--black);padding:2rem 0;text-align:center">
+    <div class="container">
+        <p style="font-size:.8rem;color:var(--gray-500);max-width:600px;margin:0 auto"><strong style="color:var(--yellow)">Accuracy Warning:</strong> AI provides insights based exclusively on parsed text data; it cannot account for tone of voice, offline actions, or missing emotional context.</p>
+    </div>
+</footer>
+
+<!-- ═══ FLASHBACK MODAL ═══ -->
+<div id="flashback-modal" class="modal-backdrop" style="z-index:300">
+    <div class="modal-content" style="max-width:550px">
+        <button onclick="closeFlashback()" class="modal-close">&times;</button>
+        <h3 style="font-family:var(--font-heading);font-weight:900;color:var(--pink);font-size:1.5rem;margin-bottom:.25rem">Memory Flashback</h3>
+        <p style="font-size:.75rem;color:var(--gray-400);margin-bottom:1.5rem" id="flashback-date"></p>
+        <div id="flashback-content" style="max-height:60vh;overflow-y:auto;padding-right:.5rem"></div>
+        <button onclick="closeFlashback()" class="btn btn--dark btn--full" style="margin-top:1.5rem">Close</button>
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div id="toast-container" role="status" aria-live="polite" style="position:fixed;bottom:1.5rem;right:1.5rem;z-index:250;display:flex;flex-direction:column;align-items:flex-end;gap:.75rem;pointer-events:none"></div>
+
+<script src="static/js/dashboard_utils.js?v=5.0"></script>
+<script src="static/js/dashboard.js?v=5.0"></script>
+<script>
+    function closeFlashback() {
+        document.getElementById('flashback-modal').classList.remove('active');
+        document.getElementById('flashback-modal').classList.add('hidden');
+    }
+</script>
+</body>
+</html>
