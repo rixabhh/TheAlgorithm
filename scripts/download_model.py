@@ -8,12 +8,14 @@ import os
 MODEL_NAME = "pascalrai/hinglish-twitter-roberta-base-sentiment"
 MODEL_DIR = os.environ.get("MODEL_DIR", "/app/models/sentiment")
 
-print(f"Downloading {MODEL_NAME} to {MODEL_DIR}...")
+print(f"Downloading {MODEL_NAME} to {MODEL_DIR}...", flush=True)
 # 🛡️ Sentinel: Pin model revision for supply chain integrity
 REVISION = "main"
+print("Fetching tokenizer...", flush=True)
 tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, revision=REVISION)
+print("Fetching model...", flush=True)
 model = AutoModelForSequenceClassification.from_pretrained(MODEL_NAME, revision=REVISION)
 
 tokenizer.save_pretrained(MODEL_DIR)
 model.save_pretrained(MODEL_DIR)
-print("Model downloaded and saved successfully.")
+print("Model downloaded and saved successfully.", flush=True)
