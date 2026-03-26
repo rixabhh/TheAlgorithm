@@ -410,11 +410,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const result = await response.json();
                 
+                // Extract local highlights and flashbacks (Replacements for Python backend)
+                const highlights = filteredMessages
+                    .filter(m => m.text.length > 20)
+                    .sort((a, b) => b.text.length - a.text.length)
+                    .slice(0, 5)
+                    .map(m => ({
+                        title: "Key Highlight",
+                        text: m.text,
+                        sender: m.sender,
+                        timestamp: new Date(m.timestamp).toLocaleDateString()
+                    }));
+
+                const weeklyGroups = {};
+                filteredMessages.forEach(m => {
+                    const d = new Date(m.timestamp);
+                    const weekKey = d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + Math.ceil(d.getDate()/7);
+                    if (!weeklyGroups[weekKey]) weeklyGroups[weekKey] = [];
+                    weeklyGroups[weekKey].push(m);
+                });
+
+                const flashbacks = {};
+                Object.keys(weeklyGroups).forEach(wk => {
+                    flashbacks[wk] = weeklyGroups[wk].slice(0, 15).map(m => ({
+                        sender: m.sender,
+                        text: m.text
+                    }));
+                });
+
                 // Store result for dashboard
                 sessionStorage.setItem('dashboard_data', JSON.stringify({
                     stats: analyticsResult,
-                    report: result.report
+                    report: result.report,
+                    highlights: highlights,
+                    flashbacks: flashbacks,
+                    connection_type: connectionType
                 }));
+
 
                 if (progressBar) progressBar.style.width = '100%';
                 window.location.href = '/dashboard.html';

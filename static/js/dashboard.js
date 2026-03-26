@@ -214,8 +214,7 @@ document.addEventListener('DOMContentLoaded', () => {
         content.innerHTML = '<div style="text-align:center;padding:3rem 0;color:var(--gray-400)">Reliving memories...</div>';
 
         try {
-            const resp = await fetch(`/flashback?week=${week}`);
-            const messages = await resp.json();
+            const messages = window.flashbacks[week] || [];
 
             if (!messages || messages.length === 0) {
                 content.innerHTML = '<div style="text-align:center;padding:3rem 0;color:var(--gray-400)">No message data available for this week.</div>';
@@ -439,8 +438,10 @@ async function initHighlights() {
     if (!toastContainer) return;
 
     try {
-        const resp = await fetch('/highlights');
-        const data = await resp.json();
+        const data = { 
+            highlights: window.highlights || [], 
+            connection_type: window.connectionType || 'romantic' 
+        };
         const highlights = data.highlights;
         const connectionType = data.connection_type || 'romantic';
 
