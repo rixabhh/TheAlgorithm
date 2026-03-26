@@ -231,21 +231,28 @@ class AnalyticsEngine {
                 weeks[key] = {
                     week_start: key,
                     volume: 0,
+                    me_count: 0,
+                    partner_count: 0,
                     latencies: [],
                     sentiments: []
                 };
             }
             
             weeks[key].volume++;
-            if (m.latencyMins !== null) weeks[key].latencies.push(m.latencyMins);
+            if (m.sender === 'ME') weeks[key].me_count++;
+            else weeks[key].partner_count++;
+
+            if (m.latencyMins !== null) weeks[key].latencies.push(m.latencyMins * 60); // Store in seconds
             if (m.sender === 'PARTNER') weeks[key].sentiments.push(m.sentiment);
         }
 
         return Object.values(weeks).map(w => ({
             ...w,
-            median_latency: this._median(w.latencies) || 0,
+            avg_latency_seconds: this._mean(w.latencies) || 0,
+            median_latency: this._median(w.latencies) / 60 || 0, // minutes for internal use
             mean_sentiment: this._mean(w.sentiments) || 0
         }));
+
     }
 
     /**

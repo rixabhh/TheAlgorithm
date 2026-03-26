@@ -496,3 +496,31 @@ document.addEventListener('DOMContentLoaded', () => {
     // Delay initialization slightly to let the heavy dashboard charts render first
     setTimeout(initHighlights, 1500);
 });
+// --- Interactivity V5.4 ---
+document.addEventListener('DOMContentLoaded', () => {
+    // Copy Snippet
+    const copySnippetBtn = document.getElementById('copySnippetBtn');
+    if (copySnippetBtn) {
+        copySnippetBtn.addEventListener('click', async () => {
+            const snippet = document.getElementById('report-snippet')?.innerText;
+            if (snippet) {
+                try {
+                    await navigator.clipboard.writeText(snippet);
+                    showToast('Snippet copied!');
+                } catch (e) { showToast('Copy failed'); }
+            }
+        });
+    }
+
+    // Copy Summary
+    const copySummaryBtn = document.getElementById('copySummaryBtn');
+    if (copySummaryBtn) {
+        copySummaryBtn.addEventListener('click', async () => {
+            const summary = typeof window.llmReport === 'object' ? JSON.stringify(window.llmReport, null, 2) : window.llmReport;
+            try {
+                await navigator.clipboard.writeText(summary);
+                showToast('Summary copied!');
+            } catch (e) { showToast('Copy failed'); }
+        });
+    }
+});
