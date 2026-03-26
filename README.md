@@ -39,13 +39,15 @@ Unlike other platforms that store and read your data, The Algorithm operates on 
 - **Deep AI Analysis**: Generate an instant "Spotify Wrapped" style report detailing communication health, attachment styles, humor synchronization, and areas for growth.
 - **True Cross-Platform**: Natively supports chat exports from `WhatsApp (.txt)`, `Telegram (.html)`, `Instagram (.json)`, and `Discord (.json)`.
 - **Bring Your Own Key (BYOK)**: Supports Google Gemini, Anthropic Claude, and OpenAI GPT-4o. You provide the API key; we provide the engine.
-- **Glassmorphism UI**: A gorgeous, modern dark-mode interface built with Vanilla Tailwind CSS and subtle CSS micro-animations.
+- **Retro Groovy Pop-Art UI**: A gorgeous, vibrant interface featuring paper grain textures, bold typography, and personality-driven design.
+- **Shareable Vibe Card**: Export a beautifully designed snap of your relationship stats (Total Messages, Share %, Avg Response, and Mirroring).
+- **Customizable Analysis Tone**: Control the AI's personality by choosing between Playful, Balanced, or Direct analysis modes.
 
 ## 🛡️ Zero-Knowledge Architecture
 
 We don't want your data. Period.
 
-1. **Client-Side Anonymization**: Optional "Sensitive Mode" redacts Personally Identifiable Information (PII) like emails, phone numbers, and full names directly in the browser *before* it touches our server.
+1. **Client-Side Anonymization**: Personally Identifiable Information (PII) like emails, phone numbers, and full names are heavily redacted directly in the browser *before* the data touches our server.
 2. **Pure RAM Processing**: We refuse to use a database. Uploaded files are streamed into active memory, parsed, and never written permenantly to disk.
 3. **Aggressive Deletion**: A strict Python `finally` block guarantees that all temporary memory associated with your session is permanently destroyed instantly.
 4. **Stats-Only LLM Pipeline**: Your raw chat logs are *never* sent to OpenAI, Anthropic, or Google. Our Python backend processes the chats locally and sends only an anonymous, numerical statistical payload to the LLM.
@@ -125,7 +127,7 @@ TheAlgorithm/
 │   ├── llm_service.py     # Handles external BYOK LLM API requests
 │   └── parsers.py          # Platform-specific chat parsers (WA, TG, IG, Discord)
 ├── static/
-│   ├── css/style.css       # Tailwind & Glassmorphism design system
+│   ├── css/style.css       # Retro Pop-Art Vanilla CSS design system
 │   ├── js/                 # Client-side UI logic and PII scrubbing
 │   └── fonts/              # Self-hosted fonts for privacy
 ├── templates/
