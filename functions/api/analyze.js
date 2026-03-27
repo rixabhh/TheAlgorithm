@@ -1,62 +1,68 @@
 export async function onRequestPost(context) {
     const { request, env } = context;
+    const ip = request.headers.get('cf-connecting-ip') || 'unknown';
 
     try {
         const data = await request.json();
-        const { stats, my_name, partner_name, connection_type, tone = 'balanced', context: userContext = '' } = data;
+        const { stats, my_name, partner_name, compare_data, provider = 'cloudflare', api_key = '' } = data;
+        const tone = data.tone || 'balanced';
 
-        const powerRatio = stats.power_dynamics?.power_ratio || 1.0;
-        const meRatio = stats.initiator_ratio?.me_ratio || 0.5;
-        const mirror = stats.mirroring || 0;
-        const suppScore = stats.support_score || 0;
-        const topTopic = stats.topic_mix?.top_topic || "Life Talk";
-        const attachment = stats.attachment_style || "Securely Connected";
-        const topWords = stats.top_words || [];
-        const totalMsgs = stats.weekly_data?.reduce((sum, w) => sum + (w.me_count || 0) + (w.partner_count || 0), 0) || 0;
+        // 1. RATE LIMITING (KV-based, Cloudflare only)
+        if (provider === 'cloudflare' && env.KV_RATELIMIT) {
+            const limitKey = `ratelimit_${ip}`;
+            const current = await env.KV_RATELIMIT.get(limitKey);
+            const count = current ? parseInt(current) : 0;
+            if (count >= 2) return new Response(JSON.stringify({ error: "Free tier limit reached (2/hr). Wait or use BYOK." }), { status: 429 });
+            await env.KV_RATELIMIT.put(limitKey, (count + 1).toString(), { expirationTtl: 3600 });
+        }
 
-        const simulatedReport = {
-            dynamic_headline: totalMsgs > 2000 ? "The Heavyweights: A Digital Dynasty" : "Your Vibe: Analysis Complete",
-            pulse_summary: "Your interactions show a " + (powerRatio > 1.2 ? 'high-energy' : 'stable') + " pulse with a " + (meRatio > 0.6 ? 'proactive' : 'balanced') + " communication style.",
-            relationship_persona: powerRatio > 1.5 ? "The Driver & The Co-Pilot" : (powerRatio < 0.7 ? "The Listener & The Talker" : "The Balanced Duo"),
-            persona_summary: "Your communication patterns show a " + (powerRatio > 1.1 ? "dynamic where one person leads the flow," : "harmony where both voices carry equal weight,") + " creating a unique digital fingerprint of your connection.",
-            attachment_style: attachment,
-            compatibility_score: Math.round(78 + (Math.random() * 18)),
-            mirroring_score: mirror,
-            support_score: suppScore,
-            main_topic: topTopic,
-            top_words: topWords,
-            repair_tips: [
-                "Aim for more balanced message lengths.",
-                "Maintain the healthy " + mirror + "% linguistic mirroring.",
-                "Your " + attachment + " style thrives on consistent check-ins."
-            ],
-            milestones: [
-                "Consistent daily check-ins detected.",
-                "Linguistic mirroring at " + mirror + "%.",
-                "Top words like '" + (topWords[0] || 'pyaar') + "' show deep connection."
-            ],
-            top_shareable_snippet: "Our digital connection is a " + (Math.round(85 + Math.random()*12)) + "/100 vibe.",
-            predictive_path: "Continued growth and stability.",
-            time_machine_insights: "Looking back, your communication has evolved into a " + attachment + " pattern.",
-            chart_insights: {
-                stability: "Rhythm is consistent across the period.",
-                volume: "Word counts show a " + (powerRatio > 1.2 ? "noticeable lean." : "very even split."),
-                latency: "Response times are within a healthy range.",
-                emoji: "Expressive usage is active and " + (stats.emoji_frequency?.ME?.length > 0 ? "diverse." : "focused."),
-                initiator: "Initiations are well-distributed.",
-                power: "Currently leaning towards " + (powerRatio > 1.1 ? "leadership." : "stability."),
-                affection: "Support Score is " + suppScore + "/100."
-            }
-        };
+        // 2. AI GENERATION
+        let report = null;
+        const systemPrompt = "You are 'The Algorithm', a brutally honest relationship analyst. Return ONLY a JSON object: { relationship_persona, compatibility_score, ai_insight: { dynamic_title, reality_check, recent_shift, red_flags: [], green_flags: [], brutal_verdict } }.";
+        
+        let userPrompt = `Analyze chat: ${my_name} & ${partner_name}. Tone: ${tone}. Stats: ${JSON.stringify(stats)}.`;
+        if (compare_data) {
+            userPrompt = `COMPARE two chats for ${my_name}. Chat A: ${compare_data.nameA} vs Chat B: ${compare_data.nameB}. Stats A: ${JSON.stringify(compare_data.a)}. Stats B: ${JSON.stringify(compare_data.b)}. Be direct.`;
+        }
 
-        return new Response(JSON.stringify({ report: simulatedReport }), {
-            headers: { 'Content-Type': 'application/json' },
-        });
+        if (provider === 'cloudflare' && env.AI) {
+            const aiResult = await env.AI.run('@cf/meta/llama-3-8b-instruct', {
+                messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }]
+            });
+            const match = aiResult.response.match(/\{[\s\S]*\}/);
+            if (match) report = JSON.parse(match[0]);
+        } else if (api_key && (provider === 'openai' || provider === 'groq')) {
+            const url = provider === 'openai' ? 'https://api.openai.com/v1/chat/completions' : 'https://api.groq.com/openai/v1/chat/completions';
+            const model = provider === 'openai' ? 'gpt-4o-mini' : 'llama-3.1-70b-versatile';
+            const resp = await fetch(url, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${api_key}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ model, messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }], response_format: { type: "json_object" } })
+            });
+            const resData = await resp.json();
+            if (resData.choices) report = JSON.parse(resData.choices[0].message.content);
+        }
+
+        // 3. FALLBACK
+        if (!report) {
+            report = {
+                relationship_persona: "Vibe Explorer",
+                compatibility_score: 80,
+                ai_insight: {
+                    dynamic_title: "Quick Read",
+                    reality_check: "Analysis complete for " + partner_name,
+                    recent_shift: "The energy is stable.",
+                    red_flags: ["Limited data for deep read"],
+                    green_flags: ["Active check-ins"],
+                    brutal_verdict: "It's a vibe."
+                }
+            };
+        }
+
+        return new Response(JSON.stringify({ report }), { headers: { 'Content-Type': 'application/json' } });
 
     } catch (e) {
-        return new Response(JSON.stringify({ error: e.message }), {
-            status: 500,
-            headers: { 'Content-Type': 'application/json' },
-        });
+        return new Response(JSON.stringify({ error: e.message }), { status: 500 });
     }
 }
+

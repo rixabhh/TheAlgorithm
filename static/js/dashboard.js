@@ -1,206 +1,267 @@
 /**
- * The Algorithm - Dashboard Controller (V9.0 Premium)
- * Fixes missing details in Vibe Card and Dashboard stats.
+ * The Algorithm - Dashboard Controller (V10.0 Premium Comparison)
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("Dashboard Initializing (V9.0 Premium)...");
+    const urlParams = new URLSearchParams(window.location.search);
+    const isCompareMode = urlParams.get('mode') === 'compare';
     
+    let dataA = null;
+    let dataB = null;
+    let activeData = null;
+    let activeSlot = 'a';
+
     // 1. DATA LOADING
-    const stored = sessionStorage.getItem('dashboard_data');
-    if (!stored) {
-        console.warn("No analysis data found in sessionStorage.");
-        return;
+    if (isCompareMode) {
+        dataA = JSON.parse(sessionStorage.getItem('compare_a'));
+        dataB = JSON.parse(sessionStorage.getItem('compare_b'));
+        if (!dataA || !dataB) { window.location.href = '/'; return; }
+        activeData = dataA;
+        window.activeData = activeData; // Added
+        document.getElementById('comparison-sticky-nav')?.classList.remove('hidden');
+        document.getElementById('comp-name-a').textContent = `${dataA.my_name} & ${dataA.partner_name}`;
+        document.getElementById('comp-name-b').textContent = `${dataB.my_name} & ${dataB.partner_name}`;
+        document.getElementById('insights-heading').textContent = "Comparative Analysis";
+        document.getElementById('insights-sub').textContent = "Side-by-side comparison of your chat dynamics.";
+    } else {
+        const stored = sessionStorage.getItem('dashboard_data');
+        if (!stored) { window.location.href = '/'; return; }
+        activeData = JSON.parse(stored);
+        window.activeData = activeData; // Added
     }
-    
-    let dashboardData;
-    try {
-        dashboardData = JSON.parse(stored);
-    } catch (e) {
-        console.error("Failed to parse dashboard data:", e);
-        return;
-    }
-    
-    // Global exposure
-    window.dashboardData = dashboardData;
-    const report = dashboardData.report || {};
-    window.llmReport = report;
-    const stats = dashboardData.stats || {};
-    const weeklyData = stats.weekly_data || [];
 
-    // --- 1. UI HELPERS ---
-    const setText = (id, text) => {
-        const el = document.getElementById(id);
-        if (el) el.textContent = text || '';
+    // --- NAVIGATION ---
+    const setupNavigation = () => {
+        const navLinks = document.querySelectorAll('.sidebar-nav a');
+        const sections = document.querySelectorAll('main section');
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(s => { if (pageYOffset >= s.offsetTop - 150) current = s.getAttribute('id'); });
+            navLinks.forEach(l => {
+                l.classList.remove('active');
+                if (l.getAttribute('href').substring(1) === current) l.classList.add('active');
+            });
+        });
     };
+    setupNavigation();
 
-    const renderList = (id, items) => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        if (!items || !items.length) { el.innerHTML = '<p style="color:var(--gray-400);font-size:.75rem">No data for this section.</p>'; return; }
-        el.innerHTML = items.slice(0, 3).map(i => '<div style="margin-bottom:.5rem;font-size:.85rem;display:flex;gap:.5rem"><span>✨</span><span>' + i + '</span></div>').join('');
-    };
+    // --- RENDER FUNCTIONS ---
+    const refreshAll = () => {
+        const stats = activeData.stats || {};
+        const meName = activeData.my_name || "You";
+        const partnerName = activeData.partner_name || "Partner";
 
-    // --- 2. HERO & NARRATIVE ---
-    setText('report-headline', report.dynamic_headline || "Your Analysis");
-    setText('report-pulse', report.pulse_summary || "Analyzing your digital footprint...");
-    setText('report-persona', report.relationship_persona || "The Balanced Duo");
-    setText('report-persona-text', report.persona_summary || "Predicting your communication spirit based on the data...");
-    
-    if (report.top_shareable_snippet) {
-        setText('report-snippet', '"' + report.top_shareable_snippet + '"');
-    }
+        document.getElementById('profile-name').textContent = `${meName} & ${partnerName}`;
+        document.getElementById('traits-name-me').textContent = meName;
+        document.getElementById('traits-name-partner').textContent = partnerName;
+        document.getElementById('report-headline').textContent = isCompareMode ? `Comparing Chats` : `Analysis: ${partnerName}`;
 
-    const compScore = parseInt(report.compatibility_score) || 85;
-    if (window.animateValue) animateValue('report-compatibility', 0, compScore, 1500);
-    else setText('report-compatibility', compScore);
-
-    // AI Detail Cards
-    renderList('report-milestones', report.milestones);
-    renderList('report-nudges', report.repair_tips);
-    setText('report-milestones', (report.milestones || []).join(' ')); // Fallback if list rendering fails
-    renderList('report-milestones', report.milestones); // Re-render properly
-
-    // Road Ahead Special ID (if exists)
-    const roadAhead = document.getElementById('report-milestones')?.parentElement?.querySelector('h3');
-    if (roadAhead && report.predictive_path) {
-        const p = document.createElement('p');
-        p.style.fontSize = '0.85rem';
-        p.style.marginTop = '0.5rem';
-        p.textContent = report.predictive_path;
-        document.getElementById('report-milestones')?.parentElement?.appendChild(p);
-    }
-
-    // --- 3. STAT CARDS ---
-    const totalMsgs = weeklyData.reduce((sum, w) => sum + (w.me_count || 0) + (w.partner_count || 0), 0);
-    setText('stat-total-msgs', totalMsgs.toLocaleString());
-
-    const meTotal = weeklyData.reduce((sum, w) => sum + (w.me_count || 0), 0);
-    const mePct = totalMsgs > 0 ? Math.round((meTotal / totalMsgs) * 100) : 50;
-    setText('stat-me-pct', mePct + '%');
-
-    const latencies = weeklyData.map(w => w.avg_latency_seconds || 0).filter(l => l > 0);
-    const avgLat = latencies.length > 0 ? latencies.reduce((a, b) => a + b, 0) / latencies.length : 0;
-    let latencyDisplay = '0s';
-    if (avgLat > 0) {
-        if (avgLat > 3600) latencyDisplay = Math.round(avgLat / 3600) + 'h';
-        else if (avgLat > 60) latencyDisplay = Math.round(avgLat / 60) + 'm';
-        else latencyDisplay = Math.round(avgLat) + 's';
-    }
-    setText('stat-avg-latency', latencyDisplay);
-
-    const mirror = report.mirroring_score || stats.mirroring || 0;
-    setText('mirroring-value', mirror + '%');
-
-    // --- 4. DEEP DIVE INSIGHTS ---
-    const insights = report.chart_insights || {};
-    setText('insight-stability', insights.stability);
-    setText('insight-volume', insights.volume);
-    setText('insight-latency', insights.latency);
-    setText('insight-emoji', insights.emoji);
-    setText('insight-initiator', insights.initiator);
-    setText('insight-power', insights.power);
-    setText('insight-affection', insights.affection);
-
-    // Emoji Lists
-    const emojiFreq = stats.emoji_frequency || { ME: [], PARTNER: [] };
-    const renderEmoji = (id, items) => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        if (!items || !items.length) { el.innerHTML = '<p style="color:var(--gray-400);font-size:.7rem">No emojis detected</p>'; return; }
-        el.innerHTML = items.slice(0, 5).map(i => 
-            '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem">' +
-                '<span style="font-size:1.2rem">' + i.emoji + '</span>' +
-                '<div style="flex:1;height:8px;background:var(--cream);border-radius:4px;overflow:hidden">' +
-                    '<div style="height:100%;background:var(--pink);width:' + (i.count / items[0].count * 100) + '%"></div>' +
-                '</div>' +
-                '<span style="font-size:.7rem;font-weight:700">' + i.count + '</span>' +
-            '</div>'
-        ).join('');
-    };
-    renderEmoji('emojiListMe', emojiFreq.ME);
-    renderEmoji('emojiListPartner', emojiFreq.PARTNER);
-
-    // Initiator Bars
-    const inits = stats.initiator_ratio || { me_initiations: 0, partner_initiations: 0 };
-    const totalInits = (inits.me_initiations || 0) + (inits.partner_initiations || 0);
-    const meInitPct = totalInits > 0 ? Math.round((inits.me_initiations / totalInits) * 100) : 50;
-    setText('meInitCount', inits.me_initiations || 0);
-    setText('partnerInitCount', inits.partner_initiations || 0);
-    const meBar = document.getElementById('meInitiatorBar');
-    const pBar = document.getElementById('partnerInitiatorBar');
-    if (meBar) meBar.style.width = meInitPct + '%';
-    if (pBar) pBar.style.width = (100 - meInitPct) + '%';
-
-    // Power & Affection
-    const power = stats.power_dynamics || { power_ratio: 1.0 };
-    setText('powerRatioValue', parseFloat(power.power_ratio || 1.0).toFixed(1) + '×');
-
-    const support = stats.support_gap || { ME: { support_received: 0, stress_count: 0 }, PARTNER: { support_received: 0, stress_count: 0 } };
-    const totalAff = (support.ME.support_received || 0) + (support.PARTNER.support_received || 0);
-    const totalStress = (support.ME.stress_count || 0) + (support.PARTNER.stress_count || 0);
-    setText('affCount', totalAff);
-    setText('disCount', totalStress);
-    const affTotal = (totalAff + totalStress) || 1;
-    const affBar = document.getElementById('affBar');
-    const disBar = document.getElementById('disBar');
-    if (affBar) affBar.style.width = (totalAff / affTotal * 100) + '%';
-    if (disBar) disBar.style.width = (totalStress / affTotal * 100) + '%';
-
-    // --- 5. INITIALIZE VISUALS ---
-    setTimeout(() => {
-        document.querySelectorAll('.skeleton').forEach(el => el.classList.remove('skeleton'));
-        // Final visibility safety
-        const hero = document.querySelector('.hero-dashboard');
-        if (hero) {
-            hero.style.opacity = '1';
-            hero.style.visibility = 'visible';
+        renderSocialDynamics(stats);
+        renderEngagement(stats);
+        renderStreaks(stats);
+        renderWordCloud(stats);
+        renderEmoji(stats);
+        
+        if (window.Chart) {
+            initRatioChart(stats);
+            initActivityChart(stats.weekly_data || []);
         }
-    }, 500);
+    };
 
-    if (window.Chart && weeklyData.length > 1) {
-        initVolumeChart(weeklyData);
-    }
-});
+    const renderSocialDynamics = (stats) => {
+        const traits = stats.behavioral_traits || { ME: {}, PARTNER: {} };
+        const update = (suffix, data) => {
+            const scores = data.scores || {};
+            ['curiosity', 'politeness', 'warmth', 'intimacy'].forEach(t => {
+                const val = scores[t] || 0;
+                const el = document.getElementById(`trait-val-${t}-${suffix}`);
+                if (el) el.textContent = val;
+                const bar = document.getElementById(`trait-bar-${t}-${suffix}`);
+                if (bar) bar.style.width = val + '%';
+            });
+            const pills = document.getElementById(`traits-pills-${suffix}`);
+            if (pills) pills.innerHTML = (data.highlights || []).map(h => `<span class="pill-label pill-label--pink" style="font-size:0.6rem">${h.label}: ${h.count}</span>`).join('');
+            const summary = document.getElementById(`traits-summary-${suffix}`);
+            if (summary) summary.innerHTML = (data.summary || []).map(s => `<li>${s}</li>`).join('');
+        };
+        update('me', traits.ME);
+        update('partner', traits.PARTNER);
+    };
 
-function initVolumeChart(weeks) {
-    const canvas = document.createElement('canvas');
-    canvas.style.maxHeight = '220px';
-    canvas.style.marginTop = '1rem';
-    const container = document.getElementById('deep-dive-details');
-    if (!container) return;
-    const inner = container.querySelector('div');
-    if (inner) {
-        const h3 = document.createElement('h3');
-        h3.style.marginBottom = '0.5rem';
-        h3.textContent = "Chat Volume Trends";
-        inner.prepend(canvas);
-        inner.prepend(h3);
+    const formatTime = (seconds) => {
+        if (!seconds || seconds < 0) return "N/A";
+        if (seconds < 60) return `${Math.round(seconds)}s`;
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.round(seconds % 60);
+        return `${mins}m ${secs}s`;
+    };
+
+    const renderEngagement = (stats) => {
+        const el = document.getElementById('engagement-list');
+        if (!el) return;
+        const init = stats.initiator_ratio || { me_count: 0, partner_count: 0 };
+        el.innerHTML = `
+            <div class="flex justify-between"><span>Chat Starter</span><span class="pill-label pill-label--purple">${init.me_initiations > init.partner_initiations ? activeData.my_name : activeData.partner_name}</span></div>
+            <div class="flex justify-between"><span>Mirroring</span><span class="font-black">${stats.mirroring || 0}%</span></div>
+            <div class="flex justify-between"><span>Max Inactivity</span><span class="font-black">${stats.max_inactivity || "N/A"} days</span></div>
+            <div class="flex justify-between"><span>Avg Response (${activeData.my_name})</span><span class="font-black">${formatTime(init.me_latency_avg)}</span></div>
+            <div class="flex justify-between"><span>Avg Response (${activeData.partner_name})</span><span class="font-black">${formatTime(init.partner_latency_avg)}</span></div>
+        `;
+    };
+
+    const renderEmoji = (stats) => {
+        const container = document.getElementById('emoji-container');
+        if (!container) return;
+        const emojis = [...(stats.emoji_frequency?.ME || []), ...(stats.emoji_frequency?.PARTNER || [])].sort((a,b)=>b.count-a.count).slice(0, 8);
+        container.innerHTML = emojis.map(e => `<div class="flex align-center gap-3"><span>${e.emoji}</span><div class="flex-1 h-2 bg-cream rounded-full overflow-hidden"><div class="h-full bg-pink" style="width:${(e.count / emojis[0].count * 100)}%"></div></div></div>`).join('');
+    };
+
+    const renderStreaks = (stats) => {
+        const container = document.getElementById('streaks-container');
+        if (!container) return;
+        const s = stats.streaks || { longest: 0, current: 0 };
+        container.innerHTML = `
+            <div class="card p-4 bg-cream text-center"><p class="text-xs uppercase op-50">Longest Streak</p><p class="text-xl font-black">${s.longest} days</p></div>
+            <div class="card p-4 bg-cream text-center"><p class="text-xs uppercase op-50">Current Streak</p><p class="text-xl font-black">${s.current} days</p></div>
+        `;
+    };
+
+    const renderWordCloud = (stats) => {
+        const container = document.getElementById('wordcloud-container');
+        if (!container) return;
+        const words = stats.top_words || [];
+        if (!words.length) { container.innerHTML = '<p class="op-30">No data</p>'; return; }
+        const max = words[0].count;
+        container.innerHTML = `<div class="flex flex-wrap justify-center p-4 gap-4">${words.slice(0, 20).map(w => `<span style="font-size:${0.8 + (w.count/max)*1.5}rem; font-weight:900; opacity:${0.4 + (w.count/max)*0.6}">${w.word}</span>`).join('')}</div>`;
+    };
+
+    // --- CHART LOGIC ---
+    let ratioChart = null;
+    let activityChart = null;
+
+    const initRatioChart = (stats) => {
+        const ctx = document.getElementById('ratioChart')?.getContext('2d');
+        if (!ctx) return;
+        if (ratioChart) ratioChart.destroy();
+        ratioChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: [activeData.my_name, activeData.partner_name],
+                datasets: [{
+                    data: [stats.messages?.ME || 0, stats.messages?.PARTNER || 0],
+                    backgroundColor: ['#000', '#FF4081'],
+                    borderWidth: 0
+                }]
+            },
+            options: { cutout: '70%', plugins: { legend: { position: 'bottom' } } }
+        });
+    };
+
+    const initActivityChart = (weeks) => {
+        const ctx = document.getElementById('activityChart')?.getContext('2d');
+        if (!ctx) return;
+        if (activityChart) activityChart.destroy();
+        activityChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: weeks.map(w => w.week_start),
+                datasets: [
+                    { label: activeData.my_name, data: weeks.map(w => w.me_count), backgroundColor: '#000' },
+                    { label: activeData.partner_name, data: weeks.map(w => w.partner_count), backgroundColor: '#FF4081' }
+                ]
+            },
+            options: { scales: { x: { stacked: true }, y: { stacked: true } } }
+        });
+    };
+
+    window.switchTab = (type, mode) => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        event.target.classList.add('active');
+        if (type === 'ratio') {
+            const data = {
+                messages: [activeData.stats.messages?.ME || 0, activeData.stats.messages?.PARTNER || 0],
+                words: [activeData.stats.words?.ME || 0, activeData.stats.words?.PARTNER || 0],
+                chars: [activeData.stats.chars?.ME || 0, activeData.stats.chars?.PARTNER || 0]
+            };
+            if (ratioChart) {
+                ratioChart.data.datasets[0].data = data[mode];
+                ratioChart.update();
+            }
+        }
+    };
+
+    // --- COMPARISON SLOTS ---
+    if (isCompareMode) {
+        const slotA = document.getElementById('comp-slot-a');
+        const slotB = document.getElementById('comp-slot-b');
+        slotA.addEventListener('click', () => {
+            activeSlot = 'a'; activeData = dataA;
+            window.activeData = activeData; // Added
+            slotA.classList.add('active'); slotB.classList.remove('active');
+            refreshAll();
+        });
+        slotB.addEventListener('click', () => {
+            activeSlot = 'b'; activeData = dataB;
+            window.activeData = activeData; // Added
+            slotB.classList.add('active'); slotA.classList.remove('active');
+            refreshAll();
+        });
     }
-    new Chart(canvas, {
-        type: 'line',
-        data: {
-            labels: weeks.map(w => w.week_start),
-            datasets: [{
-                label: 'Messages',
-                count: weeks.map(w => w.volume),
-                data: weeks.map(w => w.volume),
-                borderColor: '#E040FB',
-                backgroundColor: 'rgba(224, 64, 251, 0.1)',
-                fill: true,
-                tension: 0.4,
-                borderWidth: 4
-            }]
-        },
-        options: {
-            plugins: { legend: { display: false } },
-            scales: { x: { display: false }, y: { beginAtZero: true } }
+
+    refreshAll();
+
+    // --- AI INSIGHTS ---
+    const generateBtn = document.getElementById('generateAiBtn');
+    generateBtn?.addEventListener('click', async () => {
+        const permission = document.getElementById('ai-permission-container');
+        const loading = document.getElementById('ai-loading-container');
+        const results = document.getElementById('ai-results-container');
+        
+        permission.classList.add('hidden');
+        loading.classList.remove('hidden');
+
+        try {
+            const payload = {
+                stats: activeData.stats,
+                my_name: activeData.my_name,
+                partner_name: activeData.partner_name,
+                compare_data: isCompareMode ? { a: dataA.stats, b: dataB.stats, nameA: dataA.partner_name, nameB: dataB.partner_name } : null,
+                provider: localStorage.getItem('llm_provider') || 'cloudflare',
+                api_key: sessionStorage.getItem('_llm_token') ? atob(sessionStorage.getItem('_llm_token')) : ''
+            };
+
+            const resp = await fetch('/api/analyze', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await resp.json();
+            if (!resp.ok) throw new Error(data.error || "Failed");
+
+            const report = data.report;
+            window.llmReport = report; // RESTORED: For Vibe Card
+            document.getElementById('ai-insight-title').textContent = report.ai_insight?.dynamic_title || "Analysis Complete";
+            document.getElementById('ai-insight-reality').textContent = report.ai_insight?.reality_check;
+            document.getElementById('ai-insight-shift').textContent = report.ai_insight?.recent_shift;
+            document.getElementById('ai-insight-verdict').textContent = report.ai_insight?.brutal_verdict;
+            
+            const red = document.getElementById('ai-insight-red-flags');
+            const green = document.getElementById('ai-insight-green-flags');
+            if (red) red.innerHTML = (report.ai_insight?.red_flags || []).map(f => `<li>${f}</li>`).join('');
+            if (green) green.innerHTML = (report.ai_insight?.green_flags || []).map(f => `<li>${f}</li>`).join('');
+
+            loading.classList.add('hidden');
+            results.classList.remove('hidden');
+        } catch (e) {
+            alert(e.message);
+            loading.classList.add('hidden');
+            permission.classList.remove('hidden');
         }
     });
-}
+});
 
 /**
- * Robust Vibe Card Generation
+ * Premium Vibe Card Generation (Vertical Format)
  */
 async function downloadWrappedCard() {
     const btn = document.getElementById('downloadVibeBtn');
@@ -213,22 +274,32 @@ async function downloadWrappedCard() {
         const card = document.getElementById('shareable-card');
         const report = window.llmReport || {};
         
-        // Final map of shareable fields
         const setVal = (id, val) => { 
             const el = document.getElementById(id); 
-            if (el) { el.textContent = val || ''; el.parentElement.style.opacity = '1'; }
+            if (el) el.textContent = val || '--';
         };
 
-        setVal('share-headline', report.dynamic_headline);
-        setVal('share-persona', report.relationship_persona);
-        setVal('share-compatibility', report.compatibility_score);
-        setVal('share-total-msgs', document.getElementById('stat-total-msgs')?.textContent || '--');
-        setVal('share-me-pct', document.getElementById('stat-me-pct')?.textContent || '--');
-        setVal('share-latency', document.getElementById('stat-avg-latency')?.textContent || '--');
-        setVal('share-mirroring', document.getElementById('mirroring-value')?.textContent || '--');
-        setVal('share-topic', report.main_topic || 'Random Talk');
-        setVal('share-support', (report.support_score || '0') + '/100');
-        setVal('share-snippet', report.top_shareable_snippet ? '"' + report.top_shareable_snippet + '"' : '');
+        setVal('share-label', report.ai_insight?.vibe_label || "VIBE STATUS");
+        setVal('share-title', report.ai_insight?.dynamic_title || report.relationship_persona);
+        setVal('share-me', window.activeData?.my_name || "You");
+        setVal('share-partner', window.activeData?.partner_name || "Partner");
+        
+        // Duration and Total from stats
+        const stats = window.activeData?.stats || {};
+        setVal('share-total', (stats.messages?.ME + stats.messages?.PARTNER || 0).toLocaleString());
+        setVal('share-duration', stats.duration || '--');
+        setVal('share-red', report.ai_insight?.red_flags ? report.ai_insight.red_flags[0] : '--');
+        setVal('share-green', report.ai_insight?.green_flags ? report.ai_insight.green_flags[0] : '--');
+        setVal('share-verdict', report.ai_insight?.brutal_verdict || "The vibe is set.");
+
+        // Update Bars
+        const meTotal = (stats.messages?.ME || 0);
+        const partnerTotal = (stats.messages?.PARTNER || 0);
+        const total = meTotal + partnerTotal;
+        const mePct = total > 0 ? (meTotal / total * 100) : 50;
+        
+        document.getElementById('share-bar-me').style.width = mePct + '%';
+        document.getElementById('share-bar-partner').style.width = (100 - mePct) + '%';
 
         const canvas = await html2canvas(card, {
             scale: 2,
@@ -239,16 +310,15 @@ async function downloadWrappedCard() {
         });
 
         const link = document.createElement('a');
-        link.download = 'TheAlgorithm_Wrapped.png';
+        link.download = `TheAlgorithm_Wrapped.png`;
         link.href = canvas.toDataURL('image/png');
         link.click();
-        
-        if (window.showToast) showToast('Vibe Card Saved!', 'success');
     } catch (err) {
         console.error("Download failed:", err);
-        if (window.showToast) showToast('Download failed. Please try again.', 'error');
+        alert('Download failed.');
     } finally {
         btn.disabled = false;
         btn.textContent = originalText;
     }
 }
+

@@ -3,4 +3,10 @@ pages_build_output_dir = "."
 
 [vars]
 LLM_PROVIDER = "openai"
-# Add your API keys in the Cloudflare Dashboard for security
+
+[ai]
+binding = "AI"
+
+[[kv_namespaces]]
+binding = "KV_RATELIMIT"
+id = "ratelimit_kv" # Placeholder, user needs to create this in dashboard
