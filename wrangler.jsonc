@@ -14,12 +14,6 @@
   "ai": {
     "binding": "AI"
   },
-  "kv_namespaces": [
-    {
-      "binding": "KV_RATELIMIT",
-      "id": "ratelimit_kv"
-    }
-  ],
   "vars": {
     "LLM_PROVIDER": "openai"
   }
