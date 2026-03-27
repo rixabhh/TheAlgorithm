@@ -175,13 +175,16 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.switchTab = (type, mode) => {
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        const btns = event.target.parentElement.querySelectorAll('.tab-btn');
+        btns.forEach(b => b.classList.remove('active'));
         event.target.classList.add('active');
+        
         if (type === 'ratio') {
+            const s = activeData.stats || {};
             const data = {
-                messages: [activeData.stats.messages?.ME || 0, activeData.stats.messages?.PARTNER || 0],
-                words: [activeData.stats.words?.ME || 0, activeData.stats.words?.PARTNER || 0],
-                chars: [activeData.stats.chars?.ME || 0, activeData.stats.chars?.PARTNER || 0]
+                messages: [s.messages?.ME || 0, s.messages?.PARTNER || 0],
+                words: [s.words?.ME || 0, s.words?.PARTNER || 0],
+                chars: [s.chars?.ME || 0, s.chars?.PARTNER || 0]
             };
             if (ratioChart) {
                 ratioChart.data.datasets[0].data = data[mode];
@@ -190,25 +193,37 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    const autoTriggerAi = () => {
+        const provider = localStorage.getItem('llm_provider') || 'cloudflare';
+        const hasKey = sessionStorage.getItem('_llm_token');
+        if (provider === 'cloudflare' || hasKey) {
+            console.log("Auto-triggering AI insights...");
+            setTimeout(() => {
+                document.getElementById('generateAiBtn')?.click();
+            }, 1000);
+        }
+    };
+
     // --- COMPARISON SLOTS ---
     if (isCompareMode) {
         const slotA = document.getElementById('comp-slot-a');
         const slotB = document.getElementById('comp-slot-b');
-        slotA.addEventListener('click', () => {
+        slotA?.addEventListener('click', () => {
             activeSlot = 'a'; activeData = dataA;
-            window.activeData = activeData; // Added
+            window.activeData = activeData;
             slotA.classList.add('active'); slotB.classList.remove('active');
             refreshAll();
         });
-        slotB.addEventListener('click', () => {
+        slotB?.addEventListener('click', () => {
             activeSlot = 'b'; activeData = dataB;
-            window.activeData = activeData; // Added
+            window.activeData = activeData;
             slotB.classList.add('active'); slotA.classList.remove('active');
             refreshAll();
         });
     }
 
     refreshAll();
+    autoTriggerAi();
 
     // --- AI INSIGHTS ---
     const generateBtn = document.getElementById('generateAiBtn');
