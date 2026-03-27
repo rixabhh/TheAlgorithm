@@ -1,14 +1,4 @@
----
-title: The Algorithm
-emoji: 🧠
-colorFrom: pink
-colorTo: red
-sdk: docker
-app_port: 7860
-pinned: false
-license: mit
-short_description: AI-powered relationship analyzer — privacy-first, BYOK.
----
+
 
 <div align="center">
   <img src="static/favicon.png" width="120" alt="The Algorithm Logo" style="border-radius: 1rem; margin-bottom: 2rem;" />
@@ -18,12 +8,12 @@ short_description: AI-powered relationship analyzer — privacy-first, BYOK.
   <p>Stop sending your most intimate chat history to random servers.</p>
 
   <p>
-    <a href="https://img.shields.io/badge/python-3.11+-blue?style=for-the-badge&logo=python&logoColor=white"><img src="https://img.shields.io/badge/python-3.11+-blue?style=for-the-badge&logo=python&logoColor=white" alt="Python" /></a>
-    <a href="https://img.shields.io/badge/Flask-3.0+-black?style=for-the-badge&logo=flask&logoColor=white"><img src="https://img.shields.io/badge/Flask-3.0+-black?style=for-the-badge&logo=flask&logoColor=white" alt="Flask" /></a>
+    <a href="https://img.shields.io/badge/JavaScript-ES6+-yellow?style=for-the-badge&logo=javascript&logoColor=white"><img src="https://img.shields.io/badge/JavaScript-ES6+-yellow?style=for-the-badge&logo=javascript&logoColor=white" alt="JavaScript" /></a>
+    <a href="https://img.shields.io/badge/Cloudflare_Pages-Serverless-orange?style=for-the-badge&logo=cloudflare&logoColor=white"><img src="https://img.shields.io/badge/Cloudflare_Pages-Serverless-orange?style=for-the-badge&logo=cloudflare&logoColor=white" alt="Cloudflare Pages" /></a>
     <a href="https://img.shields.io/badge/Privacy-100%25%20Zero--Knowledge-22c55e?style=for-the-badge"><img src="https://img.shields.io/badge/Privacy-100%25%20Zero--Knowledge-22c55e?style=for-the-badge" alt="Privacy" /></a>
   </p>
 
-  <h3>🚀 <a href="https://thealgorithm.rixabh.workers.dev/">Try the Live App Here</a></h3>
+  <h3>🚀 <a href="https://the-algorithm.pages.dev/">Try the Live App Here</a></h3>
 </div>
 
 <hr/>
@@ -47,18 +37,16 @@ Unlike other platforms that store and read your data, The Algorithm operates on 
 
 We don't want your data. Period.
 
-1. **Client-Side Anonymization**: Personally Identifiable Information (PII) like emails, phone numbers, and full names are heavily redacted directly in the browser *before* the data touches our server.
-2. **Pure RAM Processing**: We refuse to use a database. Uploaded files are streamed into active memory, parsed, and never written permenantly to disk.
-3. **Aggressive Deletion**: A strict Python `finally` block guarantees that all temporary memory associated with your session is permanently destroyed instantly.
-4. **Stats-Only LLM Pipeline**: Your raw chat logs are *never* sent to OpenAI, Anthropic, or Google. Our Python backend processes the chats locally and sends only an anonymous, numerical statistical payload to the LLM.
+1. **Client-Side Anonymization**: Personally Identifiable Information (PII) like emails, phone numbers, and full names are heavily redacted directly in the browser *before* the data touches the server functions.
+2. **Purely Local Processing**: We prioritize privacy. Most analysis happens directly in your browser.
+3. **Aggressive Deletion**: No data is persisted. Files are processed in memory and never written to disk.
+4. **Stats-Only LLM Pipeline**: Your raw chat logs are *never* sent to the LLM. Our local engine processes the chats and sends only an anonymous, numerical statistical payload to the AI service.
 
-## 🚀 Getting Started Locally
-
-Running The Algorithm on your own machine takes less than two minutes.
+Running The Algorithm on your own machine is simple using Wrangler.
 
 ### Prerequisites
-- Python 3.11+
-- Virtualenv or Conda (recommended)
+- Node.js (v18+)
+- npm or yarn
 
 ### Installation
 
@@ -68,27 +56,22 @@ Running The Algorithm on your own machine takes less than two minutes.
    cd TheAlgorithm
    ```
 
-2. Create a virtual environment and install dependencies:
+2. Install dependencies (Wrangler):
    ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   pip install -r requirements.txt
+   npm install
    ```
 
-3. Run the Flask application:
+3. Run the application locally:
    ```bash
-   python app.py
+   npx wrangler pages dev .
    ```
 
-4. Open `http://127.0.0.1:7860` in your browser.
+4. Open `http://localhost:8788` in your browser.
 
-## 🐳 Docker Deployment
-
-The Algorithm is fully dockerized and ready for production deployment on render, Railway, or VPS.
+The Algorithm is built for Cloudflare Pages. You can deploy it instantly by connecting your GitHub repo to the Cloudflare dashboard.
 
 ```bash
-docker build -t the-algorithm .
-docker run -p 7860:7860 the-algorithm
+npx wrangler pages deploy .
 ```
 
 ## 🏗️ Architecture Flowchart
@@ -96,47 +79,36 @@ docker run -p 7860:7860 the-algorithm
 ```mermaid
 graph TD
     A[User Uploads Chat] -->|Browser| B(Client-Side Scrubbing);
-    B -->|Sensitive Data Masked| C[Flask Server app.py];
-    C -->|Memory Buffer| D{Platform Parser};
-    D -->|WhatsApp| E[JSON Message Array];
-    D -->|Telegram| E;
-    D -->|Instagram| E;
-    D -->|Discord| E;
-    E --> F[Analytics Engine];
-    F -->|Raw Stats| G[LLM Service];
-    G -->|API Request| H((OpenAI / Anthropic / Gemini));
-    H -->|JSON Report| I[Dashboard UI];
-    I -->|User Session Ends| J((Data Destroyed Forever));
+    B -->|Sensitive Data Masked| C[Local Analytics Engine];
+    C -->|Statistical Payload| D{Cloudflare Function};
+    D -->|API Request| E((LLM Service));
+    E -->|JSON Report| F[Dashboard UI];
+    F -->|User Session Ends| G((Data Destroyed));
     
     classDef user fill:#8b5cf6,stroke:#fff,color:#fff
     classDef secure fill:#22c55e,stroke:#fff,color:#fff
     classDef danger fill:#f43f5e,stroke:#fff,color:#fff
     
     class A user;
-    class B,J secure;
-    class H danger;
+    class B,G secure;
+    class E danger;
 ```
 
 ## 📂 Project Structure
 
 ```text
 TheAlgorithm/
-├── app.py                  # Main Flask application & routes
-├── core/
-│   ├── analytics.py        # Calculates conversation statistics
-│   ├── llm_service.py     # Handles external BYOK LLM API requests
-│   └── parsers.py          # Platform-specific chat parsers (WA, TG, IG, Discord)
+├── functions/              # Cloudflare Pages Functions (Serverless Backend)
+│   └── api/
+│       └── analyze.js      # Handles LLM API orchestration
 ├── static/
-│   ├── css/style.css       # Retro Pop-Art Vanilla CSS design system
-│   ├── js/                 # Client-side UI logic and PII scrubbing
-│   └── fonts/              # Self-hosted fonts for privacy
-├── templates/
-│   ├── index.html          # Landing page & upload interface
-│   ├── dashboard.html      # Analytics & Insights display
-│   ├── instructions.html   # Export walkthroughs per platform
-│   └── privacy.html        # Detailed zero-knowledge policy
-├── .github/workflows/      # CI/CD and Hugging Face deployment Action
-└── requirements.txt        # Python dependencies
+│   ├── js/                 # Client-side logic & local analytics engine
+│   ├── css/                # Retro Pop-Art design system
+│   └── fonts/              # Privacy-first self-hosted fonts
+├── index.html              # Landing page & upload interface
+├── dashboard.html          # Analytics & Insights display
+├── wrangler.toml           # Cloudflare configuration
+└── package.json            # Node.js dependencies & scripts
 ```
 
 ## 🤝 Contributors

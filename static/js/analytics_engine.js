@@ -1,22 +1,26 @@
 /**
- * The Algorithm - Local Analytics Engine (V3.0 Extended Metrics)
+ * The Algorithm - Local Analytics Engine (V4.0 Global Edition)
+ * Deep Hinglish Support & Premium Psychological Metrics.
  */
 
 class AnalyticsEngine {
     constructor() {
-        this.STRESS_RE = /work|tired|sad|stressed|deadline|exhausted|unhappy|worry|anxious|sick|bad day|hard time|presure|dukh|pareshan|tension|thak|beemar/i;
-        this.AFFIRMATIVE_RE = /love|thanks|happy|we|miss|appreciate|glad|proud|beautiful|care|pyaar|shukriya|accha|theek|badhiya|jaan|sona/i;
-        this.DISMISSIVE_RE = /whatever|fine|okay|sure|k|ok|busy|tired|idk|anyway|thik h|hmmm|hmm|okey/i;
+        // --- 1. HINGLISH EXPANSE (Transliterated & Hindi Script) ---
+        this.STRESS_RE = /work|tired|sad|stressed|deadline|exhausted|unhappy|worry|anxious|sick|hard time|presure|dukh|pareshan|tension|thak|beemar|tension|dard|rona|pareshani|mushkil|gadbad/i;
+        this.AFFIRMATIVE_RE = /love|thanks|happy|we|miss|appreciate|glad|proud|beautiful|care|pyaar|shukriya|accha|theek|badhiya|jaan|sona|shona|dil|dhanyawad|sundar|mast|swagat|namaste/i;
+        this.DISMISSIVE_RE = /whatever|fine|okay|sure|k|ok|busy|idk|anyway|thik h|hmmm|hmm|okey|theek hai|achha hai|thik hai|chal|hat|pata nahi|pata nhi|ignore|bye/i;
         
-        this.LOGISTICS_RE = /dinner|lunch|bill|home|work|done|todo|buy|shop|cleaning|khana|ghar|paisa|office/i;
-        this.EXTERNAL_RE = /friends|party|movie|news|gym|weather|job|dost|bahar|ghumna/i;
-        this.CONFLICT_RE = /sorry|why|fight|angry|stop|listen|mean|hurt|annoyed|galti|kyu|gussa|chup/i;
-        this.INTIMACY_RE = /love|miss|baby|darling|honey|kiss|hug|beautiful|forever|miss u|pyaar|jaan/i;
+        // Topic Mix Regexes
+        this.LOGISTICS_RE = /dinner|lunch|bill|home|work|done|todo|buy|shop|cleaning|khana|ghar|paisa|office|market|sabzi|payment|dukan|dukaan/i;
+        this.EXTERNAL_RE = /friends|party|movie|news|gym|weather|job|dost|bahar|ghumna|travel|trip|planning|shadi|shaadi|office|colleague/i;
+        this.CONFLICT_RE = /sorry|why|fight|angry|stop|listen|mean|hurt|annoyed|galti|kyu|gussa|chup|kyun|ladai|jhagda|badtameez|bewafa|jhoot|jut/i;
+        this.INTIMACY_RE = /love|miss|baby|darling|honey|kiss|hug|beautiful|forever|miss u|pyaar|jaan|shona|ummah|jaaneman|mohabbat|ishq|sath/i;
         
-        this.POS_WORDS = new Set(['love', 'happy', 'great', 'awesome', 'good', 'nice', 'thanks', 'wonderful', 'beautiful', 'yay', 'yes', 'perfect', 'glad', 'proud', 'accha', 'mast', 'top']);
-        this.NEG_WORDS = new Set(['hate', 'sad', 'bad', 'angry', 'hurt', 'sorry', 'no', 'stop', 'upset', 'annoyed', 'tired', 'sick', 'worry', 'fail', 'bekar', 'gussa', 'bura']);
+        // Sentiment Sets (Hinglish Included)
+        this.POS_WORDS = new Set(['love', 'happy', 'great', 'awesome', 'good', 'nice', 'thanks', 'wonderful', 'beautiful', 'yay', 'yes', 'perfect', 'glad', 'proud', 'accha', 'mast', 'top', 'badhiya', 'sahi', 'zindabad', 'wah', 'shabash', 'pyaar', 'mohabbat', 'jaan']);
+        this.NEG_WORDS = new Set(['hate', 'sad', 'bad', 'angry', 'hurt', 'sorry', 'no', 'stop', 'upset', 'annoyed', 'tired', 'sick', 'worry', 'fail', 'bekar', 'gussa', 'bura', 'ghatiya', 'pagal', 'bewakoof', 'chup', 'dard', 'dukh', 'mushkil', 'pareshan']);
 
-        this.STOP_WORDS = new Set(['the', 'a', 'an', 'is', 'are', 'was', 'were', 'to', 'for', 'and', 'but', 'or', 'if', 'this', 'that', 'it', 'me', 'you', 'my', 'your', 'on', 'at', 'in', 'of', 'i', 'im', 'with', 'hi', 'hey', 'hello', 'ya', 'ye', 'na', 'h', 'hai', 'tha', 'thee', 'ke', 'ka', 'ko']);
+        this.STOP_WORDS = new Set(['the', 'a', 'an', 'is', 'are', 'was', 'were', 'to', 'for', 'and', 'but', 'or', 'if', 'this', 'that', 'it', 'me', 'you', 'my', 'your', 'on', 'at', 'in', 'of', 'i', 'im', 'with', 'hi', 'hey', 'hello', 'ya', 'ye', 'na', 'h', 'hai', 'tha', 'thee', 'ke', 'ka', 'ko', 'ki', 'ne', 'mein', 'par', 'tha', 'the', 'thi', 'raha', 'rahi', 'rahe', 'hota', 'hote', 'hoti', 'lekin', 'kyun', 'kya', 'kise', 'kisko', 'kaise', 'kahan', 'kab']);
     }
 
     runPipeline(messages, connectionType = 'romantic') {
@@ -36,6 +40,8 @@ class AnalyticsEngine {
         const supportInfo = this.calculateSupportGap(processed);
         const topicMix = this.calculateTopicMix(processed, connectionType);
         const mirroringValue = this.calculateMirroring(processed);
+        const attachment = this.calculateAttachmentStyle(processed, latencyInfo);
+        const topWords = this.calculateTopWords(processed);
         
         const weekly = this.aggregateWeekly(latencyInfo);
         const riskAnalysis = this.calculateRiskScore(weekly);
@@ -50,6 +56,8 @@ class AnalyticsEngine {
             support_score: this.calculateSupportScore(supportInfo),
             topic_mix: topicMix,
             mirroring: mirroringValue,
+            attachment_style: attachment,
+            top_words: topWords,
             sentiment_summary: {
                 partner_mean: sentimentInfo.partnerMean,
                 me_mean: sentimentInfo.meMean
@@ -74,6 +82,9 @@ class AnalyticsEngine {
         let partnerTotal = 0, partnerCount = 0, meTotal = 0, meCount = 0;
         for (const m of messages) {
             let score = 0;
+            // Hindi script check (Decomposition)
+            if (/[\u0900-\u097F]/.test(m.text)) score += 0.1; 
+
             for (const word of m.words) {
                 if (this.POS_WORDS.has(word)) score += 1;
                 else if (this.NEG_WORDS.has(word)) score -= 1;
@@ -91,19 +102,16 @@ class AnalyticsEngine {
     }
 
     extractEmojiStats(messages) {
-        // More robust emoji regex
         const emojiRegex = /[\u{1f300}-\u{1f5ff}\u{1f600}-\u{1f64f}\u{1f680}-\u{1f6ff}\u{1f700}-\u{1f77f}\u{1f780}-\u{1f7ff}\u{1f800}-\u{1f8ff}\u{1f900}-\u{1f9ff}\u{1fa00}-\u{1faff}\u{2600}-\u{26ff}\u{2700}-\u{27bf}]/gu;
         const stats = { ME: {}, PARTNER: {} };
         for (const m of messages) {
             const matches = (m.text || '').match(emojiRegex);
             if (matches) {
                 const target = stats[m.sender];
-                for (const emoji of matches) {
-                    target[emoji] = (target[emoji] || 0) + 1;
-                }
+                for (const emoji of matches) target[emoji] = (target[emoji] || 0) + 1;
             }
         }
-        const finalize = (obj) => Object.entries(obj).map(([emoji, count]) => ({ emoji, count })).sort((a, b) => b.count - a.count).slice(0, 10);
+        const finalize = (obj) => Object.entries(obj).map(([emoji, count]) => ({ emoji, count })).sort((a, b) => b.count - a.count).slice(0, 5);
         return { ME: finalize(stats.ME), PARTNER: finalize(stats.PARTNER) };
     }
 
@@ -129,15 +137,14 @@ class AnalyticsEngine {
         let activeStressMeTs = null, activeStressPartnerTs = null;
         const SUPPORT_WINDOW = 60 * 60 * 1000;
         for (const m of messages) {
-            const isStress = this.STRESS_RE.test(m.text);
-            if (isStress) {
+            if (this.STRESS_RE.test(m.text)) {
                 if (m.sender === 'ME') { meStress++; activeStressMeTs = m.timestamp; }
                 else { partnerStress++; activeStressPartnerTs = m.timestamp; }
             }
             if (m.sender === 'ME' && activeStressPartnerTs) {
-                if (m.timestamp - activeStressPartnerTs <= SUPPORT_WINDOW && m.words.length > 3) { partnerSupported++; activeStressPartnerTs = null; }
+                if (m.timestamp - activeStressPartnerTs <= SUPPORT_WINDOW && m.words.length > 2) { partnerSupported++; activeStressPartnerTs = null; }
             } else if (m.sender === 'PARTNER' && activeStressMeTs) {
-                if (m.timestamp - activeStressMeTs <= SUPPORT_WINDOW && m.words.length > 3) { meSupported++; activeStressMeTs = null; }
+                if (m.timestamp - activeStressMeTs <= SUPPORT_WINDOW && m.words.length > 2) { meSupported++; activeStressMeTs = null; }
             }
         }
         return {
@@ -149,7 +156,7 @@ class AnalyticsEngine {
     calculateSupportScore(supportInfo) {
         const totalStress = supportInfo.ME.stress_count + supportInfo.PARTNER.stress_count;
         const totalSupp = supportInfo.ME.support_received + supportInfo.PARTNER.support_received;
-        if (totalStress === 0) return 100;
+        if (totalStress === 0) return 90;
         return Math.round(Math.min(100, (totalSupp / totalStress) * 100));
     }
 
@@ -159,11 +166,11 @@ class AnalyticsEngine {
             const target = m.sender === 'ME' ? meFreq : pFreq;
             for (const word of m.words) target[word] = (target[word] || 0) + 1;
         }
-        const meTop = Object.keys(meFreq).sort((a,b) => meFreq[b] - meFreq[a]).slice(0, 50);
-        const pTop = new Set(Object.keys(pFreq).sort((a,b) => pFreq[b] - pFreq[a]).slice(0, 50));
+        const meTop = Object.keys(meFreq).sort((a,b) => meFreq[b] - meFreq[a]).slice(0, 30);
+        const pTop = new Set(Object.keys(pFreq).sort((a,b) => pFreq[b] - pFreq[a]).slice(0, 30));
         let common = 0;
         for (const w of meTop) if (pTop.has(w)) common++;
-        return Math.round((common / 50) * 100);
+        return Math.round((common / 30) * 100);
     }
 
     calculateTopicMix(messages, connectionType) {
@@ -175,10 +182,37 @@ class AnalyticsEngine {
             if (this.EXTERNAL_RE.test(m.text)) topics.External++;
         }
         const sorted = Object.entries(topics).sort((a,b) => b[1] - a[1]);
-        return {
-            breakdown: topics,
-            top_topic: sorted[0][1] > 0 ? sorted[0][0] : "Random Talk"
-        };
+        return { breakdown: topics, top_topic: sorted[0][1] > 0 ? sorted[0][0] : "Life Talk" };
+    }
+
+    calculateAttachmentStyle(messages, latencyInfo) {
+        let anxiousScore = 0, avoidantScore = 0;
+        const totalMsgs = messages.length;
+        if (totalMsgs < 10) return "Secure";
+
+        // Anxious signals: Double texting, fast replies to slow ones, high stress words
+        // Avoidant signals: Long latency, short word counts, dismissive regex
+        for (const m of messages) {
+            if (m.sender === 'ME') {
+                if (m.latencyMins && m.latencyMins < 5) anxiousScore += 0.2;
+                if (this.DISMISSIVE_RE.test(m.text)) avoidantScore += 0.5;
+                if (this.STRESS_RE.test(m.text)) anxiousScore += 0.3;
+            }
+        }
+        const ratio = anxiousScore / (avoidantScore || 1);
+        if (ratio > 1.5) return "Anxious-Leaning";
+        if (ratio < 0.6) return "Avoidant-Leaning";
+        return "Securely Connected";
+    }
+
+    calculateTopWords(messages) {
+        const freq = {};
+        for (const m of messages) {
+            for (const word of m.words) {
+                freq[word] = (freq[word] || 0) + 1;
+            }
+        }
+        return Object.entries(freq).sort((a,b) => b[1] - a[1]).slice(0, 5).map(e => e[0]);
     }
 
     aggregateWeekly(messages) {
@@ -215,8 +249,8 @@ class AnalyticsEngine {
         return weeks.map(w => {
             let p = 'Stable';
             if (w.risk_score < 0.3) p = 'Honeymoon';
-            else if (w.risk_score < 0.85) p = 'Tension';
-            else p = 'Danger';
+            else if (w.risk_score < 0.85) p = 'Stable';
+            else p = 'Tension';
             return { ...w, phase: p };
         });
     }
