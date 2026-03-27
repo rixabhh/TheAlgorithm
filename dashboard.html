@@ -79,46 +79,16 @@
         <a href="/" class="btn btn--dark btn--full mb-8" style="padding:0.6rem;font-size:0.8rem">← START NEW</a>
 
         <div class="sidebar-category">
-            <h4>Statistics</h4>
+            <h4>Analyses</h4>
             <ul class="sidebar-nav">
-                <li><a href="#section-ratios" class="active"><span class="icon">🌓</span> Ratios</a></li>
-                <li><a href="#section-streaks"><span class="icon">🔥</span> Streaks</a></li>
+                <li><a href="#section-ratios" class="active"><span class="icon">📊</span> Data Ratios</a></li>
+                <li><a href="#section-social"><span class="icon">👥</span> Social Dynamics</a></li>
                 <li><a href="#section-activity"><span class="icon">📈</span> Activity</a></li>
-            </ul>
-        </div>
-        <div class="sidebar-category">
-            <h4>Content</h4>
-            <ul class="sidebar-nav">
-                <li><a href="#section-word-cloud"><span class="icon">☁️</span> Word Cloud</a></li>
-                <li><a href="#section-emojis"><span class="icon">😀</span> Emojis</a></li>
-                <li><a href="#section-links"><span class="icon">🔗</span> Links</a></li>
-            </ul>
-        </div>
-        <div class="sidebar-category">
-            <h4>Behavior</h4>
-            <ul class="sidebar-nav">
-                <li><a href="#section-social"><span class="icon">💬</span> Social Dynamics</a></li>
-                <li><a href="#section-engagement"><span class="icon">🤝</span> Engagement</a></li>
-            </ul>
-        </div>
-        <div class="sidebar-category">
-            <h4>Deep Stats</h4>
-            <ul class="sidebar-nav">
-                <li><a href="#section-flow"><span class="icon">📉</span> Convo Flow</a></li>
-                <li><a href="#section-hanging"><span class="icon">❓</span> Left Hanging</a></li>
-                <li><a href="#section-vibe"><span class="icon">🧪</span> Vibe Analysis</a></li>
+                <li><a href="#section-vibe"><span class="icon">💡</span> Vibe Insights</a></li>
+                <li><a href="#section-quick-stats"><span class="icon">⚡</span> Quick Stats</a></li>
             </ul>
         </div>
 
-        <div class="sidebar-footer" style="margin-top:auto;padding-top:2rem;border-top:1px solid rgba(0,0,0,0.05)">
-            <div style="display:flex;align-items:center;gap:0.75rem">
-                <div style="width:40px;height:40px;background:var(--pink);border-radius:50%;border:2px solid var(--black);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1.2rem">👤</div>
-                <div style="overflow:hidden">
-                    <p id="profile-name" style="font-weight:900;font-size:0.9rem;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Your Chat</p>
-                    <p id="profile-sub" style="font-size:0.7rem;color:var(--gray-500);margin:0">Analysis Complete</p>
-                </div>
-            </div>
-        </div>
     </aside>
 
     <!-- ═══ MAIN CONTENT ═══ -->
@@ -190,122 +160,96 @@
             </div>
         </section>
 
+        <!-- Primary Data Visuals -->
+        <section id="section-ratios" class="mb-16">
+            <div class="grid gap-6" style="grid-template-columns: 1fr 1.5fr">
+                <!-- Ratios Card -->
+                <div class="card p-6">
+                    <h3 class="mb-4 text-sm uppercase opacity-50">Communication Ratios</h3>
+                    <div class="tabs flex border rounded mb-4 overflow-hidden" style="font-size:0.7rem">
+                        <button class="tab-btn active p-2 flex-1" onclick="switchTab('ratio', 'messages')">Messages</button>
+                        <button class="tab-btn p-2 flex-1" onclick="switchTab('ratio', 'words')">Words</button>
+                    </div>
+                    <div id="ratio-chart-container" style="height:250px">
+                        <canvas id="ratioChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Activity Card -->
+                <div id="section-activity" class="card p-6">
+                    <h3 class="mb-4 text-sm uppercase opacity-50">Messaging Activity</h3>
+                    <div id="activity-chart-container" style="height:250px">
+                        <canvas id="activityChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
         <!-- Social Dynamics -->
         <section id="section-social" class="mb-16">
             <h2 class="mb-6">Social Dynamics</h2>
             <div class="grid gap-6" style="grid-template-columns:1fr 1fr">
-                <div id="traits-card-me" class="card p-8">
-                    <h3 id="traits-name-me" class="mb-6">You</h3>
-                    <div id="traits-pills-me" class="flex flex-wrap gap-2 mb-8"></div>
-                    <div class="trait-bars mb-8">
-                        <div class="trait-bar-item mb-4">
-                            <div class="flex justify-between text-xs font-black uppercase mb-1"><span>Curiosity</span><span id="trait-val-curiosity-me">0</span></div>
-                            <div class="h-2 bg-cream rounded-full border overflow-hidden"><div id="trait-bar-curiosity-me" class="h-full bg-pink" style="width:0%"></div></div>
+                <div id="traits-card-me" class="card p-6">
+                    <h3 id="traits-name-me" class="mb-4 text-lg">You</h3>
+                    <div id="traits-pills-me" class="flex flex-wrap gap-2 mb-4"></div>
+                    <div class="trait-bars">
+                        <!-- Bars here -->
+                        <div class="trait-bar-item mb-2">
+                            <div class="flex justify-between text-xs font-bold uppercase mb-1"><span>Curiosity</span><span id="trait-val-curiosity-me">0</span></div>
+                            <div class="h-1.5 bg-cream rounded-full border overflow-hidden"><div id="trait-bar-curiosity-me" class="h-full bg-pink" style="width:0%"></div></div>
                         </div>
-                        <div class="trait-bar-item mb-4">
-                            <div class="flex justify-between text-xs font-black uppercase mb-1"><span>Politeness</span><span id="trait-val-politeness-me">0</span></div>
-                            <div class="h-2 bg-cream rounded-full border overflow-hidden"><div id="trait-bar-politeness-me" class="h-full bg-purple" style="width:0%"></div></div>
-                        </div>
-                        <div class="trait-bar-item mb-4">
-                            <div class="flex justify-between text-xs font-black uppercase mb-1"><span>Warmth</span><span id="trait-val-warmth-me">0</span></div>
-                            <div class="h-2 bg-cream rounded-full border overflow-hidden"><div id="trait-bar-warmth-me" class="h-full bg-orange" style="width:0%"></div></div>
-                        </div>
-                        <div class="trait-bar-item">
-                            <div class="flex justify-between text-xs font-black uppercase mb-1"><span>Intimacy</span><span id="trait-val-intimacy-me">0</span></div>
-                            <div class="h-2 bg-cream rounded-full border overflow-hidden"><div id="trait-bar-intimacy-me" class="h-full bg-black" style="width:0%"></div></div>
+                        <div class="trait-bar-item mb-2">
+                            <div class="flex justify-between text-xs font-bold uppercase mb-1"><span>Politeness</span><span id="trait-val-politeness-me">0</span></div>
+                            <div class="h-1.5 bg-cream rounded-full border overflow-hidden"><div id="trait-bar-politeness-me" class="h-full bg-purple" style="width:0%"></div></div>
                         </div>
                     </div>
-                    <div class="card bg-cream p-4 border text-sm"><ul id="traits-summary-me" class="list-disc pl-4 space-y-2"></ul></div>
                 </div>
-                <div id="traits-card-partner" class="card p-8">
-                    <h3 id="traits-name-partner" class="mb-6">Partner</h3>
-                    <div id="traits-pills-partner" class="flex flex-wrap gap-2 mb-8"></div>
-                    <div class="trait-bars mb-8">
-                        <div class="trait-bar-item mb-4">
-                            <div class="flex justify-between text-xs font-black uppercase mb-1"><span>Curiosity</span><span id="trait-val-curiosity-partner">0</span></div>
-                            <div class="h-2 bg-cream rounded-full border overflow-hidden"><div id="trait-bar-curiosity-partner" class="h-full bg-pink" style="width:0%"></div></div>
+                <div id="traits-card-partner" class="card p-6">
+                    <h3 id="traits-name-partner" class="mb-4 text-lg">Partner</h3>
+                    <div id="traits-pills-partner" class="flex flex-wrap gap-2 mb-4"></div>
+                    <div class="trait-bars">
+                        <!-- Bars here -->
+                        <div class="trait-bar-item mb-2">
+                            <div class="flex justify-between text-xs font-bold uppercase mb-1"><span>Curiosity</span><span id="trait-val-curiosity-partner">0</span></div>
+                            <div class="h-1.5 bg-cream rounded-full border overflow-hidden"><div id="trait-bar-curiosity-partner" class="h-full bg-pink" style="width:0%"></div></div>
                         </div>
-                        <div class="trait-bar-item mb-4">
-                            <div class="flex justify-between text-xs font-black uppercase mb-1"><span>Politeness</span><span id="trait-val-politeness-partner">0</span></div>
-                            <div class="h-2 bg-cream rounded-full border overflow-hidden"><div id="trait-bar-politeness-partner" class="h-full bg-purple" style="width:0%"></div></div>
+                        <div class="trait-bar-item mb-2">
+                            <div class="flex justify-between text-xs font-bold uppercase mb-1"><span>Politeness</span><span id="trait-val-politeness-partner">0</span></div>
+                            <div class="h-1.5 bg-cream rounded-full border overflow-hidden"><div id="trait-bar-politeness-partner" class="h-full bg-purple" style="width:0%"></div></div>
                         </div>
-                        <div class="trait-bar-item mb-4">
-                            <div class="flex justify-between text-xs font-black uppercase mb-1"><span>Warmth</span><span id="trait-val-warmth-partner">0</span></div>
-                            <div class="h-2 bg-cream rounded-full border overflow-hidden"><div id="trait-bar-warmth-partner" class="h-full bg-orange" style="width:0%"></div></div>
-                        </div>
-                        <div class="trait-bar-item">
-                            <div class="flex justify-between text-xs font-black uppercase mb-1"><span>Intimacy</span><span id="trait-val-intimacy-partner">0</span></div>
-                            <div class="h-2 bg-cream rounded-full border overflow-hidden"><div id="trait-bar-intimacy-partner" class="h-full bg-black" style="width:0%"></div></div>
-                        </div>
-                    </div>
-                    <div class="card bg-cream p-4 border text-sm"><ul id="traits-summary-partner" class="list-disc pl-4 space-y-2"></ul></div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Statistics: Ratios -->
-        <section id="section-ratios" class="mb-16">
-            <h2 class="mb-6">Communication Ratios</h2>
-            <div class="card p-0 overflow-hidden">
-                <div class="tabs flex border-b bg-cream">
-                    <button class="tab-btn active p-4 font-bold flex-1" onclick="switchTab('ratio', 'messages')">Messages</button>
-                    <button class="tab-btn p-4 font-bold flex-1" onclick="switchTab('ratio', 'words')">Words</button>
-                    <button class="tab-btn p-4 font-bold flex-1" onclick="switchTab('ratio', 'chars')">Characters</button>
-                </div>
-                <div class="p-8">
-                    <div id="ratio-chart-container" style="height:350px">
-                        <canvas id="ratioChart"></canvas>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Insights Grid -->
-        <div class="grid gap-6 mb-16" style="grid-template-columns: repeat(auto-fit, minmax(400px, 1fr))">
-            <!-- Engagement -->
-            <section id="section-engagement" class="card p-8">
-                <h3 class="mb-6">Engagement Highlights</h3>
-                <div id="engagement-list" class="space-y-6">
-                    <!-- Starters, Gaps, Mirroring... -->
+        <!-- Quick Stats Grid -->
+        <section id="section-quick-stats" class="mb-16">
+            <h2 class="mb-6">Quick Stats</h2>
+            <div class="grid gap-6" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr))">
+                <div id="section-streaks" class="card p-6">
+                    <h4 class="mb-4">🔥 Streaks</h4>
+                    <div id="streaks-container" class="grid grid-2 gap-4"></div>
                 </div>
-            </section>
-            
-            <!-- Streaks -->
-            <section id="section-streaks" class="card p-8">
-                <h3 class="mb-6">Streak History</h3>
-                <div id="streaks-container" class="grid grid-2 gap-4">
-                    <!-- Cards populated by JS -->
+                <div id="section-engagement" class="card p-6">
+                    <h4 class="mb-4">🤝 Engagement</h4>
+                    <div id="engagement-list" class="space-y-4 text-sm"></div>
                 </div>
-            </section>
-        </div>
+                <div id="section-emojis" class="card p-6">
+                    <h4 class="mb-4">😀 Emoji Mix</h4>
+                    <div id="emoji-container" class="flex flex-wrap gap-2"></div>
+                </div>
+                <div id="section-links" class="card p-6">
+                    <h4 class="mb-4">🔗 Top Links</h4>
+                    <div id="links-container" class="text-xs space-y-2"></div>
+                </div>
+            </div>
+        </section>
 
-        <!-- Activity Chart -->
-        <section id="section-activity" class="mb-16">
-            <h2 class="mb-6">Messaging Activity</h2>
+        <!-- Word Cloud (Simplified) -->
+        <section id="word-cloud" class="mb-16">
             <div class="card p-8">
-                <div id="activity-chart-container" style="height:400px">
-                    <canvas id="activityChart"></canvas>
-                </div>
+                <h3 class="mb-6">Common Vibes (Word Cloud)</h3>
+                <div id="wordcloud-container" style="min-height:200px"></div>
             </div>
-        </section>
-
-        <!-- Content Row -->
-        <div class="grid gap-6 mb-16" style="grid-template-columns: 2fr 1fr">
-            <section id="section-word-cloud" class="card p-8">
-                <h3 class="mb-6">Word Cloud</h3>
-                <div id="wordcloud-container" style="height:350px; background:var(--cream); border:var(--border); border-radius:var(--r-md); position:relative; overflow:hidden">
-                    <p class="absolute center op-30">Generating visualization...</p>
-                </div>
-            </section>
-            <section id="section-emojis" class="card p-8">
-                <h3 class="mb-6">Emoji Mix</h3>
-                <div id="emoji-container" class="space-y-4"></div>
-            </section>
-        </div>
-
-        <section id="section-links" class="card p-8 mb-16">
-            <h3 class="mb-6">Top Shared Links</h3>
-            <div id="links-container" class="grid gap-4" style="grid-template-columns:repeat(auto-fill, minmax(250px, 1fr))"></div>
         </section>
 
     </main>
