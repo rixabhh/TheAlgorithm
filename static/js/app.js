@@ -49,17 +49,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const targetId = wrapper.dataset.target;
         const hiddenSelect = document.getElementById(targetId);
 
-        // Toggle open/close
-        trigger.addEventListener('click', (e) => {
+        trigger?.addEventListener('click', (e) => {
             e.preventDefault();
             const isOpen = wrapper.classList.contains('open');
-            // Close all others first
             document.querySelectorAll('.custom-select.open').forEach(s => s.classList.remove('open'));
             if (!isOpen) wrapper.classList.add('open');
             trigger.setAttribute('aria-expanded', !isOpen);
         });
 
-        // Option click
         options.forEach(opt => {
             opt.addEventListener('click', () => {
                 options.forEach(o => o.classList.remove('selected'));
@@ -70,17 +67,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 trigger.setAttribute('aria-expanded', 'false');
             });
         });
-
-        // Keyboard support
-        trigger.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                trigger.click();
-            }
-        });
     });
 
-    // Close dropdowns on outside click
     document.addEventListener('click', (e) => {
         if (!e.target.closest('.custom-select')) {
             document.querySelectorAll('.custom-select.open').forEach(s => {
@@ -90,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- API Key Status UI ---
+    // --- API Key Status ---
     const updateApiKeyUI = () => {
         const icon = document.getElementById('apiKeyStatusIcon');
         const text = document.getElementById('apiKeyStatusText');
@@ -98,14 +86,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const key = sessionStorage.getItem('_llm_token');
         if (key && key.trim() !== "" && key !== btoa("")) {
             icon.textContent = '✅';
-            icon.classList.remove('animate-pulse');
             text.textContent = 'API Key Configured';
-            text.style.color = 'var(--black)';
         } else {
             icon.textContent = '🔑';
-            icon.classList.add('animate-pulse');
             text.textContent = 'API Key Required';
-            text.style.color = '';
         }
     };
     updateApiKeyUI();
@@ -125,337 +109,262 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 250);
     };
 
-    // Close on Escape / backdrop click
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
-            if (trustCenterModal && trustCenterModal.classList.contains('active')) hideModal(trustCenterModal, trustCenterBtn);
-            if (settingsModal && settingsModal.classList.contains('active')) hideModal(settingsModal, settingsBtn);
+            [trustCenterModal, settingsModal, document.getElementById('compareModal')].forEach(m => {
+                if (m && m.classList.contains('active')) hideModal(m);
+            });
         }
     });
-    [trustCenterModal, settingsModal].forEach(modal => {
-        if (modal) modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                if (modal === trustCenterModal) hideModal(trustCenterModal, trustCenterBtn);
-                if (modal === settingsModal) hideModal(settingsModal, settingsBtn);
-            }
-        });
+
+    [trustCenterModal, settingsModal, document.getElementById('compareModal')].forEach(modal => {
+        if (modal) modal.addEventListener('click', (e) => { if (e.target === modal) hideModal(modal); });
     });
 
-    // --- Trust Center ---
     if (trustCenterBtn && trustCenterModal) {
         trustCenterBtn.addEventListener('click', () => showModal(trustCenterModal));
-        if (closeTrustCenter) closeTrustCenter.addEventListener('click', () => hideModal(trustCenterModal, trustCenterBtn));
-        if (understoodBtn) understoodBtn.addEventListener('click', () => hideModal(trustCenterModal, trustCenterBtn));
+        closeTrustCenter?.addEventListener('click', () => hideModal(trustCenterModal));
+        understoodBtn?.addEventListener('click', () => hideModal(trustCenterModal));
     }
 
-    // --- Settings Modal ---
     if (settingsBtn && settingsModal) {
         settingsBtn.addEventListener('click', () => {
             showModal(settingsModal);
-            const provider = document.getElementById('llmProvider');
-            if (provider) setTimeout(() => provider.focus(), 100);
+            document.getElementById('llmProvider')?.focus();
         });
-        if (closeSettings) closeSettings.addEventListener('click', () => hideModal(settingsModal, settingsBtn));
+        closeSettings?.addEventListener('click', () => hideModal(settingsModal));
 
         const apiKeyEl = document.getElementById('apiKey');
         const hfUrlEl = document.getElementById('hfUrl');
         const llmProviderEl = document.getElementById('llmProvider');
 
-        // Enter to save
-        [apiKeyEl, hfUrlEl].forEach(el => {
-            if (el) el.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') { e.preventDefault(); if (saveSettingsBtn) saveSettingsBtn.click(); }
-            });
-        });
-
-        // Load saved values
         if (apiKeyEl) apiKeyEl.value = sessionStorage.getItem('_llm_token') ? atob(sessionStorage.getItem('_llm_token')) : '';
         if (hfUrlEl) hfUrlEl.value = localStorage.getItem('hf_url') || '';
-        const savedProvider = localStorage.getItem('llm_provider');
-        if (savedProvider && llmProviderEl) {
+        const savedProvider = localStorage.getItem('llm_provider') || 'cloudflare';
+        if (llmProviderEl) {
             llmProviderEl.value = savedProvider;
             updateProviderHint(savedProvider);
         }
-        if (llmProviderEl) llmProviderEl.addEventListener('change', (e) => updateProviderHint(e.target.value));
+        llmProviderEl?.addEventListener('change', (e) => updateProviderHint(e.target.value));
 
-        // Save config
-        if (saveSettingsBtn) {
-            saveSettingsBtn.addEventListener('click', () => {
-                const key = apiKeyEl ? apiKeyEl.value.trim() : '';
-                const hfUrl = hfUrlEl ? hfUrlEl.value.trim() : '';
-                const provider = llmProviderEl ? llmProviderEl.value : 'openai';
-                sessionStorage.setItem('_llm_token', btoa(key));
-                localStorage.setItem('hf_url', hfUrl);
-                localStorage.setItem('llm_provider', provider);
-                updateApiKeyUI();
-                hideModal(settingsModal, settingsBtn);
-            });
-        }
+        saveSettingsBtn?.addEventListener('click', () => {
+            const key = apiKeyEl ? apiKeyEl.value.trim() : '';
+            sessionStorage.setItem('_llm_token', btoa(key));
+            localStorage.setItem('hf_url', hfUrlEl ? hfUrlEl.value.trim() : '');
+            localStorage.setItem('llm_provider', llmProviderEl ? llmProviderEl.value : 'cloudflare');
+            updateApiKeyUI();
+            hideModal(settingsModal);
+        });
     }
 
-    // --- API Key Visibility Toggle ---
+    // --- UI Utilities ---
     const toggleBtn = document.getElementById('toggleApiKey');
-    const eyeIcon = document.getElementById('eyeIcon');
     const apiKeyInput = document.getElementById('apiKey');
-    if (toggleBtn && apiKeyInput && eyeIcon) {
-        toggleBtn.addEventListener('click', () => {
-            const isPassword = apiKeyInput.type === 'password';
-            apiKeyInput.type = isPassword ? 'text' : 'password';
-            toggleBtn.setAttribute('aria-label', isPassword ? 'Hide API Key' : 'Show API Key');
-            eyeIcon.innerHTML = isPassword
-                ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />'
-                : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />';
-        });
-    }
-
-    // --- Drag & Drop ---
-    if (dropZone) {
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(evt =>
-            dropZone.addEventListener(evt, (e) => { e.preventDefault(); e.stopPropagation(); }, false)
-        );
-        ['dragenter', 'dragover'].forEach(evt =>
-            dropZone.addEventListener(evt, () => dropZone.classList.add('drag-over'), false)
-        );
-        ['dragleave', 'drop'].forEach(evt =>
-            dropZone.addEventListener(evt, () => dropZone.classList.remove('drag-over'), false)
-        );
-        dropZone.addEventListener('drop', (e) => {
-            fileInput.files = e.dataTransfer.files;
-            updateFileList();
-        }, false);
-    }
-
-    if (fileInput) fileInput.addEventListener('change', updateFileList);
-
-    // --- User Context Character Count ---
-    const userContextEl = document.getElementById('userContext');
-    const charCountEl = document.getElementById('userContextCharCount');
-    if (userContextEl && charCountEl) {
-        userContextEl.addEventListener('input', () => {
-            userContextEl.style.height = 'auto';
-            userContextEl.style.height = userContextEl.scrollHeight + 'px';
-            const len = userContextEl.value.length;
-            charCountEl.textContent = `${len} / 2000`;
-            charCountEl.style.color = len >= 1900 ? 'var(--pink)' : '';
-        });
-    }
-
-    // --- FAQ Accordion ---
-    const faqItems = document.querySelectorAll('.faq-item');
-    faqItems.forEach(item => {
-        const btn = item.querySelector('.faq-question');
-        if (btn) {
-            btn.addEventListener('click', () => {
-                const isOpen = item.classList.contains('open');
-                // Close all others
-                faqItems.forEach(i => i.classList.remove('open'));
-                if (!isOpen) item.classList.add('open');
-            });
-        }
+    toggleBtn?.addEventListener('click', () => {
+        const isPassword = apiKeyInput.type === 'password';
+        apiKeyInput.type = isPassword ? 'text' : 'password';
     });
 
-    // --- Provider Hint ---
+    if (dropZone) {
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(evt => dropZone.addEventListener(evt, (e) => { e.preventDefault(); e.stopPropagation(); }));
+        dropZone.addEventListener('drop', (e) => { fileInput.files = e.dataTransfer.files; updateFileList(); });
+    }
+    fileInput?.addEventListener('change', updateFileList);
+
+    function updateFileList() {
+        if (fileList && fileInput.files.length > 0) {
+            fileList.classList.remove('hidden');
+            fileList.textContent = `✅ Selected: ${Array.from(fileInput.files).map(f => f.name).join(', ')}`;
+        }
+    }
+
     function updateProviderHint(provider) {
         const hintEl = document.getElementById('providerHint');
         const hfContainer = document.getElementById('hfUrlContainer');
         if (!hintEl) return;
-        const hints = {
-            'openai': 'Starts with "sk-proj-..."',
-            'anthropic': 'Starts with "sk-ant-..."',
-            'gemini': 'Usually a 39-character string',
-            'grok': 'xAI API key',
-            'huggingface': 'Starts with "hf_..."'
-        };
+        const hints = { 'cloudflare': 'Free Tier (2 reports/hr)', 'openai': 'sk-proj-...', 'anthropic': 'sk-ant-...', 'gemini': 'Google API Key' };
         hintEl.textContent = hints[provider] || '';
-        if (hfContainer) {
-            if (provider === 'huggingface') hfContainer.classList.remove('hidden');
-            else hfContainer.classList.add('hidden');
-        }
+        if (hfContainer) hfContainer.classList.toggle('hidden', provider !== 'huggingface');
     }
 
-    // --- File List Update ---
-    function updateFileList() {
-        if (fileInput && fileInput.files.length > 0) {
-            if (fileList) {
-                fileList.classList.remove('hidden');
-                const names = Array.from(fileInput.files).map(f => f.name).join(', ');
-                fileList.textContent = `✅ Selected: ${names}`;
-            }
-            if (dropZone) {
-                dropZone.style.borderStyle = 'solid';
-                dropZone.style.background = 'var(--yellow)';
-            }
-        } else {
-            if (fileList) fileList.classList.add('hidden');
-            if (dropZone) {
-                dropZone.style.borderStyle = '';
-                dropZone.style.background = '';
-            }
+    const showError = (message) => {
+        const container = document.getElementById('errorContainer');
+        if (container) {
+            container.innerHTML = `<p>${message}</p>`;
+            container.classList.remove('hidden');
+        } else alert(message);
+    };
+    const hideError = () => document.getElementById('errorContainer')?.classList.add('hidden');
+
+    // --- ═══ DASHBOARD & HISTORY LOGIC ═══ ---
+    
+    class HistoryManager {
+        constructor() { this.STORAGE_KEY = 'algo_history'; }
+        save(data) {
+            let history = this.getAll();
+            const entry = {
+                id: Date.now().toString(),
+                my_name: data.my_name,
+                partner_name: data.partner_name,
+                msg_count: data.msg_count || 0,
+                date: new Date().toLocaleDateString(),
+                timestamp: Date.now(),
+                platform: data.platform || 'WhatsApp',
+                stats: data.stats,
+                highlights: data.highlights,
+                flashbacks: data.flashbacks,
+                connection_type: data.connection_type
+            };
+            history.unshift(entry);
+            if (history.length > 5) history.pop();
+            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(history));
+            return entry;
         }
+        getAll() { const raw = localStorage.getItem(this.STORAGE_KEY); return raw ? JSON.parse(raw) : []; }
+        delete(id) {
+            let history = this.getAll().filter(item => item.id !== id);
+            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(history));
+            renderHistory();
+        }
+        clear() { localStorage.removeItem(this.STORAGE_KEY); renderHistory(); }
     }
 
-    // --- Error Helpers ---
-    const showError = (message, isHTML = false) => {
-        const errorContainer = document.getElementById('errorContainer');
-        if (!errorContainer) { alert(message); return; }
-        if (isHTML) {
-            errorContainer.innerHTML = message;
-        } else {
-            errorContainer.innerHTML = `
-                <div class="flex items-center gap-3">
-                    <span style="font-size:1.5rem;flex-shrink:0">⚠️</span>
-                    <p style="font-weight:700;margin:0">${message}</p>
-                </div>`;
-        }
-        errorContainer.classList.remove('hidden');
-        errorContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const historyManager = new HistoryManager();
+
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            tabBtns.forEach(b => b.classList.remove('active'));
+            tabContents.forEach(c => { c.classList.add('hidden'); c.classList.remove('active'); });
+            btn.classList.add('active');
+            const target = document.getElementById(`tab-${btn.dataset.tab}`);
+            if (target) { target.classList.remove('hidden'); target.classList.add('active'); }
+        });
+    });
+
+    const renderHistory = () => {
+        const history = historyManager.getAll();
+        const list = document.getElementById('history-list');
+        const counter = document.getElementById('stats-chats-count');
+        if (counter) counter.textContent = history.length;
+        if (!list) return;
+        list.innerHTML = '';
+        document.getElementById('history-empty-state')?.classList.toggle('hidden', history.length > 0);
+        history.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'history-card';
+            card.innerHTML = `
+                <div class="history-card__info">
+                    <h4 class="m-0">${item.my_name} & ${item.partner_name}</h4>
+                    <div class="history-card__meta mt-1">
+                        <span class="pill-label pill-label--white" style="font-size:0.6rem; padding: 2px 6px">${item.platform}</span>
+                        <span>${item.msg_count.toLocaleString()} msgs</span>
+                        <span>•</span>
+                        <span>${item.date}</span>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <button class="btn btn--pink btn--sm open-history-btn" data-id="${item.id}">Open</button>
+                    <button class="btn btn--white btn--sm delete-history-btn" data-id="${item.id}" style="padding: 0.5rem">×</button>
+                </div>
+            `;
+            list.appendChild(card);
+        });
+        list.querySelectorAll('.open-history-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const item = history.find(h => h.id === btn.dataset.id);
+                if (item) { sessionStorage.setItem('dashboard_data', JSON.stringify(item)); window.location.href = '/dashboard.html'; }
+            });
+        });
+        list.querySelectorAll('.delete-history-btn').forEach(btn => {
+            btn.addEventListener('click', () => historyManager.delete(btn.dataset.id));
+        });
+    };
+    renderHistory();
+
+    // --- Compare Controller ---
+    const compareModal = document.getElementById('compareModal');
+    const compareTriggers = document.querySelectorAll('.compare-trigger'); 
+    let compareSelection = { a: null, b: null, activeSlot: 'a' };
+
+    const updateCompareUI = () => {
+        const history = historyManager.getAll();
+        const picker = document.getElementById('compare-history-picker');
+        if (!picker) return;
+        document.getElementById('picker-status').textContent = `Picking for Chat ${compareSelection.activeSlot.toUpperCase()}`;
+        document.getElementById('slot-a').classList.toggle('active', compareSelection.activeSlot === 'a');
+        document.getElementById('slot-b').classList.toggle('active', compareSelection.activeSlot === 'b');
+        document.getElementById('slot-a-name').textContent = compareSelection.a ? `${compareSelection.a.my_name} & ${compareSelection.a.partner_name}` : 'Click to pick';
+        document.getElementById('slot-b-name').textContent = compareSelection.b ? `${compareSelection.b.my_name} & ${compareSelection.b.partner_name}` : 'Click to pick';
+        
+        picker.innerHTML = '';
+        history.forEach(item => {
+            const el = document.createElement('div');
+            el.className = `picker-item ${ (compareSelection.a?.id === item.id || compareSelection.b?.id === item.id) ? 'selected' : '' }`;
+            el.innerHTML = `<div style="font-weight:900">${item.my_name} & ${item.partner_name}</div><div style="font-size:0.65rem">${item.date}</div>`;
+            el.addEventListener('click', () => {
+                if (compareSelection.activeSlot === 'a') { compareSelection.a = item; compareSelection.activeSlot = 'b'; }
+                else compareSelection.b = item;
+                updateCompareUI();
+            });
+            picker.appendChild(el);
+        });
+        document.getElementById('executeCompareBtn').disabled = !(compareSelection.a && compareSelection.b);
     };
 
-    const hideError = () => {
-        const errorContainer = document.getElementById('errorContainer');
-        if (errorContainer) { errorContainer.classList.add('hidden'); errorContainer.textContent = ''; }
-    };
+    compareTriggers.forEach(btn => btn.addEventListener('click', () => { showModal(compareModal); compareSelection = { a: null, b: null, activeSlot: 'a' }; updateCompareUI(); }));
+    document.getElementById('closeCompare')?.addEventListener('click', () => hideModal(compareModal));
+    document.getElementById('cancelCompareBtn')?.addEventListener('click', () => hideModal(compareModal));
+    document.getElementById('executeCompareBtn')?.addEventListener('click', () => {
+        sessionStorage.setItem('compare_a', JSON.stringify(compareSelection.a));
+        sessionStorage.setItem('compare_b', JSON.stringify(compareSelection.b));
+        window.location.href = '/dashboard.html?mode=compare';
+    });
 
-    // --- Form Submission (Edge Migration V1.0) ---
+    // --- Form Submission ---
     if (uploadForm) {
         uploadForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             hideError();
-
-            const analyzeBtn = document.getElementById('analyzeBtn');
-            const originalBtnContent = analyzeBtn.innerHTML;
-
-            if (!fileInput.files.length) {
-                showError('Please select at least one chat export file.');
-                return;
-            }
-
-            // Disable button, show progress
-            analyzeBtn.disabled = true;
-            analyzeBtn.classList.add('hidden');
-
-            const progressUI = document.getElementById('progressUI');
+            if (!fileInput.files.length) { showError('Select a file.'); return; }
+            
             const loadingOverlay = document.getElementById('loading-overlay');
-            const statusText = document.getElementById('statusText');
-            const progressBar = document.getElementById('progressBar');
-
-            if (progressUI) { progressUI.classList.remove('hidden'); progressUI.style.display = 'flex'; }
             if (loadingOverlay) loadingOverlay.classList.remove('hidden');
 
             const parser = new ChatParser();
             const analytics = new AnalyticsEngine();
 
             try {
-                // 1. READ & PARSE (Locally)
-                statusText.textContent = "Accessing files...";
-                if (progressBar) progressBar.style.width = '10%';
-                
                 const file = fileInput.files[0];
                 const content = await file.text();
-                
-                statusText.textContent = "Parsing & Scrubbing PII...";
-                if (progressBar) progressBar.style.width = '30%';
+                let rawMessages = file.name.endsWith('.html') ? parser.parseTelegram(content) : (file.name.endsWith('.json') ? parser.parseInstagram(content) : parser.parseWhatsApp(content));
+                if (!rawMessages.length) throw new Error("No messages found.");
 
-                let rawMessages = [];
-                if (file.name.endsWith('.html')) rawMessages = parser.parseTelegram(content);
-                else if (file.name.endsWith('.json')) rawMessages = parser.parseInstagram(content);
-                else rawMessages = parser.parseWhatsApp(content);
-
-                if (!rawMessages.length) throw new Error("Could not extract messages. Check file format.");
-
-                // 2. STANDARDIZE
-                statusText.textContent = "Mapping personalities...";
-                if (progressBar) progressBar.style.width = '50%';
-                
                 const myName = document.getElementById('myName').value;
                 const partnerName = document.getElementById('partnerName').value;
                 const filteredMessages = parser.standardizeEntities(rawMessages, myName, partnerName);
-                
-                if (!filteredMessages.length) {
-                    throw new Error(`Name mismatch! '${myName}' or '${partnerName}' not found in chat.`);
-                }
+                if (!filteredMessages.length) throw new Error("Names not found.");
 
-                // 3. ANALYZE
-                statusText.textContent = "Calculating emotional patterns...";
-                if (progressBar) progressBar.style.width = '70%';
-                
                 const connectionType = document.getElementById('connectionType').value;
                 const analyticsResult = analytics.runPipeline(filteredMessages, connectionType);
 
-                // 4. GENERATE REPORT (Worker Proxy)
-                statusText.textContent = "AI Verdict Generation...";
-                if (progressBar) progressBar.style.width = '90%';
-
-                const payload = {
+                const dashboardData = {
                     stats: analyticsResult,
                     my_name: myName,
                     partner_name: partnerName,
+                    highlights: [], flashbacks: {},
                     connection_type: connectionType,
-                    tone: document.getElementById('analysisTone').value,
-                    context: document.getElementById('userContext')?.value || '',
-                    api_key: sessionStorage.getItem('_llm_token') ? atob(sessionStorage.getItem('_llm_token')) : '',
-                    provider: localStorage.getItem('llm_provider') || 'openai'
+                    msg_count: filteredMessages.length,
+                    platform: file.name.endsWith('.html') ? 'Telegram' : (file.name.endsWith('.json') ? 'Instagram' : 'WhatsApp')
                 };
 
-                const response = await fetch('/api/analyze', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                if (!response.ok) {
-                    const err = await response.json();
-                    throw new Error(err.error || "AI generation failed.");
-                }
-
-                const result = await response.json();
-                
-                // Extract local highlights and flashbacks (Replacements for Python backend)
-                const highlights = filteredMessages
-                    .filter(m => m.text.length > 20)
-                    .sort((a, b) => b.text.length - a.text.length)
-                    .slice(0, 5)
-                    .map(m => ({
-                        title: "Key Highlight",
-                        text: m.text,
-                        sender: m.sender,
-                        timestamp: new Date(m.timestamp).toLocaleDateString()
-                    }));
-
-                const weeklyGroups = {};
-                filteredMessages.forEach(m => {
-                    const d = new Date(m.timestamp);
-                    const weekKey = d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + Math.ceil(d.getDate()/7);
-                    if (!weeklyGroups[weekKey]) weeklyGroups[weekKey] = [];
-                    weeklyGroups[weekKey].push(m);
-                });
-
-                const flashbacks = {};
-                Object.keys(weeklyGroups).forEach(wk => {
-                    flashbacks[wk] = weeklyGroups[wk].slice(0, 15).map(m => ({
-                        sender: m.sender,
-                        text: m.text
-                    }));
-                });
-
-                // Store result for dashboard
-                sessionStorage.setItem('dashboard_data', JSON.stringify({
-                    stats: analyticsResult,
-                    report: result.report,
-                    highlights: highlights,
-                    flashbacks: flashbacks,
-                    connection_type: connectionType
-                }));
-
-
-                if (progressBar) progressBar.style.width = '100%';
+                historyManager.save(dashboardData);
+                sessionStorage.setItem('dashboard_data', JSON.stringify(dashboardData));
                 window.location.href = '/dashboard.html';
 
             } catch (err) {
                 showError(err.message);
-                analyzeBtn.disabled = false;
-                analyzeBtn.classList.remove('hidden');
-                if (progressUI) { progressUI.classList.add('hidden'); progressUI.style.display = 'none'; }
                 if (loadingOverlay) loadingOverlay.classList.add('hidden');
             }
         });

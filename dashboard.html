@@ -8,9 +8,20 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <link rel="stylesheet" href="static/css/style.css">
-    <!-- Data handled in dashboard.js -->
-
-
+    <style>
+        /* Tooltip and micro-interaction additions */
+        .trait-bar-container:hover .tooltip { opacity: 1; visibility: visible; }
+        .sidebar-nav a.active::after {
+            content: "";
+            position: absolute;
+            right: -1.6rem;
+            width: 8px;
+            height: 8px;
+            background: var(--pink);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--pink);
+        }
+    </style>
 </head>
 
 <body class="comic-dots dashboard-body">
@@ -31,9 +42,7 @@
 
 <!-- ═══ REPORT HERO ═══ -->
 <section class="hero-dashboard" style="background:var(--purple);padding:4rem 0 5rem;position:relative;overflow:hidden">
-    <!-- Decorative blob -->
     <svg class="animate-float" style="position:absolute;top:-20%;right:-5%;width:300px;opacity:0.15;pointer-events:none" viewBox="0 0 200 200"><path fill="var(--orange)" d="M54.5,-63.9C68.9,-49.2,77.5,-28.5,80.1,-6.6C82.8,15.3,79.5,38.5,66.8,55.9C54.1,73.3,31.9,84.9,8.5,88.4C-15,91.9,-39.6,87.3,-56.9,73.6C-74.2,59.8,-84.1,36.9,-85.4,14.6C-86.7,-7.8,-79.4,-29.7,-64.7,-45.3C-49.9,-61,-25,-70.5,-1,-69.3C23,-68.2,40.1,-78.6,54.5,-63.9Z" transform="translate(100 100)"/></svg>
-    <!-- Lightning -->
     <span class="lightning" style="position:absolute;top:15%;left:8%;font-size:2rem;opacity:0.3">⚡</span>
     <span class="lightning" style="position:absolute;bottom:20%;right:10%;font-size:1.5rem;opacity:0.25;animation-delay:1.5s">⚡</span>
 
@@ -42,340 +51,327 @@
             Reading Your Energy...
         </h1>
         <p id="report-pulse" style="color:rgba(255,255,255,0.85);font-size:0.95rem;font-weight:500;max-width:550px;margin:0 auto 1.5rem"></p>
-
-        <!-- Score Badge -->
-        <div class="card" style="display:inline-block;padding:1.5rem 2.5rem;border-width:4px;box-shadow:var(--shadow-lg);transform:rotate(-1deg)">
-            <span class="pill-label pill-label--yellow mb-2 inline-block" style="font-size:.65rem">overall score</span>
-            <div style="display:flex;align-items:baseline;justify-content:center;gap:.25rem">
-                <span id="report-compatibility" style="font-family:var(--font-heading);font-weight:900;font-size:3.5rem;color:var(--purple);line-height:1" aria-live="polite">--</span>
-                <span style="font-size:1.25rem;color:var(--gray-400);font-weight:600">/100</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Wave bottom -->
-    <svg style="position:absolute;bottom:0;left:0;width:100%;transform:translateY(98%) scaleY(-1)" preserveAspectRatio="none" viewBox="0 0 1440 64"><path fill="var(--purple)" d="M0,32L120,37.3C240,43,480,53,720,48C960,43,1200,37,1320,34.7L1440,32L1440,64L0,64Z"/></svg>
-</section>
-
-<!-- ═══ STAT CARDS ═══ -->
-<section data-phase="1" class="section-py" style="padding-top:6rem;padding-bottom:3rem">
-    <div class="container">
-        <div class="text-center mb-8">
-            <span class="pill-label pill-label--purple mb-3 inline-block">quick stats</span>
-            <h2>The Numbers</h2>
-        </div>
-
-        <div class="grid gap-6" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
-            <!-- Stat 1: Messages -->
-            <div class="stat-card rotate-left">
-                <span class="pill-label pill-label--pink" style="font-size:.6rem">total messages</span>
-                <div class="stat-card__value" id="stat-total-msgs">--</div>
-                <div class="stat-card__label">messages analyzed</div>
-                <div class="stat-card__insight" id="stat-insight-msgs" style="font-size:.7rem;color:var(--gray-500);font-weight:600;margin-top:.35rem;min-height:1.1em"></div>
-            </div>
-            <!-- Stat 2: Your Share -->
-            <div class="stat-card rotate-right">
-                <span class="pill-label pill-label--blue" style="font-size:.6rem">your share</span>
-                <div class="stat-card__value" id="stat-me-pct">--</div>
-                <div class="stat-card__label">of conversation</div>
-                <div class="stat-card__insight" id="stat-insight-share" style="font-size:.7rem;color:var(--gray-500);font-weight:600;margin-top:.35rem;min-height:1.1em"></div>
-            </div>
-            <!-- Stat 3: Avg Response -->
-            <div class="stat-card rotate-left">
-                <span class="pill-label pill-label--green" style="font-size:.6rem">avg response</span>
-                <div class="stat-card__value" id="stat-avg-latency">--</div>
-                <div class="stat-card__label">median reply time</div>
-                <div class="stat-card__insight" id="stat-insight-latency" style="font-size:.7rem;color:var(--gray-500);font-weight:600;margin-top:.35rem;min-height:1.1em"></div>
-            </div>
-            <!-- Stat 4: Vibe Match -->
-            <div class="stat-card rotate-right">
-                <span class="pill-label pill-label--orange" style="font-size:.6rem">vibe match</span>
-                <div class="stat-card__value" id="mirroring-value">--</div>
-                <div class="stat-card__label">linguistic mirroring</div>
-                <div class="stat-card__insight" id="stat-insight-mirror" style="font-size:.7rem;color:var(--gray-500);font-weight:600;margin-top:.35rem;min-height:1.1em"></div>
-            </div>
-        </div>
     </div>
 </section>
 
-<!-- ═══ AI INSIGHT CARDS ═══ -->
-<section class="section-py" style="padding-top:2rem">
-    <div class="container">
-        <div class="text-center mb-8">
-            <span class="pill-label pill-label--yellow mb-3 inline-block">ai insights</span>
-            <h2>The Deep Dive</h2>
+<!-- ═══ DASHBOARD WRAPPER ═══ -->
+<div class="dashboard-wrapper">
+    <!-- ═══ SIDEBAR ═══ -->
+    <aside class="sidebar">
+        <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.5rem;padding:0.5rem">
+            <img src="static/favicon.png" alt="Logo" style="width:32px;height:32px;border-radius:6px;border:2px solid var(--black)">
+            <span style="font-family:var(--font-heading);font-weight:900;font-size:1.25rem;letter-spacing:-0.03em">The Algorithm</span>
         </div>
 
-        <div class="grid gap-6" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr))">
-            <!-- Persona -->
-            <div class="insight-card skeleton" data-phase="2">
-                <span class="pill-label pill-label--pink mb-3 inline-block" style="font-size:.65rem">your persona</span>
-                <h3 id="report-persona">Determining...</h3>
-                <p id="report-persona-text"></p>
+        <!-- Comparison Sticky Nav (Visible in Compare Mode) -->
+        <div id="comparison-sticky-nav" class="hidden" style="margin-bottom: 2rem; background: var(--cream); border: 2px solid var(--black); border-radius: 8px; overflow: hidden;">
+            <div id="comp-slot-a" class="p-3 active" style="border-bottom: 1px solid var(--black); cursor: pointer">
+                <div style="font-size: 0.6rem; text-transform: uppercase; font-weight: 900; opacity: 0.6">Chat A</div>
+                <div id="comp-name-a" style="font-size: 0.85rem; font-weight: 900">--</div>
             </div>
+            <div id="comp-slot-b" class="p-3" style="cursor: pointer">
+                <div style="font-size: 0.6rem; text-transform: uppercase; font-weight: 900; opacity: 0.6">Chat B</div>
+                <div id="comp-name-b" style="font-size: 0.85rem; font-weight: 900">--</div>
+            </div>
+        </div>
 
-            <!-- Snippet / Quote -->
-            <div class="insight-card skeleton" data-phase="2">
-                <span class="pill-label pill-label--purple mb-3 inline-block" style="font-size:.65rem">key quote</span>
-                <blockquote id="report-snippet" style="font-family:var(--font-heading);font-style:italic;font-size:1.1rem;color:var(--purple);border-left:4px solid var(--pink);padding-left:1rem;margin:0"></blockquote>
-                <div style="margin-top:1rem">
-                    <button id="copySnippetBtn" type="button" class="btn btn--white" style="font-size:.65rem;padding:.3rem .75rem">Copy</button>
+
+        <a href="/" class="btn btn--dark btn--full mb-8" style="padding:0.6rem;font-size:0.8rem">← START NEW</a>
+
+        <div class="sidebar-category">
+            <h4>Statistics</h4>
+            <ul class="sidebar-nav">
+                <li><a href="#section-ratios" class="active"><span class="icon">🌓</span> Ratios</a></li>
+                <li><a href="#section-streaks"><span class="icon">🔥</span> Streaks</a></li>
+                <li><a href="#section-activity"><span class="icon">📈</span> Activity</a></li>
+            </ul>
+        </div>
+        <div class="sidebar-category">
+            <h4>Content</h4>
+            <ul class="sidebar-nav">
+                <li><a href="#section-word-cloud"><span class="icon">☁️</span> Word Cloud</a></li>
+                <li><a href="#section-emojis"><span class="icon">😀</span> Emojis</a></li>
+                <li><a href="#section-links"><span class="icon">🔗</span> Links</a></li>
+            </ul>
+        </div>
+        <div class="sidebar-category">
+            <h4>Behavior</h4>
+            <ul class="sidebar-nav">
+                <li><a href="#section-social"><span class="icon">💬</span> Social Dynamics</a></li>
+                <li><a href="#section-engagement"><span class="icon">🤝</span> Engagement</a></li>
+            </ul>
+        </div>
+        <div class="sidebar-category">
+            <h4>Deep Stats</h4>
+            <ul class="sidebar-nav">
+                <li><a href="#section-flow"><span class="icon">📉</span> Convo Flow</a></li>
+                <li><a href="#section-hanging"><span class="icon">❓</span> Left Hanging</a></li>
+                <li><a href="#section-vibe"><span class="icon">🧪</span> Vibe Analysis</a></li>
+            </ul>
+        </div>
+
+        <div class="sidebar-footer" style="margin-top:auto;padding-top:2rem;border-top:1px solid rgba(0,0,0,0.05)">
+            <div style="display:flex;align-items:center;gap:0.75rem">
+                <div style="width:40px;height:40px;background:var(--pink);border-radius:50%;border:2px solid var(--black);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1.2rem">👤</div>
+                <div style="overflow:hidden">
+                    <p id="profile-name" style="font-weight:900;font-size:0.9rem;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Your Chat</p>
+                    <p id="profile-sub" style="font-size:0.7rem;color:var(--gray-500);margin:0">Analysis Complete</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ═══ MAIN CONTENT ═══ -->
+    <main class="main-content">
+        <!-- Deep Insights Section -->
+        <section id="section-vibe" class="mb-16">
+            <h2 class="mb-1" id="insights-heading">Deep Insights</h2>
+            <p class="mb-6 color-gray-500" id="insights-sub">A brutally honest, structured read on your chat dynamics.</p>
+
+            
+            <div id="ai-permission-container" class="card p-12 text-center" style="background:var(--white);border-width:4px">
+                <div style="font-size:3rem;margin-bottom:1rem">🧠</div>
+                <h3 style="font-size:1.75rem;margin-bottom:1rem">Unlock AI-Powered Vibe Analytics</h3>
+                <p style="max-width:500px;margin:0 auto 2rem;color:var(--gray-600);line-height:1.6">
+                    Analyze the underlying tone, power dynamics, and emotional shifts using our local-first AI engine.
+                </p>
+                <div class="bg-cream p-4 border rounded mb-8 text-left inline-block" style="max-width:500px">
+                    <p style="font-size:0.8rem;margin:0;color:var(--gray-700)"><strong>🛡️ Privacy Note:</strong> We only send numerical statistics (ratios, word counts, response times) to our servers. No raw message content is ever transmitted.</p>
+                </div>
+                <div>
+                    <button id="generateAiBtn" class="btn btn--pink btn--lg px-12">✨ GENERATE INSIGHTS</button>
                 </div>
             </div>
 
-            <!-- Road Ahead -->
-            <div class="insight-card skeleton" data-phase="2">
-                <span class="pill-label pill-label--green mb-3 inline-block" style="font-size:.65rem">the road ahead</span>
-                <h3>🔮 Predictive Path</h3>
-                <div id="report-milestones" style="margin-top:.75rem"></div>
-            </div>
-
-            <!-- Seeds for Growth -->
-            <div class="insight-card skeleton" data-phase="2">
-                <span class="pill-label pill-label--orange mb-3 inline-block" style="font-size:.65rem">growth seeds</span>
-                <h3>🌱 Areas to Nurture</h3>
-                <div id="report-nudges" style="margin-top:.75rem"></div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- ═══ DEEP DIVE ANALYTICS ═══ -->
-<section class="section-py" style="padding-top:1rem">
-    <div class="container">
-        <details id="deep-dive-details" style="border:var(--border-thick);border-radius:var(--r-lg);box-shadow:var(--shadow-lg);background:var(--white);overflow:hidden">
-            <summary style="display:flex;align-items:center;justify-content:space-between;padding:1.5rem 2rem;cursor:pointer;font-family:var(--font-heading);font-weight:900;font-size:1.25rem;color:var(--black);list-style:none">
-                <span>📊 Deep Dive Analytics (Raw Data)</span>
-                <span style="font-size:1.5rem;transition:transform 0.3s" class="details-chevron">▼</span>
-            </summary>
-
-            <div style="padding:2rem;border-top:var(--border-thick)">
-                <!-- Row 1: Insights -->
-                <div class="grid gap-6 mb-8" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr))">
-                    <!-- Emotional Vibe -->
-                    <div class="card" style="border-left:5px solid var(--red)">
-                        <span class="pill-label pill-label--red mb-3 inline-block" style="font-size:.6rem">❤️‍🔥 emotional vibe</span>
-                        <p id="insight-stability" style="font-size:.9rem;color:var(--gray-600)">...</p>
-                    </div>
-                    <!-- Texting Rhythm -->
-                    <div class="card" style="border-left:5px solid var(--blue)">
-                        <span class="pill-label pill-label--blue mb-3 inline-block" style="font-size:.6rem">🌈 texting rhythm</span>
-                        <p id="insight-volume" style="font-size:.9rem;color:var(--gray-600)">...</p>
-                    </div>
-                    <!-- Response Time -->
-                    <div class="card" style="border-left:5px solid var(--green)">
-                        <span class="pill-label pill-label--green mb-3 inline-block" style="font-size:.6rem">⏱️ response time</span>
-                        <p id="insight-latency" style="font-size:.9rem;color:var(--gray-600)">...</p>
-                    </div>
+            <div id="ai-loading-container" class="hidden card p-12 text-center">
+                <div class="loader-spinner mb-6 mx-auto"></div>
+                <h3>Understanding context...</h3>
+                <div class="progress-container mx-auto mt-6" style="max-width:400px;height:0.75rem">
+                    <div id="ai-loading-bar" class="progress-bar bg-pink" style="width:0%"></div>
                 </div>
+            </div>
 
-                <!-- Row 2: Emoji & Initiator -->
+            <div id="ai-results-container" class="hidden ai-insight-box">
+                <div class="text-center mb-10">
+                    <span id="ai-insight-label" class="pill-label pill-label--pink mb-3 inline-block" style="border-radius:4px;padding:4px 12px;background:white;border:2px solid black;font-weight:900">VIBE STATUS</span>
+                    <h1 id="ai-insight-title" style="font-size:3.5rem;font-weight:900;letter-spacing:-0.02em;margin-top:0.5rem">--</h1>
+                </div>
                 <div class="grid gap-6 mb-8" style="grid-template-columns:1fr 1fr">
-                    <!-- Top Emojis -->
-                    <div class="card">
-                        <h3 style="margin-bottom:.5rem">😀 Top Emojis</h3>
-                        <p id="insight-emoji" style="font-size:.8rem;color:var(--gray-400);font-style:italic;margin-bottom:1rem">...</p>
-                        <div class="grid grid-2 gap-4">
-                            <div>
-                                <p style="font-size:.75rem;font-weight:700;color:var(--pink);text-transform:uppercase;margin-bottom:.5rem">You</p>
-                                <div id="emojiListMe" style="font-size:.9rem"></div>
-                            </div>
-                            <div>
-                                <p style="font-size:.75rem;font-weight:700;color:var(--purple);text-transform:uppercase;margin-bottom:.5rem">Partner</p>
-                                <div id="emojiListPartner" style="font-size:.9rem"></div>
-                            </div>
-                        </div>
+                    <div class="card p-6 bg-white">
+                        <h4 class="mb-3 font-bold text-xs uppercase letter-spacing-05 flex align-center gap-2"><span class="text-xl">🔍</span> THE REALITY CHECK</h4>
+                        <p id="ai-insight-reality" class="text-sm line-height-16"></p>
                     </div>
-
-                    <!-- Who Texts First? -->
-                    <div class="card">
-                        <h3 style="margin-bottom:.5rem">💬 Who Texts First?</h3>
-                        <p id="insight-initiator" style="font-size:.8rem;color:var(--gray-400);font-style:italic;margin-bottom:1rem">...</p>
-                        <div style="display:flex;flex-direction:column;gap:1.25rem">
-                            <div>
-                                <div class="flex justify-between mb-2">
-                                    <span style="font-weight:700;color:var(--pink);font-size:.85rem">You</span>
-                                    <span id="meInitCount" style="font-weight:900;font-size:1.25rem" aria-live="polite">0</span>
-                                </div>
-                                <div class="progress-container" style="height:.75rem">
-                                    <div id="meInitiatorBar" class="progress-bar" style="width:0%;background:var(--pink)"></div>
-                                </div>
-                            </div>
-                            <div>
-                                <div class="flex justify-between mb-2">
-                                    <span style="font-weight:700;color:var(--purple);font-size:.85rem">Partner</span>
-                                    <span id="partnerInitCount" style="font-weight:900;font-size:1.25rem" aria-live="polite">0</span>
-                                </div>
-                                <div class="progress-container" style="height:.75rem">
-                                    <div id="partnerInitiatorBar" class="progress-bar" style="width:0%;background:var(--purple)"></div>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="card p-6 bg-white">
+                        <h4 class="mb-3 font-bold text-xs uppercase letter-spacing-05 flex align-center gap-2"><span class="text-xl">📈</span> THE RECENT SHIFT</h4>
+                        <p id="ai-insight-shift" class="text-sm line-height-16"></p>
                     </div>
                 </div>
-
-                <!-- Row 3: Power Dynamics & Affection -->
                 <div class="grid gap-6" style="grid-template-columns:1fr 1fr">
-                    <!-- Chat Balance -->
-                    <div class="card">
-                        <h3 style="margin-bottom:.5rem;color:var(--pink)">Chat Balance</h3>
-                        <p id="insight-power" style="font-size:.8rem;color:var(--gray-400);font-style:italic;margin-bottom:1rem">...</p>
-                        <div class="text-center" style="padding:1.5rem;background:var(--cream);border:var(--border);border-radius:var(--r-sm)">
-                            <div id="powerRatioValue" style="font-family:var(--font-heading);font-weight:900;font-size:2.5rem;color:var(--purple)" aria-live="polite">1.0×</div>
-                            <div id="powerRatioText" style="font-size:.85rem;color:var(--gray-500);margin-top:.25rem">Perfectly balanced communication.</div>
-                        </div>
+                    <div class="flag-box flag-box--red">
+                        <h4 class="mb-4 font-black">🚩 RED FLAGS</h4>
+                        <ul id="ai-insight-red-flags" class="text-sm"></ul>
                     </div>
-
-                    <!-- Warmth vs Coldness -->
-                    <div class="card">
-                        <h3 style="margin-bottom:.5rem;color:var(--orange)">Warmth vs. Coldness</h3>
-                        <p id="insight-affection" style="font-size:.8rem;color:var(--gray-400);font-style:italic;margin-bottom:1rem">...</p>
-                        <div style="display:flex;flex-direction:column;gap:1rem">
-                            <div>
-                                <div class="flex justify-between mb-2">
-                                    <span style="font-weight:700;color:var(--green);font-size:.85rem">Warm Words</span>
-                                    <span id="affCount" style="font-weight:900;font-size:1.1rem" aria-live="polite">0</span>
-                                </div>
-                                <div class="progress-container" style="height:.75rem">
-                                    <div id="affBar" class="progress-bar" style="width:0%;background:var(--green)"></div>
-                                </div>
-                            </div>
-                            <div>
-                                <div class="flex justify-between mb-2">
-                                    <span style="font-weight:700;color:var(--red);font-size:.85rem">Cold Words</span>
-                                    <span id="disCount" style="font-weight:900;font-size:1.1rem" aria-live="polite">0</span>
-                                </div>
-                                <div class="progress-container" style="height:.75rem">
-                                    <div id="disBar" class="progress-bar" style="width:0%;background:var(--red)"></div>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="flag-box flag-box--green">
+                        <h4 class="mb-4 font-black">🚩 GREEN FLAGS</h4>
+                        <ul id="ai-insight-green-flags" class="text-sm"></ul>
+                    </div>
+                </div>
+                <div class="brutal-verdict-box">
+                    <h4 class="mb-4 text-xs font-bold uppercase letter-spacing-2 color-yellow">⚖️ THE FINAL WORD</h4>
+                    <blockquote id="ai-insight-verdict">"..."</blockquote>
+                </div>
+                <div class="flex justify-between align-center mt-10 pt-6 border-t border-dashed op-20">
+                    <span id="ai-insight-timestamp" class="text-xs color-gray-500"></span>
+                    <div class="flex gap-2">
+                        <button id="downloadVibeBtn" class="btn btn--pink btn--sm" onclick="downloadWrappedCard()">📸 VIBE CARD</button>
+                        <button id="regenerateBtn" class="btn btn--white btn--sm">✨ REGENERATE</button>
                     </div>
                 </div>
             </div>
-        </details>
-    </div>
-</section>
+        </section>
 
-<!-- ═══ SHAREABLE CAPTURE CARD (Hidden) ═══ -->
+        <!-- Social Dynamics -->
+        <section id="section-social" class="mb-16">
+            <h2 class="mb-6">Social Dynamics</h2>
+            <div class="grid gap-6" style="grid-template-columns:1fr 1fr">
+                <div id="traits-card-me" class="card p-8">
+                    <h3 id="traits-name-me" class="mb-6">You</h3>
+                    <div id="traits-pills-me" class="flex flex-wrap gap-2 mb-8"></div>
+                    <div class="trait-bars mb-8">
+                        <div class="trait-bar-item mb-4">
+                            <div class="flex justify-between text-xs font-black uppercase mb-1"><span>Curiosity</span><span id="trait-val-curiosity-me">0</span></div>
+                            <div class="h-2 bg-cream rounded-full border overflow-hidden"><div id="trait-bar-curiosity-me" class="h-full bg-pink" style="width:0%"></div></div>
+                        </div>
+                        <div class="trait-bar-item mb-4">
+                            <div class="flex justify-between text-xs font-black uppercase mb-1"><span>Politeness</span><span id="trait-val-politeness-me">0</span></div>
+                            <div class="h-2 bg-cream rounded-full border overflow-hidden"><div id="trait-bar-politeness-me" class="h-full bg-purple" style="width:0%"></div></div>
+                        </div>
+                        <div class="trait-bar-item mb-4">
+                            <div class="flex justify-between text-xs font-black uppercase mb-1"><span>Warmth</span><span id="trait-val-warmth-me">0</span></div>
+                            <div class="h-2 bg-cream rounded-full border overflow-hidden"><div id="trait-bar-warmth-me" class="h-full bg-orange" style="width:0%"></div></div>
+                        </div>
+                        <div class="trait-bar-item">
+                            <div class="flex justify-between text-xs font-black uppercase mb-1"><span>Intimacy</span><span id="trait-val-intimacy-me">0</span></div>
+                            <div class="h-2 bg-cream rounded-full border overflow-hidden"><div id="trait-bar-intimacy-me" class="h-full bg-black" style="width:0%"></div></div>
+                        </div>
+                    </div>
+                    <div class="card bg-cream p-4 border text-sm"><ul id="traits-summary-me" class="list-disc pl-4 space-y-2"></ul></div>
+                </div>
+                <div id="traits-card-partner" class="card p-8">
+                    <h3 id="traits-name-partner" class="mb-6">Partner</h3>
+                    <div id="traits-pills-partner" class="flex flex-wrap gap-2 mb-8"></div>
+                    <div class="trait-bars mb-8">
+                        <div class="trait-bar-item mb-4">
+                            <div class="flex justify-between text-xs font-black uppercase mb-1"><span>Curiosity</span><span id="trait-val-curiosity-partner">0</span></div>
+                            <div class="h-2 bg-cream rounded-full border overflow-hidden"><div id="trait-bar-curiosity-partner" class="h-full bg-pink" style="width:0%"></div></div>
+                        </div>
+                        <div class="trait-bar-item mb-4">
+                            <div class="flex justify-between text-xs font-black uppercase mb-1"><span>Politeness</span><span id="trait-val-politeness-partner">0</span></div>
+                            <div class="h-2 bg-cream rounded-full border overflow-hidden"><div id="trait-bar-politeness-partner" class="h-full bg-purple" style="width:0%"></div></div>
+                        </div>
+                        <div class="trait-bar-item mb-4">
+                            <div class="flex justify-between text-xs font-black uppercase mb-1"><span>Warmth</span><span id="trait-val-warmth-partner">0</span></div>
+                            <div class="h-2 bg-cream rounded-full border overflow-hidden"><div id="trait-bar-warmth-partner" class="h-full bg-orange" style="width:0%"></div></div>
+                        </div>
+                        <div class="trait-bar-item">
+                            <div class="flex justify-between text-xs font-black uppercase mb-1"><span>Intimacy</span><span id="trait-val-intimacy-partner">0</span></div>
+                            <div class="h-2 bg-cream rounded-full border overflow-hidden"><div id="trait-bar-intimacy-partner" class="h-full bg-black" style="width:0%"></div></div>
+                        </div>
+                    </div>
+                    <div class="card bg-cream p-4 border text-sm"><ul id="traits-summary-partner" class="list-disc pl-4 space-y-2"></ul></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Statistics: Ratios -->
+        <section id="section-ratios" class="mb-16">
+            <h2 class="mb-6">Communication Ratios</h2>
+            <div class="card p-0 overflow-hidden">
+                <div class="tabs flex border-b bg-cream">
+                    <button class="tab-btn active p-4 font-bold flex-1" onclick="switchTab('ratio', 'messages')">Messages</button>
+                    <button class="tab-btn p-4 font-bold flex-1" onclick="switchTab('ratio', 'words')">Words</button>
+                    <button class="tab-btn p-4 font-bold flex-1" onclick="switchTab('ratio', 'chars')">Characters</button>
+                </div>
+                <div class="p-8">
+                    <div id="ratio-chart-container" style="height:350px">
+                        <canvas id="ratioChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Insights Grid -->
+        <div class="grid gap-6 mb-16" style="grid-template-columns: repeat(auto-fit, minmax(400px, 1fr))">
+            <!-- Engagement -->
+            <section id="section-engagement" class="card p-8">
+                <h3 class="mb-6">Engagement Highlights</h3>
+                <div id="engagement-list" class="space-y-6">
+                    <!-- Starters, Gaps, Mirroring... -->
+                </div>
+            </section>
+            
+            <!-- Streaks -->
+            <section id="section-streaks" class="card p-8">
+                <h3 class="mb-6">Streak History</h3>
+                <div id="streaks-container" class="grid grid-2 gap-4">
+                    <!-- Cards populated by JS -->
+                </div>
+            </section>
+        </div>
+
+        <!-- Activity Chart -->
+        <section id="section-activity" class="mb-16">
+            <h2 class="mb-6">Messaging Activity</h2>
+            <div class="card p-8">
+                <div id="activity-chart-container" style="height:400px">
+                    <canvas id="activityChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Content Row -->
+        <div class="grid gap-6 mb-16" style="grid-template-columns: 2fr 1fr">
+            <section id="section-word-cloud" class="card p-8">
+                <h3 class="mb-6">Word Cloud</h3>
+                <div id="wordcloud-container" style="height:350px; background:var(--cream); border:var(--border); border-radius:var(--r-md); position:relative; overflow:hidden">
+                    <p class="absolute center op-30">Generating visualization...</p>
+                </div>
+            </section>
+            <section id="section-emojis" class="card p-8">
+                <h3 class="mb-6">Emoji Mix</h3>
+                <div id="emoji-container" class="space-y-4"></div>
+            </section>
+        </div>
+
+        <section id="section-links" class="card p-8 mb-16">
+            <h3 class="mb-6">Top Shared Links</h3>
+            <div id="links-container" class="grid gap-4" style="grid-template-columns:repeat(auto-fill, minmax(250px, 1fr))"></div>
+        </section>
+
+    </main>
+</div>
+
+<!-- ═══ SHAREABLE CAPTURE CARD (Vertical Layout) ═══ -->
 <div id="shareable-capture-container" style="position:absolute;left:-9999px;top:-9999px" aria-hidden="true">
-    <div id="shareable-card" style="width:1080px;min-height:1920px;font-family:'DM Sans',sans-serif;background:#FFF8F0;color:#1a1a1a;padding:3.5rem;border:8px solid #1a1a1a">
-        <!-- Header -->
-        <div style="border-bottom:4px solid #1a1a1a;padding-bottom:1.5rem;margin-bottom:2rem;display:flex;align-items:center;gap:1.5rem">
-            <img src="static/favicon.png" alt="Logo" style="width:50px;height:50px;border-radius:50%;border:3px solid #1a1a1a">
-            <div style="margin-left:1rem">
-                <h1 style="font-size:2rem;font-weight:900;color:#1a1a1a;letter-spacing:-0.03em;margin:0">The Algorithm</h1>
-                <p style="font-size:1rem;font-weight:600;color:#777;margin:0">Relationship Wrapped</p>
+    <div id="shareable-card" style="width:1080px;height:1920px;background:#FFF8F0;padding:60px;display:flex;flex-direction:column;border:10px solid #000;font-family:'DM Sans',sans-serif">
+        <div style="background:#000;padding:20px;text-align:center;color:#fff;font-weight:900;text-transform:uppercase;letter-spacing:0.2em;font-size:30px;margin-bottom:40px">
+            The Algorithm
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:40px">
+            <div style="background:#fff;border:6px solid #000;padding:60px;box-shadow:20px 20px 0 #000">
+                <div id="share-label" style="display:inline-block;background:#000;color:#fff;padding:10px 20px;font-weight:900;font-size:24px;margin-bottom:30px">--</div>
+                <h1 id="share-title" style="font-size:100px;line-height:1;margin:0;font-weight:900;letter-spacing:-0.04em">--</h1>
+                <p style="margin-top:20px;font-size:32px;color:#666">Between <span id="share-me" class="font-bold">--</span> & <span id="share-partner" class="font-bold">--</span></p>
+            </div>
+            
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:40px">
+                <div style="background:#fff;border:6px solid #000;padding:40px;box-shadow:15px 15px 0 #000">
+                    <p style="text-transform:uppercase;font-weight:900;font-size:24px;color:#FF4081;margin-bottom:10px">Total Messages</p>
+                    <h2 id="share-total" style="font-size:70px;margin:0;font-weight:900">--</h2>
+                </div>
+                <div style="background:#fff;border:6px solid #000;padding:40px;box-shadow:15px 15px 0 #000">
+                    <p style="text-transform:uppercase;font-weight:900;font-size:24px;color:#7C4DFF;margin-bottom:10px">Duration</p>
+                    <h2 id="share-duration" style="font-size:70px;margin:0;font-weight:900">--</h2>
+                </div>
+            </div>
+
+            <div style="background:#fff;border:6px solid #000;padding:40px;box-shadow:15px 15px 0 #000">
+                <p style="text-transform:uppercase;font-weight:900;font-size:24px;margin-bottom:20px">Message Share</p>
+                <div style="height:60px;background:#eee;border:4px solid #000;display:flex;overflow:hidden">
+                    <div id="share-bar-me" style="background:#000;width:50%"></div>
+                    <div id="share-bar-partner" style="background:#FF4081;width:50%"></div>
+                </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:40px">
+                <div style="background:#ffcccc;border:6px solid #000;padding:40px;box-shadow:15px 15px 0 #000">
+                    <p style="text-transform:uppercase;font-weight:900;font-size:24px;margin-bottom:20px">🚩 Red Flag</p>
+                    <p id="share-red" style="font-size:28px;font-weight:700;line-height:1.4">--</p>
+                </div>
+                <div style="background:#ccffcc;border:6px solid #000;padding:40px;box-shadow:15px 15px 0 #000">
+                    <p style="text-transform:uppercase;font-weight:900;font-size:24px;margin-bottom:20px">✅ Green Flag</p>
+                    <p id="share-green" style="font-size:28px;font-weight:700;line-height:1.4">--</p>
+                </div>
+            </div>
+
+            <div style="background:#000;color:#fff;padding:60px;border-radius:20px;text-align:center">
+                <p style="text-transform:uppercase;font-weight:900;font-size:24px;color:#FFD600;margin-bottom:30px">The Final Word</p>
+                <blockquote id="share-verdict" style="font-size:50px;font-weight:900;line-height:1.3;margin:0">"..."</blockquote>
             </div>
         </div>
-
-        <!-- Headline -->
-        <h2 id="share-headline" style="font-size:3rem;font-weight:900;color:#1a1a1a;margin-bottom:2rem;letter-spacing:-0.03em">Your Vibe</h2>
-
-        <!-- Persona -->
-        <div style="background:#E040FB;border:4px solid #1a1a1a;border-radius:16px;padding:2rem;margin-bottom:1.5rem;box-shadow:6px 6px 0 0 #1a1a1a">
-            <span style="font-size:.85rem;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;color:rgba(255,255,255,0.7);display:block;margin-bottom:.5rem">The Persona</span>
-            <div id="share-persona" style="font-size:2.5rem;font-weight:900;color:#fff"></div>
-        </div>
-
-        <!-- Stats Grid: 4 cells -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem">
-            <div style="background:#FFD600;border:3px solid #1a1a1a;border-radius:12px;padding:1.5rem;box-shadow:4px 4px 0 0 #1a1a1a">
-                <span style="font-size:.75rem;text-transform:uppercase;letter-spacing:0.08em;font-weight:700;color:rgba(0,0,0,0.5);display:block;margin-bottom:.3rem">Total Messages</span>
-                <div id="share-total-msgs" style="font-size:2rem;font-weight:900">--</div>
-            </div>
-            <div style="background:#FF4081;border:3px solid #1a1a1a;border-radius:12px;padding:1.5rem;box-shadow:4px 4px 0 0 #1a1a1a">
-                <span style="font-size:.75rem;text-transform:uppercase;letter-spacing:0.08em;font-weight:700;color:rgba(255,255,255,0.6);display:block;margin-bottom:.3rem">Your Share</span>
-                <div id="share-me-pct" style="font-size:2rem;font-weight:900;color:#fff">--</div>
-            </div>
-            <div style="background:#7C4DFF;border:3px solid #1a1a1a;border-radius:12px;padding:1.5rem;box-shadow:4px 4px 0 0 #1a1a1a">
-                <span style="font-size:.75rem;text-transform:uppercase;letter-spacing:0.08em;font-weight:700;color:rgba(255,255,255,0.6);display:block;margin-bottom:.3rem">Avg Response</span>
-                <div id="share-latency" style="font-size:2rem;font-weight:900;color:#fff">--</div>
-            </div>
-            <div style="background:#00E676;border:3px solid #1a1a1a;border-radius:12px;padding:1.5rem;box-shadow:4px 4px 0 0 #1a1a1a">
-                <span style="font-size:.75rem;text-transform:uppercase;letter-spacing:0.08em;font-weight:700;color:rgba(0,0,0,0.5);display:block;margin-bottom:.3rem">Mirroring</span>
-                <div id="share-mirroring" style="font-size:2rem;font-weight:900">--</div>
-            </div>
-        </div>
-
-        <!-- Topic + Support row -->
-        <div style="display:flex;gap:1rem;margin-bottom:1.5rem">
-            <div style="flex:1;background:#fff;border:3px solid #1a1a1a;border-radius:12px;padding:1.5rem;box-shadow:4px 4px 0 0 #1a1a1a">
-                <span style="font-size:.8rem;text-transform:uppercase;letter-spacing:0.08em;font-weight:700;color:#777;display:block;margin-bottom:.3rem">Main Topic</span>
-                <div id="share-topic" style="font-size:1.8rem;font-weight:900"></div>
-            </div>
-            <div style="flex:1;background:#fff;border:3px solid #1a1a1a;border-radius:12px;padding:1.5rem;box-shadow:4px 4px 0 0 #1a1a1a">
-                <span style="font-size:.8rem;text-transform:uppercase;letter-spacing:0.08em;font-weight:700;color:#777;display:block;margin-bottom:.3rem">Support Score</span>
-                <div id="share-support" style="font-size:1.8rem;font-weight:900"></div>
-            </div>
-        </div>
-
-        <!-- Snippet -->
-        <div id="share-snippet" style="font-size:1.6rem;font-style:italic;border-left:6px solid #E040FB;padding-left:1.5rem;margin-bottom:1.5rem;line-height:1.5;color:#333"></div>
-
-        <!-- Compatibility Score -->
-        <div style="background:#FF6D00;border:4px solid #1a1a1a;border-radius:16px;padding:2rem;margin-bottom:1.5rem;box-shadow:6px 6px 0 0 #1a1a1a">
-            <h3 style="font-size:1rem;text-transform:uppercase;letter-spacing:0.08em;font-weight:700;margin-bottom:.5rem;color:rgba(255,255,255,0.7)">Compatibility Score</h3>
-            <div style="font-size:3rem;font-weight:900;display:flex;align-items:baseline;gap:.5rem;color:#fff">
-                <span id="share-compatibility">--</span><span style="font-size:1.1rem;opacity:0.6">/ 100</span>
-            </div>
-        </div>
-
-        <!-- Predictive + Time Machine -->
-        <div id="share-predictive" style="font-size:1.3rem;margin-bottom:1rem;line-height:1.5;color:#555"></div>
-        <div id="share-time-machine" style="font-size:1.3rem;margin-bottom:1.5rem;line-height:1.5;color:#555"></div>
-
-        <!-- Footer -->
-        <div style="text-align:center;border-top:3px solid #1a1a1a;padding-top:1.5rem;font-size:1rem;font-weight:700;color:#999">
-            Generated by The Algorithm
+        <div style="margin-top:60px;text-align:center;font-weight:900;letter-spacing:0.1em;border-top:4px dashed #000;padding-top:40px;font-size:28px">
+            WWW.THEALGORITHM.REPORTS
         </div>
     </div>
 </div>
 
-<!-- ═══ RESTART CTA ═══ -->
-<section style="background:var(--yellow);padding:3rem 0;border-top:var(--border-thick);border-bottom:var(--border-thick);position:relative">
-    <svg style="position:absolute;top:0;left:0;width:100%;transform:translateY(-98%)" preserveAspectRatio="none" viewBox="0 0 1440 64"><path fill="var(--yellow)" d="M0,32L120,37.3C240,43,480,53,720,48C960,43,1200,37,1320,34.7L1440,32L1440,64L0,64Z"/></svg>
-    <div class="container text-center">
-        <h2 style="margin-bottom:1rem">Want to try another chat?</h2>
-        <div class="flex justify-center gap-4 flex-wrap">
-            <a href="/" class="btn btn--dark btn--lg">Start Over</a>
-            <button id="downloadVibeBtn" onclick="downloadWrappedCard()" class="btn btn--primary btn--lg" aria-live="polite">
-                Download Vibe Card
-            </button>
-            <button id="copySummaryBtn" type="button" class="btn btn--purple btn--lg">
-                Copy Summary
-            </button>
-        </div>
-    </div>
-</section>
-
-<!-- ═══ ACCURACY FOOTER ═══ -->
-<footer style="background:var(--black);padding:2rem 0;text-align:center">
-    <div class="container">
-        <p style="font-size:.8rem;color:var(--gray-500);max-width:600px;margin:0 auto"><strong style="color:var(--yellow)">Accuracy Warning:</strong> AI provides insights based exclusively on parsed text data; it cannot account for tone of voice, offline actions, or missing emotional context.</p>
-    </div>
-</footer>
-
-<!-- ═══ FLASHBACK MODAL ═══ -->
-<div id="flashback-modal" class="modal-backdrop" style="z-index:300">
-    <div class="modal-content" style="max-width:550px">
-        <button onclick="closeFlashback()" class="modal-close">&times;</button>
-        <h3 style="font-family:var(--font-heading);font-weight:900;color:var(--pink);font-size:1.5rem;margin-bottom:.25rem">Memory Flashback</h3>
-        <p style="font-size:.75rem;color:var(--gray-400);margin-bottom:1.5rem" id="flashback-date"></p>
-        <div id="flashback-content" style="max-height:60vh;overflow-y:auto;padding-right:.5rem"></div>
-        <button onclick="closeFlashback()" class="btn btn--dark btn--full" style="margin-top:1.5rem">Close</button>
-    </div>
-</div>
-
-<!-- Toast Container -->
-<div id="toast-container" role="status" aria-live="polite" style="position:fixed;bottom:1.5rem;right:1.5rem;z-index:250;display:flex;flex-direction:column;align-items:flex-end;gap:.75rem;pointer-events:none"></div>
-
+<!-- Scripts -->
 <script src="static/js/dashboard_utils.js?v=5.0"></script>
 <script src="static/js/dashboard.js?v=5.0"></script>
 <script>
     function closeFlashback() {
-        document.getElementById('flashback-modal').classList.remove('active');
-        document.getElementById('flashback-modal').classList.add('hidden');
+        document.getElementById('flashback-modal')?.classList.remove('active');
+        document.getElementById('flashback-modal')?.classList.add('hidden');
     }
 </script>
 </body>
