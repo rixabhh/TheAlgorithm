@@ -147,14 +147,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         llmProviderEl?.addEventListener('change', (e) => updateProviderHint(e.target.value));
 
-        saveSettingsBtn?.addEventListener('click', () => {
-            const key = apiKeyEl ? apiKeyEl.value.trim() : '';
-            sessionStorage.setItem('_llm_token', btoa(key));
-            localStorage.setItem('hf_url', hfUrlEl ? hfUrlEl.value.trim() : '');
-            localStorage.setItem('llm_provider', llmProviderEl ? llmProviderEl.value : 'cloudflare');
-            updateApiKeyUI();
-            hideModal(settingsModal);
-        });
     }
 
     // --- UI Utilities ---
@@ -182,9 +174,65 @@ document.addEventListener('DOMContentLoaded', () => {
         const hintEl = document.getElementById('providerHint');
         const hfContainer = document.getElementById('hfUrlContainer');
         if (!hintEl) return;
-        const hints = { 'cloudflare': 'Free Tier (2 reports/hr)', 'openai': 'sk-proj-...', 'anthropic': 'sk-ant-...', 'gemini': 'Google API Key' };
+        const hints = {
+            'cloudflare': 'Free Tier (2 reports/hr)',
+            'openai': 'sk-proj-...',
+            'anthropic': 'sk-ant-...',
+            'gemini': '39-char Google API Key',
+            'openrouter': 'sk-or-v1-...',
+            'groq': 'gsk_...',
+            'grok': 'xai-...'
+        };
         hintEl.textContent = hints[provider] || '';
         if (hfContainer) hfContainer.classList.toggle('hidden', provider !== 'huggingface');
+    }
+
+    const validateApiKeyFormat = (provider, key) => {
+        if (!key || key.trim() === '') return provider === 'cloudflare';
+        if (provider === 'openai' && !key.startsWith('sk-')) return false;
+        if (provider === 'anthropic' && !key.startsWith('sk-ant-')) return false;
+        if (provider === 'openrouter' && !key.startsWith('sk-or-')) return false;
+        if (provider === 'groq' && !key.startsWith('gsk_')) return false;
+        if (provider === 'grok' && !key.startsWith('xai-')) return false;
+        if (provider === 'gemini' && key.length !== 39) return false;
+        return true;
+    };
+
+    if (settingsBtn && settingsModal) {
+        settingsBtn.addEventListener('click', () => {
+            showModal(settingsModal);
+            document.getElementById('llmProvider')?.focus();
+        });
+        closeSettings?.addEventListener('click', () => hideModal(settingsModal));
+
+        const apiKeyEl = document.getElementById('apiKey');
+        const hfUrlEl = document.getElementById('hfUrl');
+        const llmProviderEl = document.getElementById('llmProvider');
+
+        if (apiKeyEl) apiKeyEl.value = sessionStorage.getItem('_llm_token') ? atob(sessionStorage.getItem('_llm_token')) : '';
+        if (hfUrlEl) hfUrlEl.value = localStorage.getItem('hf_url') || '';
+        const savedProvider = localStorage.getItem('llm_provider') || 'cloudflare';
+        if (llmProviderEl) {
+            llmProviderEl.value = savedProvider;
+            updateProviderHint(savedProvider);
+        }
+        llmProviderEl?.addEventListener('change', (e) => updateProviderHint(e.target.value));
+
+        saveSettingsBtn?.addEventListener('click', () => {
+            const key = apiKeyEl ? apiKeyEl.value.trim() : '';
+            const provider = llmProviderEl ? llmProviderEl.value : 'cloudflare';
+
+            if (provider !== 'cloudflare' && !validateApiKeyFormat(provider, key)) {
+                alert(`Invalid API key format for ${provider}. Please check and try again.`);
+                return;
+            }
+
+            sessionStorage.setItem('_llm_token', btoa(key));
+            localStorage.setItem('hf_url', hfUrlEl ? hfUrlEl.value.trim() : '');
+            localStorage.setItem('llm_provider', provider);
+            updateApiKeyUI();
+            hideModal(settingsModal);
+        });
     }
 
     const showError = (message) => {
