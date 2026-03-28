@@ -262,8 +262,12 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const red = document.getElementById('ai-insight-red-flags');
             const green = document.getElementById('ai-insight-green-flags');
+            const growth = document.getElementById('ai-insight-growth');
+            const coaching = document.getElementById('ai-insight-coaching');
             if (red) red.innerHTML = (report.ai_insight?.red_flags || []).map(f => `<li>${f}</li>`).join('');
             if (green) green.innerHTML = (report.ai_insight?.green_flags || []).map(f => `<li>${f}</li>`).join('');
+            if (growth) growth.innerHTML = (report.ai_insight?.growth_areas || []).map(f => `<li>${f}</li>`).join('');
+            if (coaching) coaching.textContent = report.ai_insight?.coaching_advice || "";
 
             loading.classList.add('hidden');
             results.classList.remove('hidden');
