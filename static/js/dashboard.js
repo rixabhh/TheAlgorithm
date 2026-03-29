@@ -12,7 +12,44 @@ document.addEventListener('DOMContentLoaded', () => {
     let activeSlot = 'a';
 
     // 1. DATA LOADING
-    if (isCompareMode) {
+    const hash = window.location.hash;
+    if (hash && hash.startsWith('#share=')) {
+        try {
+            const encoded = hash.substring(7);
+            activeData = JSON.parse(atob(encoded));
+            window.activeData = activeData;
+            document.getElementById('profile-name').textContent = `${activeData.my_name} & ${activeData.partner_name}`;
+
+            // Reconstruct a minimal LLM report mock since shared URL does not include full stats
+            if (activeData.share_report) {
+                window.llmReport = activeData.share_report;
+                setTimeout(() => {
+                    const results = document.getElementById('ai-results-container');
+                    const permission = document.getElementById('ai-permission-container');
+                    if (permission) permission.classList.add('hidden');
+                    if (results) {
+                        results.classList.remove('hidden');
+                        document.getElementById('ai-insight-title').textContent = activeData.share_report.title;
+                        document.getElementById('ai-insight-reality').textContent = activeData.share_report.reality;
+                        document.getElementById('ai-insight-shift').textContent = activeData.share_report.shift;
+                        document.getElementById('ai-insight-verdict').textContent = activeData.share_report.verdict;
+
+                        const red = document.getElementById('ai-insight-red-flags');
+                        const green = document.getElementById('ai-insight-green-flags');
+                        if (red && activeData.share_report.red) red.innerHTML = `<li>${activeData.share_report.red}</li>`;
+                        if (green && activeData.share_report.green) green.innerHTML = `<li>${activeData.share_report.green}</li>`;
+
+                        const regen = document.getElementById('regenerateBtn');
+                        if(regen) regen.style.display = 'none';
+                    }
+                }, 500);
+            }
+        } catch (e) {
+            console.error("Failed to parse share data", e);
+            window.location.href = '/';
+            return;
+        }
+    } else if (isCompareMode) {
         dataA = JSON.parse(sessionStorage.getItem('compare_a'));
         dataB = JSON.parse(sessionStorage.getItem('compare_b'));
         if (!dataA || !dataB) { window.location.href = '/'; return; }
@@ -337,3 +374,43 @@ async function downloadWrappedCard() {
     }
 }
 
+function generateShareUrl() {
+    const btn = document.getElementById('shareUrlBtn');
+    if (!btn || !window.activeData) return;
+
+    const originalText = btn.textContent;
+    btn.textContent = "COPIED!";
+
+    // Privacy boundary: Only include aggregate, anonymous stats.
+    // No message contents or identifiable structures.
+    const shareData = {
+        my_name: "Person 1",
+        partner_name: "Person 2",
+        stats: {
+            messages: window.activeData.stats?.messages,
+            duration: window.activeData.stats?.duration,
+            behavioral_traits: window.activeData.stats?.behavioral_traits
+        },
+        share_report: window.llmReport ? {
+            title: window.llmReport.ai_insight?.dynamic_title || "Vibe Checked",
+            reality: window.llmReport.ai_insight?.reality_check || "Anonymous share.",
+            shift: window.llmReport.ai_insight?.recent_shift || "Stable.",
+            verdict: window.llmReport.ai_insight?.brutal_verdict || "It is what it is.",
+            red: window.llmReport.ai_insight?.red_flags?.[0],
+            green: window.llmReport.ai_insight?.green_flags?.[0]
+        } : null
+    };
+
+    const encoded = btoa(JSON.stringify(shareData));
+    const shareUrl = `${window.location.origin}/dashboard.html#share=${encoded}`;
+
+    navigator.clipboard.writeText(shareUrl).then(() => {
+        setTimeout(() => {
+            btn.textContent = originalText;
+        }, 2000);
+    }).catch(err => {
+        console.error("Clipboard write failed", err);
+        alert("Failed to copy URL");
+        btn.textContent = originalText;
+    });
+}

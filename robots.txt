@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://thealgorithm.rixabh.workers.dev/sitemap.xml
