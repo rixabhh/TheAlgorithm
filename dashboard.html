@@ -4,6 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Your Report | The Algorithm</title>
+    <meta property="og:title" content="The Algorithm — AI Relationship Analyzer" />
+    <meta property="og:description" content="Find out what your chats really say about your relationship. Privacy-first, BYOK, zero data stored." />
+    <meta property="og:image" content="/static/og-image.png" />
+    <meta property="og:url" content="https://thealgorithm.rixabh.workers.dev/" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="The Algorithm" />
+    <meta name="twitter:description" content="What do your chats say about your relationship? Find out — your data never leaves your device." />
+    <meta name="twitter:image" content="/static/og-image.png" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
@@ -154,6 +163,8 @@
                     <span id="ai-insight-timestamp" class="text-xs color-gray-500"></span>
                     <div class="flex gap-2">
                         <button id="downloadVibeBtn" class="btn btn--pink btn--sm" onclick="downloadWrappedCard()">📸 VIBE CARD</button>
+                        <button id="share-btn" class="btn btn--pink btn--sm">🖼️ SHARE CARD</button>
+                        <button id="shareUrlBtn" class="btn btn--white btn--sm" onclick="generateShareUrl()">🔗 SHARE URL</button>
                         <button id="regenerateBtn" class="btn btn--white btn--sm">✨ REGENERATE</button>
                     </div>
                 </div>
@@ -215,6 +226,54 @@
                         <div class="trait-bar-item mb-2">
                             <div class="flex justify-between text-xs font-bold uppercase mb-1"><span>Politeness</span><span id="trait-val-politeness-partner">0</span></div>
                             <div class="h-1.5 bg-cream rounded-full border overflow-hidden"><div id="trait-bar-politeness-partner" class="h-full bg-purple" style="width:0%"></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pro Features (Locked) -->
+        <section id="section-pro-features" class="mb-16">
+            <h2 class="mb-6">Advanced Analytics</h2>
+            <div class="grid gap-6" style="grid-template-columns:1fr 1fr">
+                <!-- Gaslighting & Manipulation -->
+                <div class="relative group">
+                    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm rounded-xl flex items-center justify-center z-10 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                        <div class="text-center">
+                            <span class="text-2xl">🔐</span>
+                            <p class="text-white font-medium mt-2">Pro Feature</p>
+                            <button onclick="openWaitlist()" class="mt-3 px-4 py-2 bg-purple-600 rounded-lg text-sm text-white border-2 border-black" style="cursor: pointer;">
+                                Get Early Access
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card p-6 opacity-40 pointer-events-none" style="border-width: 4px;">
+                        <h4 class="mb-2">🎭 Toxic Pattern Detection</h4>
+                        <p class="text-sm color-gray-500 mb-4">Deep scan for gaslighting, breadcrumbing, and manipulation.</p>
+                        <div class="flex items-center justify-between bg-cream p-3 rounded border">
+                            <span class="font-bold text-xs uppercase">Risk Level</span>
+                            <span class="pill-label pill-label--red">Unknown</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Conflict Resolution -->
+                <div class="relative group">
+                    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm rounded-xl flex items-center justify-center z-10 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                        <div class="text-center">
+                            <span class="text-2xl">🔐</span>
+                            <p class="text-white font-medium mt-2">Pro Feature</p>
+                            <button onclick="openWaitlist()" class="mt-3 px-4 py-2 bg-purple-600 rounded-lg text-sm text-white border-2 border-black" style="cursor: pointer;">
+                                Get Early Access
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card p-6 opacity-40 pointer-events-none" style="border-width: 4px;">
+                        <h4 class="mb-2">⚔️ Conflict Resolution Style</h4>
+                        <p class="text-sm color-gray-500 mb-4">How do you fight? Who apologizes first? How long to resolve?</p>
+                        <div class="flex items-center justify-between bg-cream p-3 rounded border">
+                            <span class="font-bold text-xs uppercase">Avg Resolution</span>
+                            <span class="font-black text-lg">--</span>
                         </div>
                     </div>
                 </div>
@@ -316,6 +375,10 @@
     function closeFlashback() {
         document.getElementById('flashback-modal')?.classList.remove('active');
         document.getElementById('flashback-modal')?.classList.add('hidden');
+    }
+
+    function openWaitlist() {
+        alert("Pro features are coming soon! Keep your eyes peeled.");
     }
 </script>
 </body>
