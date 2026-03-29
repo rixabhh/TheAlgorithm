@@ -2,6 +2,19 @@
  * The Algorithm - Dashboard Controller (V10.0 Premium Comparison)
  */
 
+function escapeHTML(str) {
+    if (typeof str !== 'string') return String(str);
+    return str.replace(/[&<>'"]/g,
+        tag => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            "'": '&#39;',
+            '"': '&quot;'
+        }[tag] || tag)
+    );
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const isCompareMode = urlParams.get('mode') === 'compare';
@@ -16,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (hash && hash.startsWith('#share=')) {
         try {
             const encoded = hash.substring(7);
-            activeData = JSON.parse(atob(encoded));
+            activeData = JSON.parse(decodeURIComponent(atob(encoded)));
             window.activeData = activeData;
             document.getElementById('profile-name').textContent = `${activeData.my_name} & ${activeData.partner_name}`;
 
@@ -36,8 +49,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         const red = document.getElementById('ai-insight-red-flags');
                         const green = document.getElementById('ai-insight-green-flags');
-                        if (red && activeData.share_report.red) red.innerHTML = `<li>${activeData.share_report.red}</li>`;
-                        if (green && activeData.share_report.green) green.innerHTML = `<li>${activeData.share_report.green}</li>`;
+                        if (red && activeData.share_report.red) red.innerHTML = `<li>${escapeHTML(activeData.share_report.red)}</li>`;
+                        if (green && activeData.share_report.green) green.innerHTML = `<li>${escapeHTML(activeData.share_report.green)}</li>`;
 
                         const regen = document.getElementById('regenerateBtn');
                         if(regen) regen.style.display = 'none';
@@ -117,9 +130,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (bar) bar.style.width = val + '%';
             });
             const pills = document.getElementById(`traits-pills-${suffix}`);
-            if (pills) pills.innerHTML = (data.highlights || []).map(h => `<span class="pill-label pill-label--pink" style="font-size:0.6rem">${h.label}: ${h.count}</span>`).join('');
+            if (pills) pills.innerHTML = (data.highlights || []).map(h => `<span class="pill-label pill-label--pink" style="font-size:0.6rem">${escapeHTML(h.label)}: ${escapeHTML(h.count)}</span>`).join('');
             const summary = document.getElementById(`traits-summary-${suffix}`);
-            if (summary) summary.innerHTML = (data.summary || []).map(s => `<li>${s}</li>`).join('');
+            if (summary) summary.innerHTML = (data.summary || []).map(s => `<li>${escapeHTML(s)}</li>`).join('');
         };
         update('me', traits.ME);
         update('partner', traits.PARTNER);
@@ -137,12 +150,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const el = document.getElementById('engagement-list');
         if (!el) return;
         const init = stats.initiator_ratio || { me_count: 0, partner_count: 0 };
+        const myNameSafe = escapeHTML(activeData.my_name);
+        const partnerNameSafe = escapeHTML(activeData.partner_name);
+        const starter = init.me_initiations > init.partner_initiations ? myNameSafe : partnerNameSafe;
         el.innerHTML = `
-            <div class="flex justify-between"><span>Chat Starter</span><span class="pill-label pill-label--purple">${init.me_initiations > init.partner_initiations ? activeData.my_name : activeData.partner_name}</span></div>
-            <div class="flex justify-between"><span>Mirroring</span><span class="font-black">${stats.mirroring || 0}%</span></div>
-            <div class="flex justify-between"><span>Max Inactivity</span><span class="font-black">${stats.max_inactivity || "N/A"} days</span></div>
-            <div class="flex justify-between"><span>Avg Response (${activeData.my_name})</span><span class="font-black">${formatTime(init.me_latency_avg)}</span></div>
-            <div class="flex justify-between"><span>Avg Response (${activeData.partner_name})</span><span class="font-black">${formatTime(init.partner_latency_avg)}</span></div>
+            <div class="flex justify-between"><span>Chat Starter</span><span class="pill-label pill-label--purple">${starter}</span></div>
+            <div class="flex justify-between"><span>Mirroring</span><span class="font-black">${escapeHTML(stats.mirroring || 0)}%</span></div>
+            <div class="flex justify-between"><span>Max Inactivity</span><span class="font-black">${escapeHTML(stats.max_inactivity || "N/A")} days</span></div>
+            <div class="flex justify-between"><span>Avg Response (${myNameSafe})</span><span class="font-black">${escapeHTML(formatTime(init.me_latency_avg))}</span></div>
+            <div class="flex justify-between"><span>Avg Response (${partnerNameSafe})</span><span class="font-black">${escapeHTML(formatTime(init.partner_latency_avg))}</span></div>
         `;
     };
 
@@ -150,7 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const container = document.getElementById('emoji-container');
         if (!container) return;
         const emojis = [...(stats.emoji_frequency?.ME || []), ...(stats.emoji_frequency?.PARTNER || [])].sort((a,b)=>b.count-a.count).slice(0, 8);
-        container.innerHTML = emojis.map(e => `<div class="flex align-center gap-3"><span>${e.emoji}</span><div class="flex-1 h-2 bg-cream rounded-full overflow-hidden"><div class="h-full bg-pink" style="width:${(e.count / emojis[0].count * 100)}%"></div></div></div>`).join('');
+        container.innerHTML = emojis.map(e => `<div class="flex align-center gap-3"><span>${escapeHTML(e.emoji)}</span><div class="flex-1 h-2 bg-cream rounded-full overflow-hidden"><div class="h-full bg-pink" style="width:${escapeHTML((e.count / emojis[0].count * 100))}%"></div></div></div>`).join('');
     };
 
     const renderStreaks = (stats) => {
@@ -158,8 +174,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!container) return;
         const s = stats.streaks || { longest: 0, current: 0 };
         container.innerHTML = `
-            <div class="card p-4 bg-cream text-center"><p class="text-xs uppercase op-50">Longest Streak</p><p class="text-xl font-black">${s.longest} days</p></div>
-            <div class="card p-4 bg-cream text-center"><p class="text-xs uppercase op-50">Current Streak</p><p class="text-xl font-black">${s.current} days</p></div>
+            <div class="card p-4 bg-cream text-center"><p class="text-xs uppercase op-50">Longest Streak</p><p class="text-xl font-black">${escapeHTML(s.longest)} days</p></div>
+            <div class="card p-4 bg-cream text-center"><p class="text-xs uppercase op-50">Current Streak</p><p class="text-xl font-black">${escapeHTML(s.current)} days</p></div>
         `;
     };
 
@@ -169,7 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const words = stats.top_words || [];
         if (!words.length) { container.innerHTML = '<p class="op-30">No data</p>'; return; }
         const max = words[0].count;
-        container.innerHTML = `<div class="flex flex-wrap justify-center p-4 gap-4">${words.slice(0, 20).map(w => `<span style="font-size:${0.8 + (w.count/max)*1.5}rem; font-weight:900; opacity:${0.4 + (w.count/max)*0.6}">${w.word}</span>`).join('')}</div>`;
+        container.innerHTML = `<div class="flex flex-wrap justify-center p-4 gap-4">${words.slice(0, 20).map(w => `<span style="font-size:${escapeHTML(0.8 + (w.count/max)*1.5)}rem; font-weight:900; opacity:${escapeHTML(0.4 + (w.count/max)*0.6)}">${escapeHTML(w.word)}</span>`).join('')}</div>`;
     };
 
     // --- CHART LOGIC ---
@@ -299,8 +315,8 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const red = document.getElementById('ai-insight-red-flags');
             const green = document.getElementById('ai-insight-green-flags');
-            if (red) red.innerHTML = (report.ai_insight?.red_flags || []).map(f => `<li>${f}</li>`).join('');
-            if (green) green.innerHTML = (report.ai_insight?.green_flags || []).map(f => `<li>${f}</li>`).join('');
+            if (red) red.innerHTML = (report.ai_insight?.red_flags || []).map(f => `<li>${escapeHTML(f)}</li>`).join('');
+            if (green) green.innerHTML = (report.ai_insight?.green_flags || []).map(f => `<li>${escapeHTML(f)}</li>`).join('');
 
             loading.classList.add('hidden');
             results.classList.remove('hidden');
@@ -374,6 +390,95 @@ async function downloadWrappedCard() {
     }
 }
 
+// Wrap text utility for Canvas API
+function wrapText(context, text, x, y, maxWidth, lineHeight) {
+    if (!text) return;
+    const words = text.split(' ');
+    let line = '';
+
+    for(let n = 0; n < words.length; n++) {
+      const testLine = line + words[n] + ' ';
+      const metrics = context.measureText(testLine);
+      const testWidth = metrics.width;
+      if (testWidth > maxWidth && n > 0) {
+        context.fillText(line, x, y);
+        line = words[n] + ' ';
+        y += lineHeight;
+      }
+      else {
+        line = testLine;
+      }
+    }
+    context.fillText(line, x, y);
+}
+
+function generateShareCard(analysisData) {
+    if (!analysisData) {
+        console.error("No analysis data provided");
+        return null;
+    }
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 1200;
+    canvas.height = 630; // OG image dimensions
+    const ctx = canvas.getContext('2d');
+
+    // Dark gradient background
+    const gradient = ctx.createLinearGradient(0, 0, 1200, 630);
+    gradient.addColorStop(0, '#1a0a2e');
+    gradient.addColorStop(1, '#0f0a1e');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 1200, 630);
+
+    // Logo / branding
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 48px Inter, sans-serif';
+    ctx.fillText('The Algorithm', 60, 100);
+
+    // Health score
+    ctx.fillStyle = '#a855f7';
+    ctx.font = 'bold 120px Inter, sans-serif';
+    ctx.fillText(`${analysisData.health_score || '--'}`, 60, 260);
+    ctx.fillStyle = '#ffffff80';
+    ctx.font = '32px Inter, sans-serif';
+    ctx.fillText('relationship health score', 60, 310);
+
+    // Top insight
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '28px Inter, sans-serif';
+    wrapText(ctx, analysisData.top_insight || 'Everything looks solid.', 60, 400, 1080, 40);
+
+    // Footer
+    ctx.fillStyle = '#ffffff40';
+    ctx.font = '24px Inter, sans-serif';
+    ctx.fillText('thealgorithm.rixabh.workers.dev', 60, 590);
+
+    return canvas.toDataURL('image/png');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const shareBtn = document.getElementById('share-btn');
+    if (shareBtn) {
+        shareBtn.addEventListener('click', () => {
+            const data = window.activeData || {};
+            const report = window.llmReport || {};
+            const insight = report.ai_insight?.brutal_verdict || report.ai_insight?.dynamic_title || report.relationship_persona;
+
+            const imageData = generateShareCard({
+                health_score: report.compatibility_score,
+                top_insight: insight
+            });
+
+            if (imageData) {
+                const link = document.createElement('a');
+                link.download = 'my-algorithm-results.png';
+                link.href = imageData;
+                link.click();
+            }
+        });
+    }
+});
+
 function generateShareUrl() {
     const btn = document.getElementById('shareUrlBtn');
     if (!btn || !window.activeData) return;
@@ -401,7 +506,7 @@ function generateShareUrl() {
         } : null
     };
 
-    const encoded = btoa(JSON.stringify(shareData));
+    const encoded = btoa(encodeURIComponent(JSON.stringify(shareData)));
     const shareUrl = `${window.location.origin}/dashboard.html#share=${encoded}`;
 
     navigator.clipboard.writeText(shareUrl).then(() => {
