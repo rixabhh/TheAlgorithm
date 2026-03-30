@@ -223,12 +223,22 @@
                     <div id="fileList" class="hidden" style="font-size:.85rem;font-weight:700;padding:.75rem 1rem;background:var(--green);color:var(--white);border:var(--border);border-radius:var(--r-sm);box-shadow:2px 2px 0 0 var(--black)"></div>
                     <div id="filename-display" class="hidden"></div>
                     
-                    <div id="jsonPlatformSelector" class="hidden" style="padding:.75rem;border:var(--border);border-radius:var(--r-sm);background:var(--blue);box-shadow:var(--shadow)">
-                        <p style="font-family:var(--font-heading);font-weight:900;color:var(--white);margin-bottom:.4rem;font-size:.75rem">Confirm JSON Platform Format</p>
-                        <select id="jsonPlatform" class="form-control" style="font-size:.8rem;padding:.4rem .5rem">
-                            <option value="Instagram">Instagram</option>
+                    <div id="jsonPlatformSelector" class="hidden" style="padding:1rem;border:var(--border);border-radius:var(--r-sm);background:var(--blue);box-shadow:2px 2px 0 0 var(--black)">
+                        <label for="jsonPlatform" style="display:block;font-family:var(--font-heading);font-weight:900;color:var(--white);margin-bottom:.5rem;font-size:.85rem;letter-spacing:.02em">Confirm JSON Platform Output</label>
+                        <select id="jsonPlatform" class="sr-only" aria-hidden="true">
+                            <option value="Instagram" selected>Instagram</option>
                             <option value="Discord">Discord</option>
                         </select>
+                        <div class="custom-select" data-target="jsonPlatform">
+                            <button type="button" class="custom-select-trigger" aria-haspopup="listbox" aria-expanded="false" style="border:2px solid var(--black);font-weight:700">
+                                <span class="custom-select-label">Instagram</span>
+                                <svg class="custom-select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+                            </button>
+                            <div class="custom-select-options" role="listbox">
+                                <div class="custom-select-option selected" data-value="Instagram" role="option" style="font-weight:700">Instagram</div>
+                                <div class="custom-select-option" data-value="Discord" role="option" style="font-weight:700">Discord</div>
+                            </div>
+                        </div>
                     </div>
 
                     <h3 style="border-bottom:2px solid var(--black);padding-bottom:.35rem;display:inline-block;align-self:flex-start;margin-top:.25rem;font-size:1rem">3. Process</h3>
