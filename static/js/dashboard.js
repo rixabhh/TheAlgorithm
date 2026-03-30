@@ -240,6 +240,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 stats: activeData.stats,
                 my_name: activeData.my_name,
                 partner_name: activeData.partner_name,
+                connection_type: activeData.connection_type || 'romantic',
+                language: activeData.language || 'english',
+                context: activeData.context || '',
+                tone: activeData.tone || 'balanced',
                 compare_data: isCompareMode ? { a: dataA.stats, b: dataB.stats, nameA: dataA.partner_name, nameB: dataB.partner_name } : null,
                 provider: localStorage.getItem('llm_provider') || 'cloudflare',
                 api_key: sessionStorage.getItem('_llm_token') ? atob(sessionStorage.getItem('_llm_token')) : ''

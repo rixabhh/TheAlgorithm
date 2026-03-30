@@ -56,6 +56,10 @@ class AnalyticsEngine {
         const lexicalDiversity = this.calculateLexicalDiversity(processed);
         const links = this.extractLinks(processed);
         const symmetry = this.calculateSymmetryScore(initiatorInfo, powerInfo);
+        
+        // --- MSG DISTRIBUTION FOR CHARTS ---
+        const msgDist = { ME: 0, PARTNER: 0 };
+        processed.forEach(m => { msgDist[m.sender]++; });
 
         const weekly = this.aggregateWeekly(latencyInfo);
         const riskAnalysis = this.calculateRiskScore(weekly);
@@ -76,9 +80,12 @@ class AnalyticsEngine {
             max_inactivity: maxInactivity,
             sleep_time: sleepTime,
             behavioral_traits: behavioralTraits,
+            messages: msgDist,
+            words: { ME: powerInfo.me_word_count, PARTNER: powerInfo.partner_word_count },
+            chars: { ME: powerInfo.me_char_count, PARTNER: powerInfo.partner_char_count },
             threads: threads,
             duration: duration,
-            streak_info: streakInfo,
+            streaks: { longest: streakInfo.max_streak, current: streakInfo.current_streak || 0, active_pct: streakInfo.active_pct },
             lexical_diversity: lexicalDiversity,
             links: links,
             symmetry: symmetry,
@@ -200,6 +207,7 @@ class AnalyticsEngine {
         
         return {
             max_streak: maxStreak,
+            current_streak: currentStreak,
             days_active: activeDays.size,
             active_pct: Math.round((activeDays.size / (totalDaysRange || 1)) * 100)
         };

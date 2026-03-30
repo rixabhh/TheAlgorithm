@@ -78,19 +78,44 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    const analyzeBtn = document.getElementById('analyzeBtn');
+
+    const updateSubmitState = () => {
+        if (!analyzeBtn) return;
+        const hasFile = fileInput && fileInput.files.length > 0;
+        const provider = localStorage.getItem('llm_provider') || 'cloudflare';
+        const keyRaw = sessionStorage.getItem('_llm_token');
+        const hasValidKey = (provider === 'cloudflare') || (keyRaw && keyRaw.trim() !== '' && keyRaw !== btoa(''));
+        
+        analyzeBtn.disabled = !(hasFile && hasValidKey);
+        
+        if (!hasValidKey) {
+            analyzeBtn.textContent = 'Configure API Key First →';
+            analyzeBtn.style.opacity = '0.5';
+        } else if (!hasFile) {
+            analyzeBtn.textContent = 'Upload File to Decode →';
+            analyzeBtn.style.opacity = '0.5';
+        } else {
+            analyzeBtn.textContent = 'Decode My Chat →';
+            analyzeBtn.style.opacity = '1';
+        }
+    };
+
     // --- API Key Status ---
     const updateApiKeyUI = () => {
         const icon = document.getElementById('apiKeyStatusIcon');
         const text = document.getElementById('apiKeyStatusText');
+        const provider = localStorage.getItem('llm_provider') || 'cloudflare';
         if (!icon || !text) return;
         const key = sessionStorage.getItem('_llm_token');
-        if (key && key.trim() !== "" && key !== btoa("")) {
+        if (provider === 'cloudflare' || (key && key.trim() !== "" && key !== btoa(""))) {
             icon.textContent = '✅';
-            text.textContent = 'API Key Configured';
+            text.textContent = provider === 'cloudflare' ? 'Cloudflare Free Tier' : 'API Key Configured';
         } else {
             icon.textContent = '🔑';
             text.textContent = 'API Key Required';
         }
+        updateSubmitState();
     };
     updateApiKeyUI();
 
@@ -173,18 +198,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateFileList() {
         if (fileList && fileInput.files.length > 0) {
+            const fileName = fileInput.files[0].name;
             fileList.classList.remove('hidden');
-            fileList.textContent = `✅ Selected: ${Array.from(fileInput.files).map(f => f.name).join(', ')}`;
+            fileList.textContent = `✅ Selected: ${fileName}`;
+            
+            const jsonSelector = document.getElementById('jsonPlatformSelector');
+            if (jsonSelector) {
+                if (fileName.toLowerCase().endsWith('.json')) {
+                    jsonSelector.classList.remove('hidden');
+                } else {
+                    jsonSelector.classList.add('hidden');
+                }
+            }
         }
+        updateSubmitState();
     }
 
     function updateProviderHint(provider) {
         const hintEl = document.getElementById('providerHint');
         const hfContainer = document.getElementById('hfUrlContainer');
+        const apiKeyContainer = document.getElementById('apiKeyContainer');
         if (!hintEl) return;
         const hints = { 'cloudflare': 'Free Tier (2 reports/hr)', 'openai': 'sk-proj-...', 'anthropic': 'sk-ant-...', 'gemini': 'Google API Key' };
         hintEl.textContent = hints[provider] || '';
+        
         if (hfContainer) hfContainer.classList.toggle('hidden', provider !== 'huggingface');
+        if (apiKeyContainer) apiKeyContainer.classList.toggle('hidden', provider === 'cloudflare');
+        updateSubmitState();
     }
 
     const showError = (message) => {
@@ -342,27 +382,58 @@ document.addEventListener('DOMContentLoaded', () => {
     if (uploadForm) {
         uploadForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            hideError();
-            if (!fileInput.files.length) { showError('Select a file.'); return; }
-            
-            const loadingOverlay = document.getElementById('loading-overlay');
-            if (loadingOverlay) loadingOverlay.classList.remove('hidden');
+                hideError();
+                
+                const provider = localStorage.getItem('llm_provider') || 'cloudflare';
+                const apiKeyB64 = sessionStorage.getItem('_llm_token');
+                if (provider !== 'cloudflare' && (!apiKeyB64 || apiKeyB64.trim() === '' || apiKeyB64 === btoa(''))) {
+                    showError(`An API Key is required for ${document.querySelector('#llmProvider option:checked')?.text || provider}. Configure it first.`);
+                    if (analyzeBtn) {
+                        analyzeBtn.disabled = false;
+                        analyzeBtn.textContent = 'Configure API Key First →';
+                    }
+                    return;
+                }
+                
+                if (!fileInput.files.length) { showError('Select a file.'); return; }
+                
+                const loadingOverlay = document.getElementById('loading-overlay');
+                if (loadingOverlay) loadingOverlay.classList.remove('hidden');
 
-            const parser = new ChatParser();
-            const analytics = new AnalyticsEngine();
+                const parser = new ChatParser();
+                const analytics = new AnalyticsEngine();
+
+                if (analyzeBtn) {
+                    analyzeBtn.disabled = true;
+                    analyzeBtn.textContent = 'Processing...';
+                }
 
             try {
                 const file = fileInput.files[0];
                 const content = await file.text();
-                let rawMessages = file.name.endsWith('.html') ? parser.parseTelegram(content) : (file.name.endsWith('.json') ? parser.parseInstagram(content) : parser.parseWhatsApp(content));
-                if (!rawMessages.length) throw new Error("No messages found.");
+                
+                let jsonPlat = document.getElementById('jsonPlatform') ? document.getElementById('jsonPlatform').value : 'Instagram';
+                let rawMessages;
+                if (file.name.toLowerCase().endsWith('.html')) {
+                    rawMessages = parser.parseTelegram(content);
+                } else if (file.name.toLowerCase().endsWith('.json')) {
+                    rawMessages = jsonPlat === 'Discord' ? parser.parseDiscord(content) : parser.parseInstagram(content);
+                } else {
+                    rawMessages = parser.parseWhatsApp(content);
+                }
+                
+                if (!rawMessages || !rawMessages.length) throw new Error("No readable messages found in the file.");
 
                 const myName = document.getElementById('myName').value;
                 const partnerName = document.getElementById('partnerName').value;
                 const filteredMessages = parser.standardizeEntities(rawMessages, myName, partnerName);
-                if (!filteredMessages.length) throw new Error("Names not found.");
+                if (!filteredMessages.length) throw new Error("Sender names not mapped correctly.");
 
                 const connectionType = document.getElementById('connectionType').value;
+                const outputLanguage = document.getElementById('outputLanguage') ? document.getElementById('outputLanguage').value : 'english';
+                const userContext = document.getElementById('userContext') ? document.getElementById('userContext').value.trim() : '';
+                const analysisTone = document.getElementById('analysisTone') ? document.getElementById('analysisTone').value : 'balanced';
+
                 const analyticsResult = analytics.runPipeline(filteredMessages, connectionType);
 
                 const dashboardData = {
@@ -371,8 +442,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     partner_name: partnerName,
                     highlights: [], flashbacks: {},
                     connection_type: connectionType,
+                    language: outputLanguage,
+                    context: userContext,
+                    tone: analysisTone,
                     msg_count: filteredMessages.length,
-                    platform: file.name.endsWith('.html') ? 'Telegram' : (file.name.endsWith('.json') ? 'Instagram' : 'WhatsApp')
+                    platform: file.name.toLowerCase().endsWith('.html') ? 'Telegram' : (file.name.toLowerCase().endsWith('.json') ? jsonPlat : 'WhatsApp')
                 };
 
                 historyManager.save(dashboardData);
