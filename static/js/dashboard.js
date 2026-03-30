@@ -272,7 +272,11 @@ document.addEventListener('DOMContentLoaded', () => {
             loading.classList.add('hidden');
             results.classList.remove('hidden');
         } catch (e) {
-            alert(e.message);
+            if (e.message && e.message.includes('Free tier limit')) {
+                alert("Cloudflare free tier limit reached (2 requests per hour). Please try again later or configure your own API key in the settings to generate immediately.");
+            } else {
+                alert("Analysis Error: " + e.message);
+            }
             loading.classList.add('hidden');
             permission.classList.remove('hidden');
         }

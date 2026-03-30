@@ -108,9 +108,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const provider = localStorage.getItem('llm_provider') || 'cloudflare';
         if (!icon || !text) return;
         const key = sessionStorage.getItem('_llm_token');
-        if (provider === 'cloudflare' || (key && key.trim() !== "" && key !== btoa(""))) {
+        if (provider === 'cloudflare') {
+            icon.textContent = '☁️';
+            text.textContent = 'Free Tier (2/hr limit)';
+        } else if (key && key.trim() !== "" && key !== btoa("")) {
             icon.textContent = '✅';
-            text.textContent = provider === 'cloudflare' ? 'Cloudflare Free Tier' : 'API Key Configured';
+            text.textContent = 'API Key Configured';
         } else {
             icon.textContent = '🔑';
             text.textContent = 'API Key Required';
