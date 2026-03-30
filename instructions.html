@@ -52,11 +52,69 @@
                     <li>Select "Specific Types of Information".</li>
                     <li>Choose "Messages" ONLY.</li>
                     <li>Select "JSON" for formatting instead of HTML.</li>
-                    <li>Unzip the generated archive and extract `message_1.json`.</li>
+                    <li>Unzip the archive and extract `message_1.json`.</li>
+                </ol>
+            </div>
+
+            <div class="card p-6" style="border-left:6px solid var(--purple)">
+                <h3 class="mb-3" style="color:var(--purple)">Discord</h3>
+                <ol class="font-weight-500" style="color:var(--gray-600); padding-left:1.5rem; line-height:1.7">
+                    <li>Use a trusted data exporter like DiscordChatExporter.</li>
+                    <li>Select the DM or Server channel you want to analyze.</li>
+                    <li>Choose "JSON" as the export format.</li>
+                    <li>Save the generated `.json` file locally.</li>
                 </ol>
             </div>
 
         </div>
+
+        <!-- ═══ API KEYS SECTION ═══ -->
+        <div id="api-keys" class="text-center mt-12 mb-8 pt-8" style="border-top:3px dashed var(--gray-300)">
+            <h2 style="color:var(--black)">How to Get Your Own API Key</h2>
+            <p style="color:var(--gray-600); max-width:650px; margin:0 auto; font-weight:500">If you want to skip the Cloudflare free-tier limits, you can easily generate a safe, low-cost API key from these providers. Your key never leaves your browser.</p>
+        </div>
+
+        <div class="grid gap-6 grid-2" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr))">
+            
+            <div class="card p-6" style="border-left:6px solid var(--black)">
+                <h3 class="mb-3" style="color:var(--black)">OpenAI (GPT-4o)</h3>
+                <ol class="font-weight-500" style="color:var(--gray-600); padding-left:1.5rem; line-height:1.7">
+                    <li>Go to <a href="https://platform.openai.com/api-keys" target="_blank" style="color:var(--pink);text-decoration:underline">platform.openai.com/api-keys</a>.</li>
+                    <li>Sign in to your account.</li>
+                    <li>Click <strong>"Create new secret key"</strong>.</li>
+                    <li>Copy the key (starts with <code>sk-</code>) and paste it into our Settings.</li>
+                </ol>
+            </div>
+
+            <div class="card p-6" style="border-left:6px solid var(--orange)">
+                <h3 class="mb-3" style="color:var(--orange)">Anthropic (Claude)</h3>
+                <ol class="font-weight-500" style="color:var(--gray-600); padding-left:1.5rem; line-height:1.7">
+                    <li>Go to <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:var(--pink);text-decoration:underline">console.anthropic.com</a> and sign in.</li>
+                    <li>Navigate to the <strong>Get API Keys</strong> menu.</li>
+                    <li>Click <strong>"Create Key"</strong>.</li>
+                    <li>Copy the key and paste it into our Settings.</li>
+                </ol>
+            </div>
+
+            <div class="card p-6" style="border-left:6px solid var(--blue)">
+                <h3 class="mb-3" style="color:var(--blue)">xAI (Grok-2)</h3>
+                <ol class="font-weight-500" style="color:var(--gray-600); padding-left:1.5rem; line-height:1.7">
+                    <li>Go to <a href="https://console.x.ai/" target="_blank" style="color:var(--pink);text-decoration:underline">console.x.ai</a> and sign in with X/Twitter.</li>
+                    <li>Navigate to the <strong>API Keys</strong> section.</li>
+                    <li>Click <strong>"Create API Key"</strong>.</li>
+                    <li>Copy the key and paste it into our Settings.</li>
+                </ol>
+            </div>
+
+            <div class="card p-6" style="border-left:6px solid var(--green)">
+                <h3 class="mb-3" style="color:var(--green)">Google (Gemini)</h3>
+                <ol class="font-weight-500" style="color:var(--gray-600); padding-left:1.5rem; line-height:1.7">
+                    <li>Go to <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--pink);text-decoration:underline">Google AI Studio</a>.</li>
+                    <li>Sign in with your Google account.</li>
+                    <li>Click <strong>"Create API Key"</strong> in a new project.</li>
+                    <li>Copy the key and paste it into our Settings.</li>
+                </ol>
+            </div>
     </div>
 </body>
 </html>
