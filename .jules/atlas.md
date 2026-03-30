@@ -1,0 +1,4 @@
+## 2024-05-18 — Porting Python logic to JS
+**Discovery:** The main backend for the app uses a Serverless environment with Cloudflare Workers. Python parsing logic (previously in `core/parsers.py`) was actually ported into `static/js/parser.js` for local edge processing in the browser!
+**Impact:** Going forward, all new parser integrations and modifications must happen directly in the JavaScript local edge files, keeping the serverless endpoints focused on LLM routing.
+**Action:** Future work will be tested directly against `static/js/` routines and local test harnesses instead of looking for backend flask scripts.

@@ -9,6 +9,8 @@ class ChatParser {
         this.WA_MSG_PATTERN = /^\[?(?<date>\d{1,2}[/-]\d{1,2}[/-]\d{2,4})[,\s]+(?<time>\d{1,2}:\d{2}(?::\d{2})?(?:\s*[apAp][mM])?)\]?[\s-]+(?<sender>[^:]+):\s+(?<text>.*)$/;
         this.WA_SYS_PATTERN = /^\[?(?<date>\d{1,2}[/-]\d{1,2}[/-]\d{2,4})[,\s]+(?<time>\d{1,2}:\d{2}(?::\d{2})?(?:\s*[apAp][mM])?)\]?[\s-]+(?<sys_msg>Messages and calls are end-to-end encrypted.*|.*changed their phone number|.*joined using an invite link|.*left|.*changed the subject to|.*changed the group description|.*You deleted this message.*)$/;
 
+        this.SIGNAL_MSG_PATTERN = /^\[(?<date>\d{4}-\d{2}-\d{2} \d{2}:\d{2})\] (?<sender>[^:]+): (?<text>.*)$/;
+
         this.TG_DATE_PATTERN = /class="pull_right date details" title="([^"]+)"/;
         this.TG_DATE_FALLBACK_PATTERN = /class="date" title="([^"]+)"/;
         this.TG_SENDER_PATTERN = /<div class="from_name">\s*([^<]+)\s*<\/div>/;
@@ -46,6 +48,33 @@ class ChatParser {
                 });
             } else if (messages.length > 0 && !line.match(this.WA_SYS_PATTERN)) {
                 // Multiline message append
+                messages[messages.length - 1].text += "\n" + line;
+            }
+        }
+        return messages;
+    }
+
+    /**
+     * Parses Signal (.txt)
+     */
+    parseSignal(textData) {
+        const messages = [];
+        const lines = textData.split(/\r?\n/);
+
+        for (let line of lines) {
+            line = this.sanitize(line);
+            if (!line) continue;
+
+            const match = line.match(this.SIGNAL_MSG_PATTERN);
+            if (match) {
+                if (messages.length >= 50000) break;
+                const { date, sender, text } = match.groups;
+                messages.push({
+                    timestamp: this.parseDateTime(date),
+                    sender: sender.trim(),
+                    text: text.trim()
+                });
+            } else if (messages.length > 0) {
                 messages[messages.length - 1].text += "\n" + line;
             }
         }

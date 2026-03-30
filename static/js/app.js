@@ -182,7 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const hintEl = document.getElementById('providerHint');
         const hfContainer = document.getElementById('hfUrlContainer');
         if (!hintEl) return;
-        const hints = { 'cloudflare': 'Free Tier (2 reports/hr)', 'openai': 'sk-proj-...', 'anthropic': 'sk-ant-...', 'gemini': 'Google API Key' };
+        const hints = { 'cloudflare': 'Free Tier (2 reports/hr)', 'openai': 'sk-proj-...', 'anthropic': 'sk-ant-...', 'gemini': 'Google API Key', 'openrouter': 'sk-or-v1-...' };
         hintEl.textContent = hints[provider] || '';
         if (hfContainer) hfContainer.classList.toggle('hidden', provider !== 'huggingface');
     }
@@ -338,7 +338,23 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const file = fileInput.files[0];
                 const content = await file.text();
-                let rawMessages = file.name.endsWith('.html') ? parser.parseTelegram(content) : (file.name.endsWith('.json') ? parser.parseInstagram(content) : parser.parseWhatsApp(content));
+
+                let rawMessages = [];
+                let platform = '';
+                if (file.name.endsWith('.html')) {
+                    rawMessages = parser.parseTelegram(content);
+                    platform = 'Telegram';
+                } else if (file.name.endsWith('.json')) {
+                    rawMessages = parser.parseInstagram(content);
+                    platform = 'Instagram';
+                } else if (content.split('\n')[0].match(parser.SIGNAL_MSG_PATTERN)) {
+                    rawMessages = parser.parseSignal(content);
+                    platform = 'Signal';
+                } else {
+                    rawMessages = parser.parseWhatsApp(content);
+                    platform = 'WhatsApp';
+                }
+
                 if (!rawMessages.length) throw new Error("No messages found.");
 
                 const myName = document.getElementById('myName').value;
@@ -356,7 +372,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     highlights: [], flashbacks: {},
                     connection_type: connectionType,
                     msg_count: filteredMessages.length,
-                    platform: file.name.endsWith('.html') ? 'Telegram' : (file.name.endsWith('.json') ? 'Instagram' : 'WhatsApp')
+                    platform: platform
                 };
 
                 historyManager.save(dashboardData);

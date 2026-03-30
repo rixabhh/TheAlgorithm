@@ -31,16 +31,40 @@ export async function onRequestPost(context) {
             });
             const match = aiResult.response.match(/\{[\s\S]*\}/);
             if (match) report = JSON.parse(match[0]);
-        } else if (api_key && (provider === 'openai' || provider === 'groq')) {
-            const url = provider === 'openai' ? 'https://api.openai.com/v1/chat/completions' : 'https://api.groq.com/openai/v1/chat/completions';
-            const model = provider === 'openai' ? 'gpt-4o-mini' : 'llama-3.1-70b-versatile';
-            const resp = await fetch(url, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${api_key}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ model, messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }], response_format: { type: "json_object" } })
-            });
-            const resData = await resp.json();
-            if (resData.choices) report = JSON.parse(resData.choices[0].message.content);
+        } else if (api_key && (provider === 'openai' || provider === 'groq' || provider === 'openrouter')) {
+            const url = provider === 'openai' ? 'https://api.openai.com/v1/chat/completions' :
+                        provider === 'groq' ? 'https://api.groq.com/openai/v1/chat/completions' :
+                        'https://openrouter.ai/api/v1/chat/completions';
+            const model = provider === 'openai' ? 'gpt-4o-mini' :
+                          provider === 'groq' ? 'llama-3.1-70b-versatile' :
+                          'meta-llama/llama-3.1-8b-instruct:free';
+            const headers = { 'Authorization': `Bearer ${api_key}`, 'Content-Type': 'application/json' };
+            if (provider === 'openrouter') {
+                headers['HTTP-Referer'] = 'https://the-algorithm.pages.dev';
+                headers['X-Title'] = 'TheAlgorithm';
+            }
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+            try {
+                const resp = await fetch(url, {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify({ model, messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }], response_format: { type: "json_object" } }),
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+                const resData = await resp.json();
+                if (resData.choices && resData.choices.length > 0) {
+                     const content = resData.choices[0].message.content;
+                     const match = content.match(/\{[\s\S]*\}/);
+                     if (match) report = JSON.parse(match[0]);
+                     else report = JSON.parse(content);
+                }
+            } catch (fetchError) {
+                clearTimeout(timeoutId);
+                console.error("Fetch error:", fetchError);
+                throw new Error("API request failed or timed out. Please try again.");
+            }
         }
 
         // 3. FALLBACK
