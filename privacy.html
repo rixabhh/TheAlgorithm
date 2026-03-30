@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy — The Algorithm</title>
+    <link rel="stylesheet" href="static/css/style.css">
+    <link rel="icon" type="image/png" href="static/favicon.png">
+</head>
+<body class="comic-dots">
+    <header class="nav">
+        <div class="container flex justify-between items-center" style="height:100%">
+            <a href="/" class="nav-logo" style="color:var(--white)">← The Algorithm</a>
+            <span style="font-family:var(--font-heading);font-weight:700;color:var(--yellow);font-size:0.9rem;text-transform:uppercase">Privacy Promise</span>
+        </div>
+    </header>
+
+    <div class="container section-py">
+        <div class="card card--lg" style="max-width:800px; margin:0 auto">
+            <h1 class="mb-4" style="color:var(--black)">Data Privacy Architecture</h1>
+            <p class="mb-6 font-weight-500" style="color:var(--gray-600)">Effective immediately.</p>
+            
+            <div class="mb-6">
+                <h3 class="mb-2" style="color:var(--purple)">1. Extreme Local-First Processing</h3>
+                <p style="color:var(--gray-600); line-height:1.6">When you upload a chat export, it never leaves your browser directly. We utilize robust client-side JavaScript regex filtering to immediately identify and strip phone numbers, email addresses, and PII right inside your browser memory.</p>
+            </div>
+
+            <div class="mb-6">
+                <h3 class="mb-2" style="color:var(--pink)">2. Edge Server Abstraction</h3>
+                <p style="color:var(--gray-600); line-height:1.6">Analyzed datasets containing mere frequencies and statistics are processed via Cloudflare Workers entirely in RAM without database or disk volume persistence. Within milliseconds of rendering the AI insights, your payload is permanently garbage collected.</p>
+            </div>
+            
+            <div class="mb-6">
+                <h3 class="mb-2" style="color:var(--orange)">3. Third Party Processors</h3>
+                <p style="color:var(--gray-600); line-height:1.6">The analytics output is directly forwarded via secure TLS to the AI provider of your choice (OpenAI, Anthropic, Cloudflare AI, etc.). We configure zero-retention policies using standard enterprise headers to mandate exclusion from LLM training pools.</p>
+            </div>
+            
+            <div class="mt-10 pt-6 text-center" style="border-top:2px dashed var(--gray-300)">
+                <a href="/" class="btn btn--black btn--lg">Back to Safety</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

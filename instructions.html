@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Export Guide — The Algorithm</title>
+    <link rel="stylesheet" href="static/css/style.css">
+    <link rel="icon" type="image/png" href="static/favicon.png">
+</head>
+<body class="comic-dots">
+    <header class="nav">
+        <div class="container flex justify-between items-center" style="height:100%">
+            <a href="/" class="nav-logo" style="color:var(--white)">← The Algorithm</a>
+            <span style="font-family:var(--font-heading);font-weight:700;color:var(--yellow);font-size:0.9rem;text-transform:uppercase">Export Guide</span>
+        </div>
+    </header>
+
+    <div class="container section-py">
+        <div class="text-center mb-8">
+            <h1 style="color:var(--black)">How to Extract Your Data</h1>
+            <p style="color:var(--gray-600); max-width:500px; margin:0 auto; font-weight:500">Pick your platform and follow the steps to retrieve your `.txt`, `.json`, or `.html` structured archives cleanly.</p>
+        </div>
+
+        <div class="grid gap-6 grid-2" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr))">
+            
+            <div class="card p-6" style="border-left:6px solid var(--green)">
+                <h3 class="mb-3" style="color:var(--green)">WhatsApp</h3>
+                <ol class="font-weight-500" style="color:var(--gray-600); padding-left:1.5rem; line-height:1.7">
+                    <li>Open WhatsApp and locate the chat.</li>
+                    <li>Tap the Contact Name / Group Name at the top.</li>
+                    <li>Scroll down and select "Export Chat".</li>
+                    <li>Choose "Without Media" to accelerate parsing.</li>
+                    <li>Save the ending `.txt` file locally.</li>
+                </ol>
+            </div>
+
+            <div class="card p-6" style="border-left:6px solid var(--blue)">
+                <h3 class="mb-3" style="color:var(--blue)">Telegram</h3>
+                <ol class="font-weight-500" style="color:var(--gray-600); padding-left:1.5rem; line-height:1.7">
+                    <li>Download Telegram Desktop (PC or Mac).</li>
+                    <li>Open the desired chat.</li>
+                    <li>Click the three dots in the top right -> `Export Chat History`.</li>
+                    <li>Ensure formats like stickers are unchecked.</li>
+                    <li>Ensure the export type is `HTML`.</li>
+                </ol>
+            </div>
+            
+            <div class="card p-6" style="border-left:6px solid var(--pink)">
+                <h3 class="mb-3" style="color:var(--pink)">Instagram</h3>
+                <ol class="font-weight-500" style="color:var(--gray-600); padding-left:1.5rem; line-height:1.7">
+                    <li>Go to Your Activity -> Download Your Information.</li>
+                    <li>Select "Specific Types of Information".</li>
+                    <li>Choose "Messages" ONLY.</li>
+                    <li>Select "JSON" for formatting instead of HTML.</li>
+                    <li>Unzip the generated archive and extract `message_1.json`.</li>
+                </ol>
+            </div>
+
+        </div>
+    </div>
+</body>
+</html>

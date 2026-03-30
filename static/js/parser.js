@@ -117,12 +117,7 @@ class ChatParser {
         
         const fixText = (t) => {
             if (!t) return "";
-            try {
-                // Instagram JSON often uses escaped characters incorrectly in export
-                return decodeURIComponent(escape(t));
-            } catch (e) {
-                return t;
-            }
+            try { return decodeURIComponent(escape(t)); } catch (e) { return t; }
         };
 
         if (data.messages && Array.isArray(data.messages)) {
@@ -135,6 +130,35 @@ class ChatParser {
                 if (tsMs && text) {
                     messages.push({
                         timestamp: new Date(tsMs),
+                        sender: sender,
+                        text: text
+                    });
+                }
+            }
+        }
+        return messages;
+    }
+
+    /**
+     * Parses Discord (.json)
+     */
+    parseDiscord(jsonData) {
+        const messages = [];
+        const data = typeof jsonData === 'string' ? JSON.parse(jsonData) : jsonData;
+        
+        // Discord exports usually have an array of messages or an object containing messages
+        const msgArray = Array.isArray(data) ? data : (data.messages || []);
+        
+        if (msgArray && Array.isArray(msgArray)) {
+            for (const msg of msgArray) {
+                if (messages.length >= 50000) break;
+                const sender = msg.author?.name || msg.author?.username || "UNKNOWN";
+                const text = msg.content || "";
+                const ts = msg.timestamp;
+
+                if (ts && text) {
+                    messages.push({
+                        timestamp: new Date(ts),
                         sender: sender,
                         text: text
                     });

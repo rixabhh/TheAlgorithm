@@ -4,7 +4,7 @@ export async function onRequestPost(context) {
 
     try {
         const data = await request.json();
-        const { stats, my_name, partner_name, compare_data, provider = 'cloudflare', api_key = '' } = data;
+        const { stats, my_name, partner_name, connection_type, language, context, compare_data, provider = 'cloudflare', api_key = '' } = data;
         const tone = data.tone || 'balanced';
 
         // 1. RATE LIMITING & GLOBAL STATS (KV-based, Cloudflare only)
@@ -25,9 +25,12 @@ export async function onRequestPost(context) {
         let report = null;
         const systemPrompt = "You are 'The Algorithm', a brutally honest relationship analyst. Return ONLY a JSON object: { relationship_persona, compatibility_score, ai_insight: { dynamic_title, reality_check, recent_shift, red_flags: [], green_flags: [], brutal_verdict } }.";
         
-        let userPrompt = `Analyze chat: ${my_name} & ${partner_name}. Tone: ${tone}. Stats: ${JSON.stringify(stats)}.`;
+        let userPrompt = `Analyze chat: ${my_name} & ${partner_name}. Connection Type: ${connection_type || 'romantic'}. Output Language: ${language || 'english'}. Tone: ${tone}. `;
+        if (context) userPrompt += `User Context/Background: ${context}. `;
+        userPrompt += `Stats: ${JSON.stringify(stats)}.`;
+        
         if (compare_data) {
-            userPrompt = `COMPARE two chats for ${my_name}. Chat A: ${compare_data.nameA} vs Chat B: ${compare_data.nameB}. Stats A: ${JSON.stringify(compare_data.a)}. Stats B: ${JSON.stringify(compare_data.b)}. Be direct.`;
+            userPrompt = `COMPARE two chats for ${my_name}. Chat A: ${compare_data.nameA} vs Chat B: ${compare_data.nameB}. Stats A: ${JSON.stringify(compare_data.a)}. Stats B: ${JSON.stringify(compare_data.b)}. Output Language: ${language || 'english'}. Be ${tone}.`;
         }
 
         if (provider === 'cloudflare' && env.AI) {
