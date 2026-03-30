@@ -23,7 +23,11 @@ export async function onRequestPost(context) {
 
         // 2. AI GENERATION
         let report = null;
-        const systemPrompt = "You are 'The Algorithm', a brutally honest relationship analyst. Return ONLY a JSON object: { relationship_persona, compatibility_score, ai_insight: { dynamic_title, reality_check, recent_shift, red_flags: [], green_flags: [], brutal_verdict } }.";
+        const systemPrompt = `You are 'The Algorithm', a brutally honest relationship analyst. 
+CRITICAL RULES:
+1. Return ONLY a valid JSON object. Do NOT wrap in markdown code blocks.
+2. The JSON keys MUST remain exactly as follows (in English): { "relationship_persona": "", "compatibility_score": 0, "ai_insight": { "dynamic_title": "", "reality_check": "", "recent_shift": "", "red_flags": [], "green_flags": [], "brutal_verdict": "" } }.
+3. The VALUES inside the JSON MUST be written in the requested Output Language (${language || 'english'}). If Hinglish is requested, use conversational Hindi written in the English alphabet (e.g., 'Bhai kya kar raha hai'). Make it gen-z, witty, and brutal.`;
         
         let userPrompt = `Analyze chat: ${my_name} & ${partner_name}. Connection Type: ${connection_type || 'romantic'}. Output Language: ${language || 'english'}. Tone: ${tone}. `;
         if (context) userPrompt += `User Context/Background: ${context}. `;
@@ -56,18 +60,46 @@ export async function onRequestPost(context) {
 
         // 3. FALLBACK
         if (!report) {
-            report = {
-                relationship_persona: "Vibe Explorer",
-                compatibility_score: 80,
-                ai_insight: {
-                    dynamic_title: "Quick Read",
-                    reality_check: "Analysis complete for " + partner_name,
-                    recent_shift: "The energy is stable.",
-                    red_flags: ["Limited data for deep read"],
-                    green_flags: ["Active check-ins"],
-                    brutal_verdict: "It's a vibe."
-                }
-            };
+            if (language === 'hinglish') {
+                report = {
+                    relationship_persona: "Vibe Explorer",
+                    compatibility_score: 80,
+                    ai_insight: {
+                        dynamic_title: "Quick Read",
+                        reality_check: partner_name + " ke saath analysis complete ho gaya hai.",
+                        recent_shift: "Energy bilkul stable lag rahi hai.",
+                        red_flags: ["Deep read ke liye data thoda kam hai"],
+                        green_flags: ["Dono active check-ins kar rahe ho"],
+                        brutal_verdict: "Ek number vibe hai bhai/behen."
+                    }
+                };
+            } else if (language === 'hindi') {
+                report = {
+                    relationship_persona: "Vibe Explorer",
+                    compatibility_score: 80,
+                    ai_insight: {
+                        dynamic_title: "Quick Read",
+                        reality_check: partner_name + " के साथ विश्लेषण पूरा हुआ।",
+                        recent_shift: "ऊर्जा स्थिर लग रही है।",
+                        red_flags: ["गहन विश्लेषण के लिए डेटा अपर्याप्त है"],
+                        green_flags: ["सक्रिय संवाद चल रहा है"],
+                        brutal_verdict: "संबंध अच्छा है।"
+                    }
+                };
+            } else {
+                report = {
+                    relationship_persona: "Vibe Explorer",
+                    compatibility_score: 80,
+                    ai_insight: {
+                        dynamic_title: "Quick Read",
+                        reality_check: "Analysis complete for " + partner_name,
+                        recent_shift: "The energy is stable.",
+                        red_flags: ["Limited data for deep read"],
+                        green_flags: ["Active check-ins"],
+                        brutal_verdict: "It's a vibe."
+                    }
+                };
+            }
         }
 
         return new Response(JSON.stringify({ report }), { headers: { 'Content-Type': 'application/json' } });
