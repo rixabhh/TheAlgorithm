@@ -39,9 +39,12 @@ export async function onRequestPost(context) {
             });
             const match = aiResult.response.match(/\{[\s\S]*\}/);
             if (match) report = JSON.parse(match[0]);
-        } else if (api_key && (provider === 'openai' || provider === 'groq')) {
-            const url = provider === 'openai' ? 'https://api.openai.com/v1/chat/completions' : 'https://api.groq.com/openai/v1/chat/completions';
-            const model = provider === 'openai' ? 'gpt-4o-mini' : 'llama-3.1-70b-versatile';
+        } else if (api_key && (provider === 'openai' || provider === 'groq' || provider === 'grok')) {
+            let url, model;
+            if (provider === 'openai') { url = 'https://api.openai.com/v1/chat/completions'; model = 'gpt-4o-mini'; }
+            else if (provider === 'groq') { url = 'https://api.groq.com/openai/v1/chat/completions'; model = 'llama-3.1-70b-versatile'; }
+            else if (provider === 'grok') { url = 'https://api.x.ai/v1/chat/completions'; model = 'grok-2-latest'; }
+            
             const resp = await fetch(url, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${api_key}`, 'Content-Type': 'application/json' },
