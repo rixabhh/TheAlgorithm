@@ -7,13 +7,18 @@ export async function onRequestPost(context) {
         const { stats, my_name, partner_name, compare_data, provider = 'cloudflare', api_key = '' } = data;
         const tone = data.tone || 'balanced';
 
-        // 1. RATE LIMITING (KV-based, Cloudflare only)
+        // 1. RATE LIMITING & GLOBAL STATS (KV-based, Cloudflare only)
         if (provider === 'cloudflare' && env.KV_RATELIMIT) {
             const limitKey = `ratelimit_${ip}`;
             const current = await env.KV_RATELIMIT.get(limitKey);
             const count = current ? parseInt(current) : 0;
             if (count >= 2) return new Response(JSON.stringify({ error: "Free tier limit reached (2/hr). Wait or use BYOK." }), { status: 429 });
             await env.KV_RATELIMIT.put(limitKey, (count + 1).toString(), { expirationTtl: 3600 });
+            
+            // Increment global stats counter
+            const globalCountKey = 'global_stats_chats_count';
+            const globalCount = await env.KV_RATELIMIT.get(globalCountKey) || '0';
+            await env.KV_RATELIMIT.put(globalCountKey, (parseInt(globalCount) + 1).toString());
         }
 
         // 2. AI GENERATION
