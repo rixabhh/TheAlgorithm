@@ -247,7 +247,23 @@ document.addEventListener('DOMContentLoaded', () => {
         const history = historyManager.getAll();
         const list = document.getElementById('history-list');
         const counter = document.getElementById('stats-chats-count');
-        if (counter) counter.textContent = history.length;
+        
+        // Setup local counter display, overriding with global when available
+        if (counter && history.length > 0 && counter.innerText === "0") {
+            counter.textContent = history.length;
+        }
+
+        // Fetch global stats from the newly created backend endpoint
+        if (counter) {
+            fetch('/api/stats')
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.count !== undefined && data.count > 0) {
+                        counter.textContent = data.count.toLocaleString();
+                    }
+                }).catch(err => console.error("Failed to fetch global stats:", err));
+        }
+
         if (!list) return;
         list.innerHTML = '';
         document.getElementById('history-empty-state')?.classList.toggle('hidden', history.length > 0);
