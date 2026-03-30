@@ -99,72 +99,6 @@
     <!-- ═══ MAIN CONTENT ═══ -->
     <main class="main-content">
         <!-- Deep Insights Section -->
-        <section id="section-vibe" class="mb-16">
-            <h2 class="mb-1" id="insights-heading">Deep Insights</h2>
-            <p class="mb-6 color-gray-500" id="insights-sub">A brutally honest, structured read on your chat dynamics.</p>
-
-            
-            <div id="ai-permission-container" class="card p-12 text-center" style="background:var(--white);border-width:4px">
-                <div style="font-size:3rem;margin-bottom:1rem">🧠</div>
-                <h3 style="font-size:1.75rem;margin-bottom:1rem">Unlock AI-Powered Vibe Analytics</h3>
-                <p style="max-width:500px;margin:0 auto 2rem;color:var(--gray-600);line-height:1.6">
-                    Analyze the underlying tone, power dynamics, and emotional shifts using our local-first AI engine.
-                </p>
-                <div class="bg-cream p-4 border rounded mb-8 text-left inline-block" style="max-width:500px">
-                    <p style="font-size:0.8rem;margin:0;color:var(--gray-700)"><strong>🛡️ Privacy Note:</strong> We only send numerical statistics (ratios, word counts, response times) to our servers. No raw message content is ever transmitted.</p>
-                </div>
-                <div>
-                    <button id="generateAiBtn" class="btn btn--pink btn--lg px-12">✨ GENERATE INSIGHTS</button>
-                </div>
-            </div>
-
-            <div id="ai-loading-container" class="hidden card p-12 text-center">
-                <div class="loader-spinner mb-6 mx-auto"></div>
-                <h3>Understanding context...</h3>
-                <div class="progress-container mx-auto mt-6" style="max-width:400px;height:0.75rem">
-                    <div id="ai-loading-bar" class="progress-bar bg-pink" style="width:0%"></div>
-                </div>
-            </div>
-
-            <div id="ai-results-container" class="hidden ai-insight-box">
-                <div class="text-center mb-10">
-                    <span id="ai-insight-label" class="pill-label pill-label--pink mb-3 inline-block" style="border-radius:4px;padding:4px 12px;background:white;border:2px solid black;font-weight:900">VIBE STATUS</span>
-                    <h1 id="ai-insight-title" style="font-size:3.5rem;font-weight:900;letter-spacing:-0.02em;margin-top:0.5rem">--</h1>
-                </div>
-                <div class="grid gap-6 mb-8" style="grid-template-columns:1fr 1fr">
-                    <div class="card p-6 bg-white">
-                        <h4 class="mb-3 font-bold text-xs uppercase letter-spacing-05 flex align-center gap-2"><span class="text-xl">🔍</span> THE REALITY CHECK</h4>
-                        <p id="ai-insight-reality" class="text-sm line-height-16"></p>
-                    </div>
-                    <div class="card p-6 bg-white">
-                        <h4 class="mb-3 font-bold text-xs uppercase letter-spacing-05 flex align-center gap-2"><span class="text-xl">📈</span> THE RECENT SHIFT</h4>
-                        <p id="ai-insight-shift" class="text-sm line-height-16"></p>
-                    </div>
-                </div>
-                <div class="grid gap-6" style="grid-template-columns:1fr 1fr">
-                    <div class="flag-box flag-box--red">
-                        <h4 class="mb-4 font-black">🚩 RED FLAGS</h4>
-                        <ul id="ai-insight-red-flags" class="text-sm"></ul>
-                    </div>
-                    <div class="flag-box flag-box--green">
-                        <h4 class="mb-4 font-black">🚩 GREEN FLAGS</h4>
-                        <ul id="ai-insight-green-flags" class="text-sm"></ul>
-                    </div>
-                </div>
-                <div class="brutal-verdict-box">
-                    <h4 class="mb-4 text-xs font-bold uppercase letter-spacing-2 color-yellow">⚖️ THE FINAL WORD</h4>
-                    <blockquote id="ai-insight-verdict">"..."</blockquote>
-                </div>
-                <div class="flex justify-between align-center mt-10 pt-6 border-t border-dashed op-20">
-                    <span id="ai-insight-timestamp" class="text-xs color-gray-500"></span>
-                    <div class="flex gap-2">
-                        <button id="downloadVibeBtn" class="btn btn--pink btn--sm" onclick="downloadWrappedCard()">📸 VIBE CARD</button>
-                        <button id="regenerateBtn" class="btn btn--white btn--sm">✨ REGENERATE</button>
-                    </div>
-                </div>
-            </div>
-        </section>
-
         <!-- Primary Data Visuals -->
         <section id="section-ratios" class="mb-16">
             <div class="grid gap-6" style="grid-template-columns: 1fr 1.5fr">
@@ -245,6 +179,73 @@
                 <div id="section-links" class="card p-6">
                     <h4 class="mb-4">🔗 Top Links</h4>
                     <div id="links-container" class="text-xs space-y-2"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Deep Insights Section -->
+        <section id="section-vibe" class="mb-16">
+            <h2 class="mb-1" id="insights-heading">Deep Insights</h2>
+            <p class="mb-6 color-gray-500" id="insights-sub">A brutally honest, structured read on your chat dynamics.</p>
+
+            
+            <div id="ai-permission-container" class="card p-12 text-center" style="background:var(--white);border-width:4px">
+                <div style="font-size:3rem;margin-bottom:1rem">🧠</div>
+                <h3 style="font-size:1.75rem;margin-bottom:1rem">Unlock AI-Powered Vibe Analytics</h3>
+                <p style="max-width:500px;margin:0 auto 2rem;color:var(--gray-600);line-height:1.6">
+                    Analyze the underlying tone, power dynamics, and emotional shifts using our local-first AI engine.
+                </p>
+                <div class="bg-cream p-4 border rounded mb-8 text-left inline-block" style="max-width:500px">
+                    <p style="font-size:0.8rem;margin:0;color:var(--gray-700)"><strong>🛡️ Privacy Note:</strong> We only send numerical statistics (ratios, word counts, response times) to our servers. No raw message content is ever transmitted.</p>
+                </div>
+                <div>
+                    <button id="generateAiBtn" class="btn btn--pink btn--lg px-12">✨ GENERATE INSIGHTS</button>
+                </div>
+            </div>
+
+            <div id="ai-loading-container" class="hidden card p-12 text-center">
+                <div class="loader-spinner mb-6 mx-auto"></div>
+                <h3>Understanding context...</h3>
+                <div class="progress-container mx-auto mt-6" style="max-width:400px;height:0.75rem">
+                    <div id="ai-loading-bar" class="progress-bar bg-pink" style="width:0%"></div>
+                </div>
+            </div>
+
+            <div id="ai-results-container" class="hidden ai-insight-box">
+                <div class="text-center mb-10">
+                    <span id="ai-insight-label" class="pill-label pill-label--pink mb-3 inline-block" style="border-radius:4px;padding:4px 12px;background:white;border:2px solid black;font-weight:900">VIBE STATUS</span>
+                    <h1 id="ai-insight-title" style="font-size:3.5rem;font-weight:900;letter-spacing:-0.02em;margin-top:0.5rem">--</h1>
+                </div>
+                <div class="grid gap-6 mb-8" style="grid-template-columns:1fr 1fr">
+                    <div class="card p-6 bg-white">
+                        <h4 class="mb-3 font-bold text-xs uppercase letter-spacing-05 flex align-center gap-2"><span class="text-xl">🔍</span> THE REALITY CHECK</h4>
+                        <p id="ai-insight-reality" class="text-sm line-height-16"></p>
+                    </div>
+                    <div class="card p-6 bg-white">
+                        <h4 class="mb-3 font-bold text-xs uppercase letter-spacing-05 flex align-center gap-2"><span class="text-xl">📈</span> THE RECENT SHIFT</h4>
+                        <p id="ai-insight-shift" class="text-sm line-height-16"></p>
+                    </div>
+                </div>
+                <div class="grid gap-6" style="grid-template-columns:1fr 1fr">
+                    <div class="flag-box flag-box--red">
+                        <h4 class="mb-4 font-black">🚩 RED FLAGS</h4>
+                        <ul id="ai-insight-red-flags" class="text-sm"></ul>
+                    </div>
+                    <div class="flag-box flag-box--green">
+                        <h4 class="mb-4 font-black">🚩 GREEN FLAGS</h4>
+                        <ul id="ai-insight-green-flags" class="text-sm"></ul>
+                    </div>
+                </div>
+                <div class="brutal-verdict-box">
+                    <h4 class="mb-4 text-xs font-bold uppercase letter-spacing-2 color-yellow">⚖️ THE FINAL WORD</h4>
+                    <blockquote id="ai-insight-verdict">"..."</blockquote>
+                </div>
+                <div class="flex justify-between align-center mt-10 pt-6 border-t border-dashed op-20">
+                    <span id="ai-insight-timestamp" class="text-xs color-gray-500"></span>
+                    <div class="flex gap-2">
+                        <button id="downloadVibeBtn" class="btn btn--pink btn--sm" onclick="downloadWrappedCard()">📸 VIBE CARD</button>
+                        <button id="regenerateBtn" class="btn btn--white btn--sm">✨ REGENERATE</button>
+                    </div>
                 </div>
             </div>
         </section>
