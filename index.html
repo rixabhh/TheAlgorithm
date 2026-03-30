@@ -286,7 +286,7 @@
         <div id="faqList">
             <div class="faq-item">
                 <button class="faq-question" type="button">Is my data safe? <span class="faq-icon">+</span></button>
-                <div class="faq-answer">Yes. Your chat file is scrubbed of PII (phone numbers, emails) entirely in your browser before anything is sent. The server processes data in RAM only. Nothing is written to disk or stored in any database. Data is destroyed within milliseconds of your report rendering.</div>
+                <div class="faq-answer">Yes. The entire analysis payload is calculated locally. Your chat export never leaves your device's browser. Only completely anonymous numerical statistics (like total message counts or response times) are forwarded to our backend for the AI to interpret. We process these raw numbers in temporary RAM without writing to any database, destroying them instantly.</div>
             </div>
             <div class="faq-item">
                 <button class="faq-question" type="button">Do you store my API key? <span class="faq-icon">+</span></button>
@@ -433,8 +433,8 @@
             <div class="flex gap-3 mb-4" style="align-items:flex-start">
                 <span style="width:20px;height:20px;background:var(--orange);border-radius:50%;display:inline-block;flex-shrink:0;margin-top:4px"></span>
                 <div>
-                    <strong style="font-family:var(--font-heading);color:var(--orange);display:block;margin-bottom:2px">Instant Destruction</strong>
-                    <span style="font-size:.85rem;font-weight:500;color:var(--gray-600);line-height:1.5">No database. Data processed in RAM and destroyed 1ms after your report renders.</span>
+                    <strong style="font-family:var(--font-heading);color:var(--orange);display:block;margin-bottom:2px">Local-First Architecture</strong>
+                    <span style="font-size:.85rem;font-weight:500;color:var(--gray-600);line-height:1.5">Your chat file never leaves your device. Only aggregated numerical patterns are transmitted for temporary RAM interpretation.</span>
                 </div>
             </div>
             <div class="flex gap-3" style="align-items:flex-start">
