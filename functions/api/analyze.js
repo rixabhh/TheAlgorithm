@@ -27,7 +27,8 @@ export async function onRequestPost(context) {
 CRITICAL RULES:
 1. Return ONLY a valid JSON object. Do NOT wrap in markdown code blocks.
 2. The JSON keys MUST remain exactly as follows (in English): { "relationship_persona": "", "compatibility_score": 0, "ai_insight": { "dynamic_title": "", "reality_check": "", "recent_shift": "", "red_flags": [], "green_flags": [], "brutal_verdict": "" } }.
-3. The VALUES inside the JSON MUST be written in the requested Output Language (${language || 'english'}). If Hinglish is requested, use conversational Hindi written in the English alphabet (e.g., 'Bhai kya kar raha hai'). Make it gen-z, witty, and brutal.`;
+3. The VALUES inside the JSON MUST be written in the requested Output Language (${language || 'english'}). If Hinglish is requested, use conversational Hindi written in the English alphabet (e.g., 'Bhai kya kar raha hai'). Make it gen-z, witty, and brutal.
+4. Utilize the 'ghost_periods' (who breaks silences longest) and 'humor' (who laughs more) stats to enhance your psychological read of the relationship dynamics.`;
         
         let userPrompt = `Analyze chat: ${my_name} & ${partner_name}. Connection Type: ${connection_type || 'romantic'}. Output Language: ${language || 'english'}. Tone: ${tone}. `;
         if (context) userPrompt += `User Context/Background: ${context}. `;
