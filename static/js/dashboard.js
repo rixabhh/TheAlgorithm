@@ -126,9 +126,14 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="flex justify-between mb-2"><span id="humor-partner-label"></span><span class="font-black">${humor.PARTNER}</span></div>
             <div class="flex justify-between mt-4"><span>Chief Comedian</span><span id="humor-chief" class="pill-label pill-label--yellow"></span></div>
         `;
-        document.getElementById('humor-me-label').textContent = activeData.my_name + ' Laughs';
-        document.getElementById('humor-partner-label').textContent = activeData.partner_name + ' Laughs';
-        document.getElementById('humor-chief').textContent = chiefComedian;
+
+        const myNameStr = (activeData.my_name || '').toString().replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        const partnerNameStr = (activeData.partner_name || '').toString().replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        const chiefComedianStr = (chiefComedian || '').toString().replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+        document.getElementById('humor-me-label').innerHTML = myNameStr + ' Laughs';
+        document.getElementById('humor-partner-label').innerHTML = partnerNameStr + ' Laughs';
+        document.getElementById('humor-chief').innerHTML = chiefComedianStr;
     };
 
     const renderGhosting = (stats) => {
@@ -149,9 +154,14 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="flex justify-between mb-2"><span id="ghost-partner-label"></span><span class="font-black">${ghost.breakers.PARTNER}x</span></div>
             <div class="flex justify-between mt-4"><span>Silence Breaker</span><span id="ghost-chief" class="pill-label pill-label--pink"></span></div>
         `;
-        document.getElementById('ghost-me-label').textContent = activeData.my_name + ' Broke Silence';
-        document.getElementById('ghost-partner-label').textContent = activeData.partner_name + ' Broke Silence';
-        document.getElementById('ghost-chief').textContent = chiefBreaker;
+
+        const myNameStr = (activeData.my_name || '').toString().replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        const partnerNameStr = (activeData.partner_name || '').toString().replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        const chiefBreakerStr = (chiefBreaker || '').toString().replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+        document.getElementById('ghost-me-label').innerHTML = myNameStr + ' Broke Silence';
+        document.getElementById('ghost-partner-label').innerHTML = partnerNameStr + ' Broke Silence';
+        document.getElementById('ghost-chief').innerHTML = chiefBreakerStr;
     };
 
     const renderEmoji = (stats) => {
