@@ -21,6 +21,9 @@ class AnalyticsEngine {
         this.NEG_WORDS = new Set(['hate', 'sad', 'bad', 'angry', 'hurt', 'sorry', 'no', 'stop', 'upset', 'annoyed', 'tired', 'sick', 'worry', 'fail', 'bekar', 'gussa', 'bura', 'ghatiya', 'pagal', 'bewakoof', 'chup', 'dard', 'dukh', 'mushkil', 'pareshan']);
 
         this.STOP_WORDS = new Set(['the', 'a', 'an', 'is', 'are', 'was', 'were', 'to', 'for', 'and', 'but', 'or', 'if', 'this', 'that', 'it', 'me', 'you', 'my', 'your', 'on', 'at', 'in', 'of', 'i', 'im', 'with', 'hi', 'hey', 'hello', 'ya', 'ye', 'na', 'h', 'hai', 'tha', 'thee', 'ke', 'ka', 'ko', 'ki', 'ne', 'mein', 'par', 'tha', 'the', 'thi', 'raha', 'rahi', 'rahe', 'hota', 'hote', 'hoti', 'lekin', 'kyun', 'kya', 'kise', 'kisko', 'kaise', 'kahan', 'kab']);
+
+        // Humor tracking
+        this.LAUGH_RE = /haha|lmao|lol|rofl|hehe|jaja|555|kek|hihi/i;
     }
 
     runPipeline(messages, connectionType = 'romantic') {
@@ -57,6 +60,9 @@ class AnalyticsEngine {
         const links = this.extractLinks(processed);
         const symmetry = this.calculateSymmetryScore(initiatorInfo, powerInfo);
         
+        const humorRatio = this.calculateHumorRatio(processed);
+        const ghostPeriods = this.calculateGhostPeriods(processed);
+
         // --- MSG DISTRIBUTION FOR CHARTS ---
         const msgDist = { ME: 0, PARTNER: 0 };
         processed.forEach(m => { msgDist[m.sender]++; });
@@ -89,6 +95,8 @@ class AnalyticsEngine {
             lexical_diversity: lexicalDiversity,
             links: links,
             symmetry: symmetry,
+            humor: humorRatio,
+            ghost_periods: ghostPeriods,
             sentiment_summary: {
                 partner_mean: sentimentInfo.partnerMean,
                 me_mean: sentimentInfo.meMean
@@ -336,6 +344,33 @@ class AnalyticsEngine {
         }
         const finalize = (obj) => Object.entries(obj).map(([emoji, count]) => ({ emoji, count })).sort((a, b) => b.count - a.count).slice(0, 15);
         return { ME: finalize(stats.ME), PARTNER: finalize(stats.PARTNER), total: Object.values(stats.ME).reduce((a,b)=>a+b,0) + Object.values(stats.PARTNER).reduce((a,b)=>a+b,0) };
+    }
+
+    calculateHumorRatio(messages) {
+        const laughs = { ME: 0, PARTNER: 0 };
+        for (const m of messages) {
+            if (this.LAUGH_RE.test(m.text)) {
+                laughs[m.sender]++;
+            }
+        }
+        return laughs;
+    }
+
+    calculateGhostPeriods(messages) {
+        // Find periods of inactivity > 48 hours and who broke the silence
+        const GHOST_THRESHOLD = 48 * 60; // 48 hours in minutes
+        let silence_breakers = { ME: 0, PARTNER: 0 };
+        let ghost_incidents = 0;
+
+        for (let i = 1; i < messages.length; i++) {
+            const current = messages[i];
+            // Since we want gaps of silence, we look at gapMins.
+            if (current.gapMins > GHOST_THRESHOLD) {
+                ghost_incidents++;
+                silence_breakers[current.sender]++;
+            }
+        }
+        return { incidents: ghost_incidents, breakers: silence_breakers };
     }
 
     calculateInitiatorRatio(messages) {

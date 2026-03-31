@@ -61,6 +61,8 @@ document.addEventListener('DOMContentLoaded', () => {
         renderStreaks(stats);
         renderWordCloud(stats);
         renderEmoji(stats);
+        renderHumor(stats);
+        renderGhosting(stats);
         
         if (window.Chart) {
             initRatioChart(stats);
@@ -106,6 +108,43 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="flex justify-between"><span>Max Inactivity</span><span class="font-black">${stats.max_inactivity || "N/A"} days</span></div>
             <div class="flex justify-between"><span>Avg Response (${activeData.my_name})</span><span class="font-black">${formatTime(init.me_latency_avg)}</span></div>
             <div class="flex justify-between"><span>Avg Response (${activeData.partner_name})</span><span class="font-black">${formatTime(init.partner_latency_avg)}</span></div>
+        `;
+    };
+
+    const renderHumor = (stats) => {
+        const container = document.getElementById('humor-container');
+        if (!container) return;
+        const humor = stats.humor || { ME: 0, PARTNER: 0 };
+        const total = humor.ME + humor.PARTNER;
+        let chiefComedian = "It's a tie!";
+        if (humor.ME > humor.PARTNER) chiefComedian = activeData.my_name;
+        else if (humor.PARTNER > humor.ME) chiefComedian = activeData.partner_name;
+
+        container.innerHTML = `
+            <div class="flex justify-between mb-2"><span>Total Laughs</span><span class="font-black">${total}</span></div>
+            <div class="flex justify-between mb-2"><span>${activeData.my_name} Laughs</span><span class="font-black">${humor.ME}</span></div>
+            <div class="flex justify-between mb-2"><span>${activeData.partner_name} Laughs</span><span class="font-black">${humor.PARTNER}</span></div>
+            <div class="flex justify-between mt-4"><span>Chief Comedian</span><span class="pill-label pill-label--yellow">${chiefComedian}</span></div>
+        `;
+    };
+
+    const renderGhosting = (stats) => {
+        const container = document.getElementById('ghosting-container');
+        if (!container) return;
+        const ghost = stats.ghost_periods || { incidents: 0, breakers: { ME: 0, PARTNER: 0 } };
+
+        let chiefBreaker = "No ghosts here";
+        if (ghost.incidents > 0) {
+            if (ghost.breakers.ME > ghost.breakers.PARTNER) chiefBreaker = activeData.my_name;
+            else if (ghost.breakers.PARTNER > ghost.breakers.ME) chiefBreaker = activeData.partner_name;
+            else chiefBreaker = "Balanced";
+        }
+
+        container.innerHTML = `
+            <div class="flex justify-between mb-2"><span>Total Incidents</span><span class="font-black">${ghost.incidents}</span></div>
+            <div class="flex justify-between mb-2"><span>${activeData.my_name} Broke Silence</span><span class="font-black">${ghost.breakers.ME}x</span></div>
+            <div class="flex justify-between mb-2"><span>${activeData.partner_name} Broke Silence</span><span class="font-black">${ghost.breakers.PARTNER}x</span></div>
+            <div class="flex justify-between mt-4"><span>Silence Breaker</span><span class="pill-label pill-label--pink">${chiefBreaker}</span></div>
         `;
     };
 
