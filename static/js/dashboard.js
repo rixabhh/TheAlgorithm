@@ -65,6 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (window.Chart) {
             initRatioChart(stats);
             initActivityChart(stats.weekly_data || []);
+            initMoodChart(stats.weekly_data || []);
         }
     };
 
@@ -174,6 +175,58 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
+    let moodChart = null;
+    const initMoodChart = (weeks) => {
+        const ctx = document.getElementById('moodChart')?.getContext('2d');
+        if (!ctx) return;
+        if (moodChart) moodChart.destroy();
+        
+        const labels = weeks.map(w => w.week_start);
+        const data = weeks.map(w => w.mean_sentiment);
+        
+        moodChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Sentiment Score',
+                    data: data,
+                    fill: true,
+                    borderColor: '#222',
+                    tension: 0.4,
+                    segment: {
+                        borderColor: ctx => ctx.p0.parsed.y >= 0 ? '#10B981' : '#EF4444',
+                        backgroundColor: ctx => ctx.p0.parsed.y >= 0 ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)'
+                    }
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        grid: { display: false }
+                    },
+                    y: {
+                        min: -1,
+                        max: 1,
+                        ticks: {
+                            callback: function(value) {
+                                if (value === 1) return 'Positive Mode';
+                                if (value === 0) return 'Neutral';
+                                if (value === -1) return 'Tension';
+                                return '';
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    };
+
     window.switchTab = (type, mode) => {
         const btns = event.target.parentElement.querySelectorAll('.tab-btn');
         btns.forEach(b => b.classList.remove('active'));
@@ -271,6 +324,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
             loading.classList.add('hidden');
             results.classList.remove('hidden');
+
+            // Reset Chat History on new generation
+            window.coachingChatHistory = [];
+            const chatHistoryEl = document.getElementById('coaching-chat-history');
+            if (chatHistoryEl) {
+                chatHistoryEl.innerHTML = `
+                <div class="chat-message ai text-sm" style="align-self: flex-start; background: var(--white); border: 2px solid var(--black); box-shadow: 2px 2px 0 0 var(--black); padding: 0.5rem 1rem; border-radius: 12px 12px 12px 0; max-width: 85%;">
+                    <strong>Coach:</strong> Based on the data, what do you want me to expand on? I can break down response times, shift in vibe, or give advice.
+                </div>`;
+            }
+
         } catch (e) {
             if (e.message && e.message.includes('Free tier limit')) {
                 alert("Cloudflare free tier limit reached (2 requests per hour). Please try again later or configure your own API key in the settings to generate immediately.");
@@ -279,6 +343,89 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             loading.classList.add('hidden');
             permission.classList.remove('hidden');
+        }
+    });
+
+    // --- COACHING CHAT LOGIC ---
+    const chatForm = document.getElementById('coaching-chat-form');
+    chatForm?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const inputEl = document.getElementById('coaching-chat-input');
+        const submitBtn = document.getElementById('coaching-chat-submit');
+        const historyEl = document.getElementById('coaching-chat-history');
+        
+        const text = inputEl.value.trim();
+        if (!text) return;
+
+        // Append User Message
+        const userMsg = document.createElement('div');
+        userMsg.className = 'chat-message user text-sm';
+        userMsg.style.cssText = 'align-self: flex-end; background: var(--pink); border: 2px solid var(--black); box-shadow: 2px 2px 0 0 var(--black); padding: 0.5rem 1rem; border-radius: 12px 12px 0 12px; max-width: 85%; font-weight: 500;';
+        userMsg.innerHTML = `<strong>You:</strong> ${text}`;
+        historyEl.appendChild(userMsg);
+        
+        inputEl.value = '';
+        inputEl.disabled = true;
+        submitBtn.disabled = true;
+        submitBtn.textContent = '...';
+
+        // Append Loading
+        const loadMsg = document.createElement('div');
+        loadMsg.className = 'chat-message ai text-sm loading-msg';
+        loadMsg.style.cssText = 'align-self: flex-start; background: var(--white); border: 2px solid var(--black); padding: 0.5rem 1rem; border-radius: 12px 12px 12px 0; max-width: 85%; opacity: 0.6;';
+        loadMsg.innerHTML = `<em>Coach is typing...</em>`;
+        historyEl.appendChild(loadMsg);
+        historyEl.scrollTop = historyEl.scrollHeight;
+
+        try {
+            const provider = localStorage.getItem('llm_provider') || 'cloudflare';
+            const payload = {
+                stats: activeData.stats,
+                llmReport: window.llmReport,
+                chat_history: window.coachingChatHistory || [],
+                message: text,
+                provider: provider,
+                api_key: sessionStorage.getItem('_llm_token') ? atob(sessionStorage.getItem('_llm_token')) : ''
+            };
+
+            const resp = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await resp.json();
+            
+            if (!window.coachingChatHistory) window.coachingChatHistory = [];
+            window.coachingChatHistory.push({ role: 'user', content: text });
+
+            loadMsg.remove();
+
+            if (!resp.ok) throw new Error(data.error || "Failed context");
+
+            // Format linebreaks correctly for HTML display
+            const formattedText = data.text.replace(/\n/g, '<br>');
+
+            // Append Coach Message
+            const coachMsg = document.createElement('div');
+            coachMsg.className = 'chat-message ai text-sm';
+            coachMsg.style.cssText = 'align-self: flex-start; background: var(--white); border: 2px solid var(--black); box-shadow: 2px 2px 0 0 var(--black); padding: 0.5rem 1rem; border-radius: 12px 12px 12px 0; max-width: 85%; line-height: 1.5; font-weight: 500;';
+            coachMsg.innerHTML = `<strong>Coach:</strong> ${formattedText}`;
+            historyEl.appendChild(coachMsg);
+            
+            window.coachingChatHistory.push({ role: 'assistant', content: data.text });
+        } catch (err) {
+            loadMsg.remove();
+            const errMsg = document.createElement('div');
+            errMsg.className = 'chat-message error text-sm';
+            errMsg.style.cssText = 'align-self: center; background: #ffcc00; border: 2px solid #000; padding: 0.5rem 1rem; font-weight: 700;';
+            errMsg.innerHTML = `Error: ${err.message}`;
+            historyEl.appendChild(errMsg);
+        } finally {
+            inputEl.disabled = false;
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Ask';
+            inputEl.focus();
+            historyEl.scrollTop = historyEl.scrollHeight;
         }
     });
 });
