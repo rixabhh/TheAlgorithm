@@ -122,9 +122,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         container.innerHTML = `
             <div class="flex justify-between mb-2"><span>Total Laughs</span><span class="font-black">${total}</span></div>
-            <div class="flex justify-between mb-2"><span>${activeData.my_name} Laughs</span><span class="font-black">${humor.ME}</span></div>
-            <div class="flex justify-between mb-2"><span>${activeData.partner_name} Laughs</span><span class="font-black">${humor.PARTNER}</span></div>
-            <div class="flex justify-between mt-4"><span>Chief Comedian</span><span class="pill-label pill-label--yellow">${chiefComedian}</span></div>
+            <div class="flex justify-between mb-2"><span>${escapeHTML(activeData.my_name)} Laughs</span><span class="font-black">${humor.ME}</span></div>
+            <div class="flex justify-between mb-2"><span>${escapeHTML(activeData.partner_name)} Laughs</span><span class="font-black">${humor.PARTNER}</span></div>
+            <div class="flex justify-between mt-4"><span>Chief Comedian</span><span class="pill-label pill-label--yellow">${escapeHTML(chiefComedian)}</span></div>
         `;
     };
 
@@ -142,9 +142,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         container.innerHTML = `
             <div class="flex justify-between mb-2"><span>Total Incidents</span><span class="font-black">${ghost.incidents}</span></div>
-            <div class="flex justify-between mb-2"><span>${activeData.my_name} Broke Silence</span><span class="font-black">${ghost.breakers.ME}x</span></div>
-            <div class="flex justify-between mb-2"><span>${activeData.partner_name} Broke Silence</span><span class="font-black">${ghost.breakers.PARTNER}x</span></div>
-            <div class="flex justify-between mt-4"><span>Silence Breaker</span><span class="pill-label pill-label--pink">${chiefBreaker}</span></div>
+            <div class="flex justify-between mb-2"><span>${escapeHTML(activeData.my_name)} Broke Silence</span><span class="font-black">${ghost.breakers.ME}x</span></div>
+            <div class="flex justify-between mb-2"><span>${escapeHTML(activeData.partner_name)} Broke Silence</span><span class="font-black">${ghost.breakers.PARTNER}x</span></div>
+            <div class="flex justify-between mt-4"><span>Silence Breaker</span><span class="pill-label pill-label--pink">${escapeHTML(chiefBreaker)}</span></div>
         `;
     };
 
