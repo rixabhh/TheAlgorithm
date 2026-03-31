@@ -122,10 +122,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         container.innerHTML = `
             <div class="flex justify-between mb-2"><span>Total Laughs</span><span class="font-black">${total}</span></div>
-            <div class="flex justify-between mb-2"><span>${escapeHTML(activeData.my_name)} Laughs</span><span class="font-black">${humor.ME}</span></div>
-            <div class="flex justify-between mb-2"><span>${escapeHTML(activeData.partner_name)} Laughs</span><span class="font-black">${humor.PARTNER}</span></div>
-            <div class="flex justify-between mt-4"><span>Chief Comedian</span><span class="pill-label pill-label--yellow">${escapeHTML(chiefComedian)}</span></div>
+            <div class="flex justify-between mb-2"><span id="humor-me-label"></span><span class="font-black">${humor.ME}</span></div>
+            <div class="flex justify-between mb-2"><span id="humor-partner-label"></span><span class="font-black">${humor.PARTNER}</span></div>
+            <div class="flex justify-between mt-4"><span>Chief Comedian</span><span id="humor-chief" class="pill-label pill-label--yellow"></span></div>
         `;
+        document.getElementById('humor-me-label').textContent = activeData.my_name + ' Laughs';
+        document.getElementById('humor-partner-label').textContent = activeData.partner_name + ' Laughs';
+        document.getElementById('humor-chief').textContent = chiefComedian;
     };
 
     const renderGhosting = (stats) => {
@@ -142,10 +145,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         container.innerHTML = `
             <div class="flex justify-between mb-2"><span>Total Incidents</span><span class="font-black">${ghost.incidents}</span></div>
-            <div class="flex justify-between mb-2"><span>${escapeHTML(activeData.my_name)} Broke Silence</span><span class="font-black">${ghost.breakers.ME}x</span></div>
-            <div class="flex justify-between mb-2"><span>${escapeHTML(activeData.partner_name)} Broke Silence</span><span class="font-black">${ghost.breakers.PARTNER}x</span></div>
-            <div class="flex justify-between mt-4"><span>Silence Breaker</span><span class="pill-label pill-label--pink">${escapeHTML(chiefBreaker)}</span></div>
+            <div class="flex justify-between mb-2"><span id="ghost-me-label"></span><span class="font-black">${ghost.breakers.ME}x</span></div>
+            <div class="flex justify-between mb-2"><span id="ghost-partner-label"></span><span class="font-black">${ghost.breakers.PARTNER}x</span></div>
+            <div class="flex justify-between mt-4"><span>Silence Breaker</span><span id="ghost-chief" class="pill-label pill-label--pink"></span></div>
         `;
+        document.getElementById('ghost-me-label').textContent = activeData.my_name + ' Broke Silence';
+        document.getElementById('ghost-partner-label').textContent = activeData.partner_name + ' Broke Silence';
+        document.getElementById('ghost-chief').textContent = chiefBreaker;
     };
 
     const renderEmoji = (stats) => {
