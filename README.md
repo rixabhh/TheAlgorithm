@@ -42,11 +42,11 @@ We don't want your data. Period.
 3. **Aggressive Deletion**: No data is persisted. Files are processed in memory and never written to disk.
 4. **Stats-Only LLM Pipeline**: Your raw chat logs are *never* sent to the LLM. Our local engine processes the chats and sends only an anonymous, numerical statistical payload to the AI service.
 
-Running The Algorithm on your own machine is simple using Wrangler.
+Running The Algorithm on your own machine is simple using Docker or Python.
 
 ### Prerequisites
-- Node.js (v18+)
-- npm or yarn
+- Python (v3.11+) or Docker
+- Make (optional)
 
 ### Installation
 
@@ -56,17 +56,23 @@ Running The Algorithm on your own machine is simple using Wrangler.
    cd TheAlgorithm
    ```
 
-2. Install dependencies (Wrangler):
+2. Set up the development environment:
    ```bash
-   npm install
+   # Copy the environment file template
+   cp .env.example .env
    ```
 
-3. Run the application locally:
+3. Run the application locally (via Make):
    ```bash
-   npx wrangler pages dev .
+   # Run via Python natively
+   make dev
+
+   # Or run via Docker
+   make docker-build
+   make docker-run
    ```
 
-4. Open `http://localhost:8788` in your browser.
+4. Open `http://localhost:7860` in your browser.
 
 The Algorithm is built for Cloudflare Pages. You can deploy it instantly by connecting your GitHub repo to the Cloudflare dashboard.
 
