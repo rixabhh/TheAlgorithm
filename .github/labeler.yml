@@ -1,0 +1,19 @@
+# PR Labeler configuration
+
+frontend:
+  - 'static/**/*'
+  - '*.html'
+
+backend:
+  - 'functions/**/*'
+  - 'app.py'
+
+infra:
+  - 'Dockerfile'
+  - '.github/**/*'
+  - 'requirements.txt'
+  - 'pyproject.toml'
+  - 'Makefile'
+
+docs:
+  - '*.md'
