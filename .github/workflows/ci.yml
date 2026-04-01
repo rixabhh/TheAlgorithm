@@ -18,7 +18,10 @@ jobs:
           cache: 'pip'
 
       - run: pip install -r requirements.txt
-      - run: pip install pytest pytest-cov ruff
+      - run: pip install pytest pytest-cov ruff pip-audit
+
+      - name: Security Scan
+        run: pip-audit -r requirements.txt
 
       - name: Lint with ruff
         run: ruff check .
