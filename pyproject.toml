@@ -21,3 +21,4 @@ target-version = "py311"
 [tool.pytest.ini_options]
 addopts = "-v --cov=. --cov-report=xml"
 testpaths = ["tests"]
+pythonpath = "."
