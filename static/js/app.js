@@ -456,9 +456,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 sessionStorage.setItem('dashboard_data', JSON.stringify(dashboardData));
                 window.location.href = '/dashboard.html';
 
+                // Explicitly clear memory of parsed messages
+                filteredMessages.length = 0;
+
             } catch (err) {
                 showError(err.message);
                 if (loadingOverlay) loadingOverlay.classList.add('hidden');
+            } finally {
+                // Ensure memory is explicitly freed
+                if (typeof rawMessages !== 'undefined' && rawMessages) {
+                    rawMessages.length = 0;
+                    rawMessages = null;
+                }
+                if (fileInput && fileInput.value) {
+                     fileInput.value = '';
+                }
             }
         });
     }
