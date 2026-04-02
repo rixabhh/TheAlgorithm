@@ -250,7 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const provider = localStorage.getItem('llm_provider') || 'cloudflare';
         const hasKey = sessionStorage.getItem('_llm_token');
         if (provider === 'cloudflare' || hasKey) {
-            console.log("Auto-triggering AI insights...");
+            // Auto-triggering AI insights...
             setTimeout(() => {
                 document.getElementById('generateAiBtn')?.click();
             }, 1000);
