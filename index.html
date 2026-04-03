@@ -223,6 +223,8 @@
                     <div id="fileList" class="hidden" style="font-size:.85rem;font-weight:700;padding:.75rem 1rem;background:var(--green);color:var(--white);border:var(--border);border-radius:var(--r-sm);box-shadow:2px 2px 0 0 var(--black)"></div>
                     <div id="filename-display" class="hidden"></div>
                     
+                    <div id="detectionCard" class="hidden" style="padding:1rem;background:var(--white);border:var(--border-thick);border-radius:var(--r-sm);box-shadow:2px 2px 0 0 var(--black);display:flex;align-items:center;gap:1rem;transition:all 0.3s ease-in-out"></div>
+
                     <div id="jsonPlatformSelector" class="hidden" style="padding:1rem;border:var(--border);border-radius:var(--r-sm);background:var(--blue);box-shadow:2px 2px 0 0 var(--black)">
                         <label for="jsonPlatform" style="display:block;font-family:var(--font-heading);font-weight:900;color:var(--white);margin-bottom:.5rem;font-size:.85rem;letter-spacing:.02em">Confirm JSON Platform Output</label>
                         <select id="jsonPlatform" class="sr-only" aria-hidden="true">
@@ -252,14 +254,16 @@
                                 <p id="apiKeyStatusText" style="font-size:.65rem;font-weight:600;color:var(--white);margin:0">API Key Required</p>
                             </div>
                         </div>
-                        <button type="button" id="settingsBtn" class="btn btn--yellow" style="font-size:.62rem;padding:.28rem .65rem;margin:0">Configure</button>
+                        <button type="button" id="settingsBtn" class="btn btn--yellow" style="font-size:.62rem;padding:.28rem .65rem;margin:0" aria-label="Configure API Provider">Configure</button>
                     </div>
 
                     <div id="errorContainer" class="hidden error-box" role="alert" aria-live="polite"></div>
 
-                    <button id="analyzeBtn" type="submit" class="btn btn--primary btn--full btn--lg" style="font-size:.9rem;padding:.75rem">
+                    <button id="analyzeBtn" type="submit" class="btn btn--primary btn--full btn--lg" style="font-size:.9rem;padding:.75rem" aria-busy="false">
                         Decode My Chat →
                     </button>
+
+                    <p class="text-center text-xs font-medium text-gray-500 mt-2 mb-0">Your file never leaves this device.</p>
 
                     <div class="text-center">
                         <button type="button" id="trustCenterBtn" style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gray-500);background:none;border:none;padding:0;cursor:pointer">
@@ -274,8 +278,9 @@
                             <span id="estimatedTime" style="color:var(--black)">Est: ~30s</span>
                         </div>
                         <div class="progress-container" id="progressBarContainer" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
-                            <div id="progressBar" class="progress-bar" style="width:0%"></div>
+                            <div id="progressBar" class="progress-bar" style="width:0%; transition: width 0.3s ease-in-out"></div>
                         </div>
+                        <div id="progressSteps" style="font-size:0.75rem;font-weight:700;color:var(--gray-600);text-align:center;margin-top:0.5rem"></div>
                         <div id="scrubbingIndicator" class="hidden" style="display:none;align-items:center;justify-content:center;gap:.5rem;font-weight:700;font-size:.8rem;background:var(--yellow);padding:.5rem;border:var(--border);border-radius:var(--r-sm);box-shadow:2px 2px 0 0 var(--black)">
                             Scrubbing PII Locally…
                         </div>
@@ -403,7 +408,7 @@
                     <a href="instructions.html#api-keys" style="font-size:.7rem;font-weight:600;color:var(--pink);text-decoration:none">Where to get this?</a>
                 </div>
                 <div style="position:relative">
-                    <input type="password" id="apiKey" placeholder="sk-..." class="field-input" maxlength="512" style="padding-right:3rem">
+                    <input type="password" id="apiKey" placeholder="sk-..." class="field-input" maxlength="512" style="padding-right:3rem" aria-describedby="apiKeyFormatHint providerHint">
                     <button type="button" id="toggleApiKey" aria-label="Show API Key" style="position:absolute;right:.75rem;top:50%;transform:translateY(-50%);background:var(--white);border:var(--border-thin);border-radius:4px;padding:3px 5px;cursor:pointer;display:flex">
                         <svg id="eyeIcon" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                     </button>

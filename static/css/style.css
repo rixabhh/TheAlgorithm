@@ -156,6 +156,18 @@ h3 { font-size: clamp(1.1rem, 2vw, 1.5rem); }
 .text-sm { font-size: 0.875rem; }
 .text-xl { font-size: 1.25rem; }
 .font-black { font-weight: 900; }
+.max-w-prose { max-width: 65ch; }
+.mx-auto { margin-left: auto; margin-right: auto; }
+.w-full { width: 100%; }
+
+/* Buttons interaction updates */
+button, .btn {
+    transition: all 0.3s ease-in-out;
+}
+button:focus-visible, .btn:focus-visible, input:focus-visible {
+    outline: 2px solid var(--pink);
+    outline-offset: 2px;
+}
 .uppercase { text-transform: uppercase; }
 .op-50 { opacity: 0.5; }
 .op-80 { opacity: 0.8; }
