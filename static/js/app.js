@@ -199,11 +199,54 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     fileInput?.addEventListener('change', updateFileList);
 
-    function updateFileList() {
-        if (fileList && fileInput.files.length > 0) {
-            const fileName = fileInput.files[0].name;
-            fileList.classList.remove('hidden');
-            fileList.textContent = `✅ Selected: ${fileName}`;
+    async function updateFileList() {
+        if (fileInput.files.length > 0) {
+            const file = fileInput.files[0];
+            const fileName = file.name;
+
+            const detectionCard = document.getElementById('detectionCard');
+            if (detectionCard) {
+                try {
+                    const content = await file.slice(0, 1024 * 1024).text(); // Read first 1MB for detection
+                    let platform = 'Unknown';
+                    let messageCount = 0;
+
+                    if (fileName.toLowerCase().endsWith('.txt')) {
+                        platform = 'WhatsApp';
+                        messageCount = (content.match(/\n/g) || []).length;
+                    } else if (fileName.toLowerCase().endsWith('.html')) {
+                        platform = 'Telegram';
+                        messageCount = (content.match(/<div class="message /g) || []).length;
+                    } else if (fileName.toLowerCase().endsWith('.json')) {
+                        platform = content.includes('messages') ? 'Instagram / Discord' : 'JSON';
+                        messageCount = (content.match(/"timestamp_ms"|"timestamp"/g) || []).length;
+                    }
+
+                    const icons = {
+                        'WhatsApp': '🟢',
+                        'Telegram': '🔵',
+                        'Instagram / Discord': '🟣',
+                        'JSON': '📄',
+                        'Unknown': '❓'
+                    };
+
+                    detectionCard.innerHTML = `
+                        <span class="text-2xl">${icons[platform] || '📄'}</span>
+                        <div>
+                            <p style="font-weight:700;margin:0">Detected: ${platform}</p>
+                            <p style="font-size:0.75rem;color:var(--gray-500);margin:0">~${messageCount.toLocaleString()} messages found</p>
+                        </div>
+                    `;
+                    detectionCard.classList.remove('hidden');
+                } catch (e) {
+                    console.error("Error previewing file", e);
+                }
+            }
+
+            if (fileList) {
+                fileList.classList.remove('hidden');
+                fileList.textContent = `✅ Selected: ${fileName}`;
+            }
             
             const jsonSelector = document.getElementById('jsonPlatformSelector');
             if (jsonSelector) {
@@ -411,8 +454,29 @@ document.addEventListener('DOMContentLoaded', () => {
                     analyzeBtn.textContent = 'Processing...';
                 }
 
+            let progressInterval;
             try {
                 const file = fileInput.files[0];
+
+                // Show custom progress UI
+                const progressUI = document.getElementById('progressUI');
+                const progressBar = document.getElementById('progressBar');
+                const progressSteps = document.getElementById('progressSteps');
+                if (progressUI && progressBar && progressSteps) {
+                    progressUI.classList.remove('hidden');
+                    progressUI.style.display = 'flex';
+
+                    const steps = ['Parsing messages...', 'Redacting PII...', 'Calculating statistics...', 'Generating insights...'];
+                    let stepIndex = 0;
+                    progressSteps.textContent = steps[stepIndex];
+
+                    progressInterval = setInterval(() => {
+                        stepIndex = Math.min(stepIndex + 1, steps.length - 1);
+                        progressSteps.textContent = steps[stepIndex];
+                        progressBar.style.width = `${(stepIndex / steps.length) * 100}%`;
+                    }, 1000);
+                }
+
                 const content = await file.text();
                 
                 let jsonPlat = document.getElementById('jsonPlatform') ? document.getElementById('jsonPlatform').value : 'Instagram';
@@ -459,6 +523,14 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (err) {
                 showError(err.message);
                 if (loadingOverlay) loadingOverlay.classList.add('hidden');
+                const progressUI = document.getElementById('progressUI');
+                if (progressUI) progressUI.classList.add('hidden');
+                if (analyzeBtn) {
+                    analyzeBtn.disabled = false;
+                    analyzeBtn.textContent = 'Decode My Chat →';
+                }
+            } finally {
+                if (progressInterval) clearInterval(progressInterval);
             }
         });
     }
