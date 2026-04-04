@@ -222,7 +222,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const hfContainer = document.getElementById('hfUrlContainer');
         const apiKeyContainer = document.getElementById('apiKeyContainer');
         if (!hintEl) return;
-        const hints = { 'cloudflare': 'Free Tier (2 reports/hr)', 'openai': 'sk-proj-...', 'anthropic': 'sk-ant-...', 'gemini': 'Google API Key' };
+        const hints = {
+            'cloudflare': 'Free Tier (2 reports/hr)',
+            'openai': 'sk-proj-...',
+            'anthropic': 'sk-ant-...',
+            'gemini': 'Google API Key',
+            'grok': 'xAI API Key',
+            'openrouter': 'sk-or-v1-...',
+            'mistral': 'Mistral API Key',
+            'cohere': 'Cohere API Key'
+        };
         hintEl.textContent = hints[provider] || '';
         
         if (hfContainer) hfContainer.classList.toggle('hidden', provider !== 'huggingface');
