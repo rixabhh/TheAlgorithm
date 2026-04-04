@@ -85,7 +85,25 @@ document.addEventListener('DOMContentLoaded', () => {
         const hasFile = fileInput && fileInput.files.length > 0;
         const provider = localStorage.getItem('llm_provider') || 'cloudflare';
         const keyRaw = sessionStorage.getItem('_llm_token');
-        const hasValidKey = (provider === 'cloudflare') || (keyRaw && keyRaw.trim() !== '' && keyRaw !== btoa(''));
+
+        let hasValidKey = false;
+        if (provider === 'cloudflare') {
+            hasValidKey = true;
+        } else if (keyRaw && keyRaw.trim() !== '' && keyRaw !== btoa('')) {
+            try {
+                const decodedKey = atob(keyRaw).trim();
+                // Format validation
+                if (provider === 'openai' && decodedKey.startsWith('sk-')) hasValidKey = true;
+                else if (provider === 'anthropic' && decodedKey.startsWith('sk-ant-')) hasValidKey = true;
+                else if (provider === 'gemini' && decodedKey.length >= 39) hasValidKey = true; // Gemini keys are 39 chars
+                else if (provider === 'grok' && decodedKey.startsWith('xai-')) hasValidKey = true; // Typical xAI format
+                else if (provider === 'openrouter' && decodedKey.startsWith('sk-or-v1-')) hasValidKey = true;
+                else if (provider === 'mistral' && decodedKey.length > 10) hasValidKey = true; // Generic alphanumeric check
+                else if (provider === 'cohere' && decodedKey.length > 10) hasValidKey = true;  // Generic alphanumeric check
+            } catch (e) {
+                // Ignore base64 decode errors
+            }
+        }
         
         analyzeBtn.disabled = !(hasFile && hasValidKey);
         
@@ -112,8 +130,26 @@ document.addEventListener('DOMContentLoaded', () => {
             icon.textContent = '☁️';
             text.textContent = 'Free Tier (2/hr limit)';
         } else if (key && key.trim() !== "" && key !== btoa("")) {
-            icon.textContent = '✅';
-            text.textContent = 'API Key Configured';
+            // Check if key is valid using same logic
+            let hasValidKey = false;
+            try {
+                const decodedKey = atob(key).trim();
+                if (provider === 'openai' && decodedKey.startsWith('sk-')) hasValidKey = true;
+                else if (provider === 'anthropic' && decodedKey.startsWith('sk-ant-')) hasValidKey = true;
+                else if (provider === 'gemini' && decodedKey.length >= 39) hasValidKey = true;
+                else if (provider === 'grok' && decodedKey.startsWith('xai-')) hasValidKey = true;
+                else if (provider === 'openrouter' && decodedKey.startsWith('sk-or-v1-')) hasValidKey = true;
+                else if (provider === 'mistral' && decodedKey.length > 10) hasValidKey = true;
+                else if (provider === 'cohere' && decodedKey.length > 10) hasValidKey = true;
+            } catch (e) {}
+
+            if (hasValidKey) {
+                icon.textContent = '✅';
+                text.textContent = 'API Key Configured';
+            } else {
+                icon.textContent = '⚠️';
+                text.textContent = 'Invalid API Key Format';
+            }
         } else {
             icon.textContent = '🔑';
             text.textContent = 'API Key Required';
@@ -222,7 +258,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const hfContainer = document.getElementById('hfUrlContainer');
         const apiKeyContainer = document.getElementById('apiKeyContainer');
         if (!hintEl) return;
-        const hints = { 'cloudflare': 'Free Tier (2 reports/hr)', 'openai': 'sk-proj-...', 'anthropic': 'sk-ant-...', 'gemini': 'Google API Key' };
+        const hints = {
+            'cloudflare': 'Free Tier (2 reports/hr)',
+            'openai': 'sk-proj-...',
+            'anthropic': 'sk-ant-...',
+            'gemini': 'Google API Key',
+            'grok': 'xAI API Key',
+            'openrouter': 'sk-or-v1-...',
+            'mistral': 'Mistral API Key',
+            'cohere': 'Cohere API Key'
+        };
         hintEl.textContent = hints[provider] || '';
         
         if (hfContainer) hfContainer.classList.toggle('hidden', provider !== 'huggingface');
