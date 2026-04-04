@@ -85,25 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const hasFile = fileInput && fileInput.files.length > 0;
         const provider = localStorage.getItem('llm_provider') || 'cloudflare';
         const keyRaw = sessionStorage.getItem('_llm_token');
-
-        let hasValidKey = false;
-        if (provider === 'cloudflare') {
-            hasValidKey = true;
-        } else if (keyRaw && keyRaw.trim() !== '' && keyRaw !== btoa('')) {
-            try {
-                const decodedKey = atob(keyRaw).trim();
-                // Format validation
-                if (provider === 'openai' && decodedKey.startsWith('sk-')) hasValidKey = true;
-                else if (provider === 'anthropic' && decodedKey.startsWith('sk-ant-')) hasValidKey = true;
-                else if (provider === 'gemini' && decodedKey.length >= 39) hasValidKey = true; // Gemini keys are 39 chars
-                else if (provider === 'grok' && decodedKey.startsWith('xai-')) hasValidKey = true; // Typical xAI format
-                else if (provider === 'openrouter' && decodedKey.startsWith('sk-or-v1-')) hasValidKey = true;
-                else if (provider === 'mistral' && decodedKey.length > 10) hasValidKey = true; // Generic alphanumeric check
-                else if (provider === 'cohere' && decodedKey.length > 10) hasValidKey = true;  // Generic alphanumeric check
-            } catch (e) {
-                // Ignore base64 decode errors
-            }
-        }
+        const hasValidKey = (provider === 'cloudflare') || (keyRaw && keyRaw.trim() !== '' && keyRaw !== btoa(''));
         
         analyzeBtn.disabled = !(hasFile && hasValidKey);
         
@@ -130,26 +112,8 @@ document.addEventListener('DOMContentLoaded', () => {
             icon.textContent = '☁️';
             text.textContent = 'Free Tier (2/hr limit)';
         } else if (key && key.trim() !== "" && key !== btoa("")) {
-            // Check if key is valid using same logic
-            let hasValidKey = false;
-            try {
-                const decodedKey = atob(key).trim();
-                if (provider === 'openai' && decodedKey.startsWith('sk-')) hasValidKey = true;
-                else if (provider === 'anthropic' && decodedKey.startsWith('sk-ant-')) hasValidKey = true;
-                else if (provider === 'gemini' && decodedKey.length >= 39) hasValidKey = true;
-                else if (provider === 'grok' && decodedKey.startsWith('xai-')) hasValidKey = true;
-                else if (provider === 'openrouter' && decodedKey.startsWith('sk-or-v1-')) hasValidKey = true;
-                else if (provider === 'mistral' && decodedKey.length > 10) hasValidKey = true;
-                else if (provider === 'cohere' && decodedKey.length > 10) hasValidKey = true;
-            } catch (e) {}
-
-            if (hasValidKey) {
-                icon.textContent = '✅';
-                text.textContent = 'API Key Configured';
-            } else {
-                icon.textContent = '⚠️';
-                text.textContent = 'Invalid API Key Format';
-            }
+            icon.textContent = '✅';
+            text.textContent = 'API Key Configured';
         } else {
             icon.textContent = '🔑';
             text.textContent = 'API Key Required';

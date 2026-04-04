@@ -119,23 +119,25 @@ CRITICAL RULES:
                 clearTimeout(timeoutId);
 
                 if (!resp.ok) {
-                    console.error(`API returned status: ${resp.status}`);
-                } else {
-                    const resData = await resp.json();
+                    throw new Error(`API returned status: ${resp.status}`);
+                }
 
-                    if (provider === 'anthropic') {
-                        if (resData.content && resData.content.length > 0) rawTextResponse = resData.content[0].text;
-                    } else if (provider === 'gemini') {
-                        if (resData.candidates && resData.candidates.length > 0) rawTextResponse = resData.candidates[0].content.parts[0].text;
-                    } else if (provider === 'cohere') {
-                        if (resData.text) rawTextResponse = resData.text;
-                    } else {
-                        if (resData.choices && resData.choices.length > 0) rawTextResponse = resData.choices[0].message.content;
-                    }
+                const resData = await resp.json();
+
+                if (provider === 'anthropic') {
+                    if (resData.content && resData.content.length > 0) rawTextResponse = resData.content[0].text;
+                } else if (provider === 'gemini') {
+                    if (resData.candidates && resData.candidates.length > 0) rawTextResponse = resData.candidates[0].content.parts[0].text;
+                } else if (provider === 'cohere') {
+                    if (resData.text) rawTextResponse = resData.text;
+                } else {
+                    if (resData.choices && resData.choices.length > 0) rawTextResponse = resData.choices[0].message.content;
                 }
             } catch (e) {
-                console.error("LLM fetch failed:", e);
-                // Fallthrough to report = null
+                if (e.name === 'AbortError') {
+                    throw new Error("Analysis timed out. Please try again.");
+                }
+                throw e; // rethrow to be caught by outer catch
             }
         }
 
@@ -149,13 +151,9 @@ CRITICAL RULES:
                     // Validate schema
                     const required = ["relationship_persona", "compatibility_score", "ai_insight"];
                     const isValid = required.every(key => key in report);
-                    if (!isValid) {
-                        console.error("JSON missing required fields");
-                        report = null;
-                    }
+                    if (!isValid) throw new Error("JSON missing required fields");
                 } else {
-                    console.error("No JSON found in response");
-                    report = null;
+                    throw new Error("No JSON found in response");
                 }
             } catch (e) {
                 // If it fails, we fall through to the fallback report

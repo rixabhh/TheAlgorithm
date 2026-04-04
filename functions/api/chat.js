@@ -127,36 +127,41 @@ ${JSON.stringify(llmReport)}
                 clearTimeout(timeoutId);
 
                 if (!resp.ok) {
-                    console.error(`API returned status: ${resp.status}`);
-                } else {
-                    const resData = await resp.json();
+                    throw new Error(`API returned status: ${resp.status}`);
+                }
 
-                    if (provider === 'anthropic') {
-                        if (resData.content && resData.content.length > 0) responseText = resData.content[0].text;
-                    } else if (provider === 'gemini') {
-                        if (resData.candidates && resData.candidates.length > 0) responseText = resData.candidates[0].content.parts[0].text;
-                    } else if (provider === 'cohere') {
-                        if (resData.text) responseText = resData.text;
-                    } else {
-                        if (resData.choices && resData.choices.length > 0) {
-                            responseText = resData.choices[0].message.content;
-                        }
+                const resData = await resp.json();
+
+                if (provider === 'anthropic') {
+                    if (resData.content && resData.content.length > 0) responseText = resData.content[0].text;
+                } else if (provider === 'gemini') {
+                    if (resData.candidates && resData.candidates.length > 0) responseText = resData.candidates[0].content.parts[0].text;
+                } else if (provider === 'cohere') {
+                    if (resData.text) responseText = resData.text;
+                } else {
+                    if (resData.choices && resData.choices.length > 0) {
+                        responseText = resData.choices[0].message.content;
                     }
                 }
+
+                if (!responseText) {
+                    throw new Error("Invalid format from API provider.");
+                }
             } catch (e) {
-                console.error("LLM fetch failed:", e);
-                // Fallthrough to responseText checking
+                if (e.name === 'AbortError') {
+                    throw new Error("Chat timed out. Please try again.");
+                }
+                throw e;
             }
         }
 
         if (!responseText) {
-            responseText = "I'm having trouble connecting to my models right now. Please verify your API key and try again.";
+            responseText = "I'm having trouble connecting to my models right now. Please try again later.";
         }
 
         return new Response(JSON.stringify({ text: responseText }), { headers: { 'Content-Type': 'application/json' } });
 
     } catch (e) {
-        console.error("Chat API unhandled error:", e);
-        return new Response(JSON.stringify({ error: "An unexpected error occurred. Please try again later." }), { status: 500 });
+        return new Response(JSON.stringify({ error: e.message }), { status: 500 });
     }
 }
