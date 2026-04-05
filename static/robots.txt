@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /static/js/
+Disallow: /static/css/
+
+Sitemap: https://thealgorithm.rixabh.workers.dev/sitemap.xml
