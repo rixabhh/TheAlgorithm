@@ -33,5 +33,25 @@ def health():
     return {"status": "ok"}, 200
 
 
+@app.errorhandler(404)
+def not_found(e):
+    return send_from_directory(".", "404.html"), 404
+
+
+@app.route("/robots.txt")
+def robots():
+    return send_from_directory("static", "robots.txt")
+
+
+@app.route("/sitemap.xml")
+def sitemap():
+    return send_from_directory("static", "sitemap.xml")
+
+
+@app.route("/share")
+def share():
+    return send_from_directory(".", "share.html")
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=7860)

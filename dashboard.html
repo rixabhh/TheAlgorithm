@@ -271,6 +271,8 @@
                 <div class="flex justify-between align-center mt-10 pt-6 border-t border-dashed op-20">
                     <span id="ai-insight-timestamp" class="text-xs color-gray-500"></span>
                     <div class="flex gap-2">
+                        <button id="shareLinkBtn" class="btn btn--blue btn--sm" onclick="copyShareUrl()" style="background:var(--blue);color:var(--white)">🔗 COPY SHARE URL</button>
+                        <button id="twitterShareBtn" class="btn btn--black btn--sm" onclick="window.open('https://twitter.com/intent/tweet?text=I just decoded my relationship with The Algorithm! Get your brutally honest breakdown: &url=' + encodeURIComponent(window.location.origin), '_blank')" style="background:var(--black);color:var(--white)">𝕏 SHARE</button>
                         <button id="downloadVibeBtn" class="btn btn--pink btn--sm" onclick="downloadWrappedCard()">📸 VIBE CARD</button>
                         <button id="regenerateBtn" class="btn btn--white btn--sm">✨ REGENERATE</button>
                     </div>

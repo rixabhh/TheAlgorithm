@@ -444,40 +444,186 @@ async function downloadWrappedCard() {
         const card = document.getElementById('shareable-card');
         const report = window.llmReport || {};
         
-        const setVal = (id, val) => { 
-            const el = document.getElementById(id); 
-            if (el) el.textContent = val || '--';
-        };
-
-        setVal('share-label', report.ai_insight?.vibe_label || "VIBE STATUS");
-        setVal('share-title', report.ai_insight?.dynamic_title || report.relationship_persona);
-        setVal('share-me', window.activeData?.my_name || "You");
-        setVal('share-partner', window.activeData?.partner_name || "Partner");
-        
-        // Duration and Total from stats
         const stats = window.activeData?.stats || {};
-        setVal('share-total', (stats.messages?.ME + stats.messages?.PARTNER || 0).toLocaleString());
-        setVal('share-duration', stats.duration || '--');
-        setVal('share-red', report.ai_insight?.red_flags ? report.ai_insight.red_flags[0] : '--');
-        setVal('share-green', report.ai_insight?.green_flags ? report.ai_insight.green_flags[0] : '--');
-        setVal('share-verdict', report.ai_insight?.brutal_verdict || "The vibe is set.");
-
-        // Update Bars
         const meTotal = (stats.messages?.ME || 0);
         const partnerTotal = (stats.messages?.PARTNER || 0);
-        const total = meTotal + partnerTotal;
-        const mePct = total > 0 ? (meTotal / total * 100) : 50;
-        
-        document.getElementById('share-bar-me').style.width = mePct + '%';
-        document.getElementById('share-bar-partner').style.width = (100 - mePct) + '%';
+        const mePct = Math.round((meTotal / (meTotal + partnerTotal || 1)) * 100);
 
-        const canvas = await html2canvas(card, {
-            scale: 2,
-            backgroundColor: "#FFF8F0",
-            logging: false,
-            useCORS: true,
-            allowTaint: true
-        });
+        const canvas = document.createElement('canvas');
+        canvas.width = 1080;
+        canvas.height = 1920;
+        const ctx = canvas.getContext('2d');
+
+        // Background
+        ctx.fillStyle = '#FFF8F0';
+        ctx.fillRect(0, 0, 1080, 1920);
+
+        // Border
+        ctx.lineWidth = 20;
+        ctx.strokeStyle = '#000000';
+        ctx.strokeRect(10, 10, 1060, 1900);
+
+        // Header
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(60, 60, 960, 100);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = '900 40px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.letterSpacing = "0.2em";
+        ctx.fillText('THE ALGORITHM', 540, 110);
+
+        // Title box
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(60, 200, 960, 300);
+        ctx.lineWidth = 12;
+        ctx.strokeStyle = '#000000';
+        ctx.strokeRect(60, 200, 960, 300);
+        // Box shadow effect
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(80, 500, 960, 20);
+        ctx.fillRect(1020, 220, 20, 300);
+
+        // Label inside title box
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(100, 240, 200, 50);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = '900 24px sans-serif';
+        ctx.letterSpacing = "0px";
+        ctx.textAlign = 'left';
+        ctx.fillText(report.ai_insight?.vibe_label || "VIBE STATUS", 120, 265);
+
+        // Title text
+        ctx.fillStyle = '#000000';
+        ctx.font = '900 80px sans-serif';
+        ctx.fillText(report.ai_insight?.dynamic_title || report.relationship_persona || "Analysis", 100, 370);
+
+        ctx.fillStyle = '#666666';
+        ctx.font = '32px sans-serif';
+        ctx.fillText(`Between Person 1 & Person 2`, 100, 440);
+
+        // Stats grid
+        const drawStatBox = (x, y, w, h, label, labelColor, value) => {
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(x, y, w, h);
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 12;
+            ctx.strokeRect(x, y, w, h);
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(x + 20, y + h, w, 20);
+            ctx.fillRect(x + w, y + 20, 20, h);
+
+            ctx.fillStyle = labelColor;
+            ctx.font = '900 24px sans-serif';
+            ctx.fillText(label.toUpperCase(), x + 40, y + 60);
+            ctx.fillStyle = '#000000';
+            ctx.font = '900 70px sans-serif';
+            ctx.fillText(value, x + 40, y + 140);
+        };
+
+        drawStatBox(60, 560, 460, 200, 'Total Messages', '#FF4081', (meTotal + partnerTotal).toLocaleString());
+        drawStatBox(560, 560, 460, 200, 'Duration', '#7C4DFF', stats.duration || '--');
+
+        // Message Share
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(60, 820, 960, 200);
+        ctx.strokeRect(60, 820, 960, 200);
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(80, 1020, 960, 20);
+        ctx.fillRect(1020, 840, 20, 200);
+
+        ctx.font = '900 24px sans-serif';
+        ctx.fillText('MESSAGE SHARE', 100, 880);
+        
+        // Bar
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 8;
+        ctx.strokeRect(100, 920, 880, 60);
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(100, 920, 880 * (mePct / 100), 60);
+        ctx.fillStyle = '#FF4081';
+        ctx.fillRect(100 + 880 * (mePct / 100), 920, 880 * ((100 - mePct) / 100), 60);
+
+        // Flags grid
+        const drawFlagBox = (x, y, w, h, bg, label, value) => {
+            ctx.fillStyle = bg;
+            ctx.fillRect(x, y, w, h);
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 12;
+            ctx.strokeRect(x, y, w, h);
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(x + 20, y + h, w, 20);
+            ctx.fillRect(x + w, y + 20, 20, h);
+
+            ctx.fillStyle = '#000000';
+            ctx.font = '900 24px sans-serif';
+            ctx.fillText(label, x + 40, y + 60);
+
+            // Text wrap
+            ctx.font = '700 28px sans-serif';
+            const words = value.split(' ');
+            let line = '';
+            let ly = y + 110;
+            for(let n = 0; n < words.length; n++) {
+                const testLine = line + words[n] + ' ';
+                const metrics = ctx.measureText(testLine);
+                if (metrics.width > w - 80 && n > 0) {
+                    ctx.fillText(line, x + 40, ly);
+                    line = words[n] + ' ';
+                    ly += 35;
+                } else {
+                    line = testLine;
+                }
+            }
+            ctx.fillText(line, x + 40, ly);
+        };
+
+        drawFlagBox(60, 1080, 460, 240, '#ffcccc', '🚩 RED FLAG', report.ai_insight?.red_flags ? report.ai_insight.red_flags[0] : '--');
+        drawFlagBox(560, 1080, 460, 240, '#ccffcc', '✅ GREEN FLAG', report.ai_insight?.green_flags ? report.ai_insight.green_flags[0] : '--');
+
+        // Final Word
+        ctx.fillStyle = '#000000';
+        ctx.beginPath();
+        ctx.roundRect(60, 1380, 960, 340, 20);
+        ctx.fill();
+        
+        ctx.fillStyle = '#FFD600';
+        ctx.font = '900 24px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('THE FINAL WORD', 540, 1440);
+
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = '900 40px sans-serif';
+        const verdict = report.ai_insight?.brutal_verdict || "The vibe is set.";
+        const vWords = verdict.split(' ');
+        let vLine = '';
+        let vLy = 1520;
+        for(let n = 0; n < vWords.length; n++) {
+            const testLine = vLine + vWords[n] + ' ';
+            const metrics = ctx.measureText(testLine);
+            if (metrics.width > 800 && n > 0) {
+                ctx.fillText(vLine, 540, vLy);
+                vLine = vWords[n] + ' ';
+                vLy += 50;
+            } else {
+                vLine = testLine;
+            }
+        }
+        ctx.fillText(`"${vLine.trim()}"`, 540, vLy);
+
+        // Footer
+        ctx.fillStyle = '#000000';
+        ctx.font = '900 28px sans-serif';
+        ctx.letterSpacing = "0.1em";
+        ctx.fillText('WWW.THEALGORITHM.RIXABH.WORKERS.DEV', 540, 1820);
+
+        // Dashed line
+        ctx.beginPath();
+        ctx.setLineDash([10, 10]);
+        ctx.moveTo(60, 1750);
+        ctx.lineTo(1020, 1750);
+        ctx.lineWidth = 4;
+        ctx.stroke();
 
         const link = document.createElement('a');
         link.download = `TheAlgorithm_Wrapped.png`;
@@ -492,3 +638,35 @@ async function downloadWrappedCard() {
     }
 }
 
+/**
+ * Generate Base64 Shareable URL
+ */
+function copyShareUrl() {
+    try {
+        const stats = window.activeData?.stats || {};
+        const report = window.llmReport || {};
+
+        const shareData = {
+            score: report.compatibility_score || 0,
+            style: report.attachment_style || "Unknown",
+            title: report.ai_insight?.dynamic_title || report.relationship_persona || "Analysis",
+            verdict: report.ai_insight?.brutal_verdict || "The vibe is set.",
+            duration: stats.duration || '--',
+            total_messages: (stats.messages?.ME || 0) + (stats.messages?.PARTNER || 0),
+            me_pct: Math.round(((stats.messages?.ME || 0) / ((stats.messages?.ME || 0) + (stats.messages?.PARTNER || 0) || 1)) * 100),
+            red_flag: report.ai_insight?.red_flags ? report.ai_insight.red_flags[0] : '--',
+            green_flag: report.ai_insight?.green_flags ? report.ai_insight.green_flags[0] : '--',
+            my_name: "Person 1",
+            partner_name: "Person 2"
+        };
+
+        const shareUrl = `${window.location.origin}/share#${btoa(encodeURIComponent(JSON.stringify(shareData)))}`;
+
+        navigator.clipboard.writeText(shareUrl).then(() => {
+            alert('Share URL copied to clipboard! (Privacy note: It contains only anonymous statistics, no raw chat content)');
+        });
+    } catch(err) {
+        console.error('Failed to generate share URL', err);
+        alert('Failed to generate share URL.');
+    }
+}
