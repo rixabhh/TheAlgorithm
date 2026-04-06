@@ -15,6 +15,8 @@ class ChatParser {
         this.TG_TEXT_PATTERN = /<div class="text"[^>]*>(.*?)<\/div>/gs;
         this.TG_MEDIA_PATTERN = /<div class="media_wrap[^>]*>.*?<div class="title">\s*([^<]+)\s*<\/div>.*?<div class="status">\s*([^<]+)\s*<\/div>/gs;
 
+        this.SIGNAL_MSG_PATTERN = /^\[?(?<date>\d{4}-\d{2}-\d{2})\s+(?<time>\d{2}:\d{2}(?::\d{2})?)\]?\s+(?<sender>[^:]+):\s+(?<text>.*)$/;
+
         // Invisible characters to strip (LTR, RTL, BOM, etc.)
         this.STRIP_REGEX = /[\u200B-\u200D\uFEFF\u202A-\u202E\u0000-\u0008\u000B\u000C\u000E-\u001F]/g;
     }
@@ -22,6 +24,74 @@ class ChatParser {
     sanitize(text) {
         if (!text) return "";
         return text.replace(this.STRIP_REGEX, "").trim();
+    }
+
+    /**
+     * Detects the platform from the file content
+     */
+    detect(content) {
+        if (!content) return "unknown";
+        const sample = this.sanitize(content.substring(0, 2000));
+
+        // Telegram
+        if (sample.includes('class="message') || sample.includes('<div class="text"')) {
+            return "Telegram";
+        }
+
+        // JSON formats (Instagram, Discord)
+        if (sample.trim().startsWith("{") || sample.trim().startsWith("[")) {
+            if (sample.includes('"sender_name"') || sample.includes('"messages"')) {
+                // Discord usually has "author" inside "messages" or just "author" at root array
+                if (sample.includes('"author"')) {
+                    return "Discord";
+                }
+                return "Instagram";
+            }
+            if (sample.includes('"author"') || sample.includes('"content"')) {
+                return "Discord";
+            }
+        }
+
+        // WhatsApp
+        if (sample.match(/^\[?\d{1,2}[/-]\d{1,2}[/-]\d{2,4}[,\s]+\d{1,2}:\d{2}/m) ||
+            sample.match(/^\d{1,2}[/-]\d{1,2}[/-]\d{2,4}[,\s]+\d{1,2}:\d{2}.*?-/m)) {
+            return "WhatsApp";
+        }
+
+        // Signal
+        if (sample.match(/^\[?\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}(?::\d{2})?\]?\s+[^:]+:/m)) {
+            return "Signal";
+        }
+
+        return "unknown";
+    }
+
+    /**
+     * Parses Signal (.txt)
+     */
+    parseSignal(textData) {
+        const messages = [];
+        const lines = textData.split(/\r?\n/);
+
+        for (let line of lines) {
+            line = this.sanitize(line);
+            if (!line) continue;
+
+            const match = line.match(this.SIGNAL_MSG_PATTERN);
+            if (match) {
+                if (messages.length >= 50000) break;
+                const { date, time, sender, text } = match.groups;
+                messages.push({
+                    timestamp: this.parseDateTime(`${date} ${time}`),
+                    sender: sender.trim(),
+                    text: text.trim()
+                });
+            } else if (messages.length > 0) {
+                // Multiline message append
+                messages[messages.length - 1].text += "\n" + line;
+            }
+        }
+        return messages;
     }
 
     /**

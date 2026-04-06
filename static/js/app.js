@@ -222,7 +222,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const hfContainer = document.getElementById('hfUrlContainer');
         const apiKeyContainer = document.getElementById('apiKeyContainer');
         if (!hintEl) return;
-        const hints = { 'cloudflare': 'Free Tier (2 reports/hr)', 'openai': 'sk-proj-...', 'anthropic': 'sk-ant-...', 'gemini': 'Google API Key' };
+        const hints = {
+            'cloudflare': 'Free Tier (2 reports/hr)',
+            'openai': 'sk-proj-...',
+            'anthropic': 'sk-ant-...',
+            'gemini': 'Google API Key',
+            'openrouter': 'sk-or-v1-...',
+            'mistral': 'Mistral API Key',
+            'cohere': 'Cohere API Key'
+        };
         hintEl.textContent = hints[provider] || '';
         
         if (hfContainer) hfContainer.classList.toggle('hidden', provider !== 'huggingface');
@@ -415,17 +423,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 const file = fileInput.files[0];
                 const content = await file.text();
                 
-                let jsonPlat = document.getElementById('jsonPlatform') ? document.getElementById('jsonPlatform').value : 'Instagram';
+                const detectedPlatform = parser.detect(content);
+
                 let rawMessages;
-                if (file.name.toLowerCase().endsWith('.html')) {
+                let actualPlatform = 'WhatsApp';
+
+                if (detectedPlatform === 'Telegram') {
                     rawMessages = parser.parseTelegram(content);
-                } else if (file.name.toLowerCase().endsWith('.json')) {
-                    rawMessages = jsonPlat === 'Discord' ? parser.parseDiscord(content) : parser.parseInstagram(content);
+                    actualPlatform = 'Telegram';
+                } else if (detectedPlatform === 'Instagram') {
+                    rawMessages = parser.parseInstagram(content);
+                    actualPlatform = 'Instagram';
+                } else if (detectedPlatform === 'Discord') {
+                    rawMessages = parser.parseDiscord(content);
+                    actualPlatform = 'Discord';
+                } else if (detectedPlatform === 'Signal') {
+                    rawMessages = parser.parseSignal(content);
+                    actualPlatform = 'Signal';
                 } else {
                     rawMessages = parser.parseWhatsApp(content);
+                    actualPlatform = 'WhatsApp';
                 }
                 
-                if (!rawMessages || !rawMessages.length) throw new Error("No readable messages found in the file.");
+                if (!rawMessages || !rawMessages.length) throw new Error("No readable messages found in the file. Make sure it's a valid export format.");
 
                 const myName = document.getElementById('myName').value;
                 const partnerName = document.getElementById('partnerName').value;
@@ -449,7 +469,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     context: userContext,
                     tone: analysisTone,
                     msg_count: filteredMessages.length,
-                    platform: file.name.toLowerCase().endsWith('.html') ? 'Telegram' : (file.name.toLowerCase().endsWith('.json') ? jsonPlat : 'WhatsApp')
+                    platform: actualPlatform
                 };
 
                 historyManager.save(dashboardData);

@@ -43,23 +43,61 @@ ${JSON.stringify(llmReport)}
                 messages: messages
             });
             responseText = aiResult.response;
-        } else if (api_key && (provider === 'openai' || provider === 'groq' || provider === 'grok')) {
+        } else if (api_key && (provider === 'openai' || provider === 'groq' || provider === 'grok' || provider === 'openrouter' || provider === 'mistral' || provider === 'cohere')) {
             let url, model;
             if (provider === 'openai') { url = 'https://api.openai.com/v1/chat/completions'; model = 'gpt-4o-mini'; }
             else if (provider === 'groq') { url = 'https://api.groq.com/openai/v1/chat/completions'; model = 'llama-3.1-70b-versatile'; }
             else if (provider === 'grok') { url = 'https://api.x.ai/v1/chat/completions'; model = 'grok-2-latest'; }
+            else if (provider === 'openrouter') { url = 'https://openrouter.ai/api/v1/chat/completions'; model = 'mistralai/mistral-7b-instruct'; }
+            else if (provider === 'mistral') { url = 'https://api.mistral.ai/v1/chat/completions'; model = 'mistral-small-latest'; }
+            else if (provider === 'cohere') { url = 'https://api.cohere.com/v1/chat'; model = 'command-r-plus'; }
             
-            const resp = await fetch(url, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${api_key}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ model, messages, max_tokens: 500 })
-            });
-            
-            const resData = await resp.json();
-            if (resData.choices && resData.choices.length > 0) {
-                responseText = resData.choices[0].message.content;
-            } else {
-                throw new Error("Invalid format from API provider.");
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+            try {
+                let headers = { 'Authorization': `Bearer ${api_key}`, 'Content-Type': 'application/json' };
+                let body = { model, messages, max_tokens: 500 };
+
+                if (provider === 'cohere') {
+                    // Cohere format logic for chat history
+                    const lastUserMessage = messages[messages.length - 1].content;
+                    const historyMessages = messages.slice(0, messages.length - 1).filter(m => m.role !== 'system');
+                    const chat_history = historyMessages.map(m => ({
+                        role: m.role === 'assistant' ? 'CHATBOT' : 'USER',
+                        message: m.content
+                    }));
+                    body = {
+                        model,
+                        message: lastUserMessage,
+                        preamble: systemPrompt,
+                        chat_history: chat_history,
+                        max_tokens: 500
+                    };
+                }
+
+                const resp = await fetch(url, {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify(body),
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+                const resData = await resp.json();
+
+                if (provider === 'cohere' && resData.text) {
+                    responseText = resData.text;
+                } else if (resData.choices && resData.choices.length > 0) {
+                    responseText = resData.choices[0].message.content;
+                } else if (resData.error) {
+                    throw new Error(resData.error.message || "Provider API error");
+                } else {
+                    throw new Error("Invalid format from API provider.");
+                }
+            } catch (error) {
+                clearTimeout(timeoutId);
+                console.error(`LLM Chat Error (${provider}):`, error);
+                throw new Error("Failed to connect to LLM provider. Please check your API key and try again.");
             }
         }
 

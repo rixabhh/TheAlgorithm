@@ -43,19 +43,52 @@ CRITICAL RULES:
             });
             const match = aiResult.response.match(/\{[\s\S]*\}/);
             if (match) report = JSON.parse(match[0]);
-        } else if (api_key && (provider === 'openai' || provider === 'groq' || provider === 'grok')) {
+        } else if (api_key && (provider === 'openai' || provider === 'groq' || provider === 'grok' || provider === 'openrouter' || provider === 'mistral' || provider === 'cohere')) {
             let url, model;
             if (provider === 'openai') { url = 'https://api.openai.com/v1/chat/completions'; model = 'gpt-4o-mini'; }
             else if (provider === 'groq') { url = 'https://api.groq.com/openai/v1/chat/completions'; model = 'llama-3.1-70b-versatile'; }
             else if (provider === 'grok') { url = 'https://api.x.ai/v1/chat/completions'; model = 'grok-2-latest'; }
+            else if (provider === 'openrouter') { url = 'https://openrouter.ai/api/v1/chat/completions'; model = 'mistralai/mistral-7b-instruct'; }
+            else if (provider === 'mistral') { url = 'https://api.mistral.ai/v1/chat/completions'; model = 'mistral-small-latest'; }
+            else if (provider === 'cohere') { url = 'https://api.cohere.com/v1/chat'; model = 'command-r-plus'; }
             
-            const resp = await fetch(url, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${api_key}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ model, messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }], response_format: { type: "json_object" } })
-            });
-            const resData = await resp.json();
-            if (resData.choices) report = JSON.parse(resData.choices[0].message.content);
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+            try {
+                let headers = { 'Authorization': `Bearer ${api_key}`, 'Content-Type': 'application/json' };
+                let body = { model, messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }] };
+
+                if (provider !== 'cohere') {
+                    body.response_format = { type: "json_object" };
+                } else {
+                    body = { model, message: userPrompt, preamble: systemPrompt };
+                }
+
+                const resp = await fetch(url, {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify(body),
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+                const resData = await resp.json();
+
+                if (provider === 'cohere' && resData.text) {
+                    const match = resData.text.match(/\{[\s\S]*\}/);
+                    if (match) report = JSON.parse(match[0]);
+                } else if (resData.choices && resData.choices.length > 0) {
+                    const content = resData.choices[0].message.content;
+                    const match = content.match(/\{[\s\S]*\}/);
+                    if (match) report = JSON.parse(match[0]);
+                } else if (resData.error) {
+                    throw new Error(resData.error.message || "Provider API error");
+                }
+            } catch (error) {
+                clearTimeout(timeoutId);
+                console.error(`LLM Error (${provider}):`, error);
+                throw new Error("Failed to connect to LLM provider or parsing failed. Please check your API key and try again.");
+            }
         }
 
         // 3. FALLBACK
