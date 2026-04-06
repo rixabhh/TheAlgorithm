@@ -1,6 +1,5 @@
 import subprocess
 import json
-import pytest
 
 def run_js_parser(method, data):
     js_code = f"""
