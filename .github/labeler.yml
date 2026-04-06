@@ -2,22 +2,26 @@
 
 frontend:
   - changed-files:
-    - any-glob-to-any-file: 'static/**/*'
-    - any-glob-to-any-file: '*.html'
+      - any-glob-to-any-file:
+          - 'static/**/*'
+          - '*.html'
 
 backend:
   - changed-files:
-    - any-glob-to-any-file: 'functions/**/*'
-    - any-glob-to-any-file: 'app.py'
+      - any-glob-to-any-file:
+          - 'functions/**/*'
+          - 'app.py'
 
 infra:
   - changed-files:
-    - any-glob-to-any-file: 'Dockerfile'
-    - any-glob-to-any-file: '.github/**/*'
-    - any-glob-to-any-file: 'requirements.txt'
-    - any-glob-to-any-file: 'pyproject.toml'
-    - any-glob-to-any-file: 'Makefile'
+      - any-glob-to-any-file:
+          - 'Dockerfile'
+          - '.github/**/*'
+          - 'requirements.txt'
+          - 'pyproject.toml'
+          - 'Makefile'
 
 docs:
   - changed-files:
-    - any-glob-to-any-file: '*.md'
+      - any-glob-to-any-file:
+          - '*.md'
