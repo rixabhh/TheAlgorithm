@@ -101,10 +101,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const el = document.getElementById('engagement-list');
         if (!el) return;
         const init = stats.initiator_ratio || { me_count: 0, partner_count: 0 };
+
+        let ghostBreakerName = "Even";
+        const breakers = stats.ghost_breakers || { ME: 0, PARTNER: 0 };
+        if (breakers.ME > breakers.PARTNER) ghostBreakerName = activeData.my_name;
+        else if (breakers.PARTNER > breakers.ME) ghostBreakerName = activeData.partner_name;
+
+        let humorLeader = "Even";
+        const humor = stats.humor || { ME: 0, PARTNER: 0 };
+        if (humor.ME > humor.PARTNER) humorLeader = activeData.my_name;
+        else if (humor.PARTNER > humor.ME) humorLeader = activeData.partner_name;
+
         el.innerHTML = `
             <div class="flex justify-between"><span>Chat Starter</span><span class="pill-label pill-label--purple">${init.me_initiations > init.partner_initiations ? activeData.my_name : activeData.partner_name}</span></div>
             <div class="flex justify-between"><span>Mirroring</span><span class="font-black">${stats.mirroring || 0}%</span></div>
-            <div class="flex justify-between"><span>Max Inactivity</span><span class="font-black">${stats.max_inactivity || "N/A"} days</span></div>
+            <div class="flex justify-between"><span>Ghost Breaker</span><span class="font-black">${ghostBreakerName}</span></div>
+            <div class="flex justify-between"><span>Laughs Most</span><span class="font-black">${humorLeader}</span></div>
             <div class="flex justify-between"><span>Avg Response (${activeData.my_name})</span><span class="font-black">${formatTime(init.me_latency_avg)}</span></div>
             <div class="flex justify-between"><span>Avg Response (${activeData.partner_name})</span><span class="font-black">${formatTime(init.partner_latency_avg)}</span></div>
         `;

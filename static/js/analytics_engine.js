@@ -56,6 +56,8 @@ class AnalyticsEngine {
         const lexicalDiversity = this.calculateLexicalDiversity(processed);
         const links = this.extractLinks(processed);
         const symmetry = this.calculateSymmetryScore(initiatorInfo, powerInfo);
+        const ghostBreakers = this.calculateGhostBreakers(processed);
+        const humorRatio = this.calculateHumor(processed);
         
         // --- MSG DISTRIBUTION FOR CHARTS ---
         const msgDist = { ME: 0, PARTNER: 0 };
@@ -89,11 +91,37 @@ class AnalyticsEngine {
             lexical_diversity: lexicalDiversity,
             links: links,
             symmetry: symmetry,
+            ghost_breakers: ghostBreakers,
+            humor: humorRatio,
             sentiment_summary: {
                 partner_mean: sentimentInfo.partnerMean,
                 me_mean: sentimentInfo.meMean
             }
         };
+    }
+
+    calculateGhostBreakers(messages) {
+        const breakers = { ME: 0, PARTNER: 0 };
+        const SILENCE_THRESHOLD = 720; // 12 hours in minutes
+
+        for (let i = 1; i < messages.length; i++) {
+            if (messages[i].gapMins >= SILENCE_THRESHOLD) {
+                breakers[messages[i].sender]++;
+            }
+        }
+        return breakers;
+    }
+
+    calculateHumor(messages) {
+        const humor = { ME: 0, PARTNER: 0 };
+        const HUMOR_RE = /haha|lol|lmao|hehe|rofl|💀|😂|😭|🤣/i;
+
+        for (const m of messages) {
+            if (HUMOR_RE.test(m.text)) {
+                humor[m.sender]++;
+            }
+        }
+        return humor;
     }
 
     calculateLatency(messages) {
