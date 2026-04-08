@@ -12,6 +12,7 @@ dev = [
     "pytest~=8.0.0",
     "pytest-cov~=5.0.0",
     "ruff~=0.3.0",
+    "mypy~=1.9.0",
 ]
 
 [tool.ruff]
@@ -22,3 +23,9 @@ target-version = "py311"
 addopts = "-v --cov=. --cov-report=xml"
 testpaths = ["tests"]
 pythonpath = "."
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true

@@ -1,11 +1,7 @@
-Title: Add pre-commit hooks for consistent code formatting
+Title: Add branch protection rules to require passing CI before merging
 
-While we have `ruff` configured and linting checks in GitHub Actions, relying solely on CI for formatting creates a slow feedback loop for contributors.
+To prevent regressions and ensure code quality, we should enable branch protection rules on the `main` branch.
 
-Currently, a contributor might make a PR, wait 2 minutes for the CI to run, find out they have a trailing comma issue, fix it, and wait again.
+Currently, pull requests can be merged even if the CI workflow fails (e.g. tests failing or code not formatted correctly).
 
-**Proposed Solution:**
-Add a `.pre-commit-config.yaml` file to the repository that automatically runs `ruff format` and `ruff check --fix` before any commit is finalized. This pushes the formatting checks to the developer's machine instantly.
-
-**Why it matters for contributors:**
-It guarantees that any code successfully committed locally is already compliant with the project's style guide, eliminating "fix lint" commits and reducing friction during the PR review process.
+I propose we require the `test` job from `.github/workflows/ci.yml` to pass before a PR can be merged into the `main` branch. This will ensure contributors are aware of failing tests, typecheck errors, or linting errors, and fix them before the code is merged.

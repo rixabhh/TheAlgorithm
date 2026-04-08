@@ -1,4 +1,4 @@
-.PHONY: dev test lint format docker-build docker-run
+.PHONY: dev test lint format typecheck docker-build docker-run
 
 dev:
 	python app.py
@@ -11,6 +11,9 @@ lint:
 
 format:
 	ruff format .
+
+typecheck:
+	mypy app.py tests/
 
 docker-build:
 	docker build -t the-algorithm .

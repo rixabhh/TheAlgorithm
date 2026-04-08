@@ -1,35 +1,37 @@
+from typing import Any, Tuple
+
 from flask import Flask, send_from_directory
 
 app = Flask(__name__, static_folder="static")
 
 
 @app.route("/")
-def index():
+def index() -> Any:
     return send_from_directory(".", "index.html")
 
 
 @app.route("/dashboard.html")
-def dashboard():
+def dashboard() -> Any:
     return send_from_directory(".", "dashboard.html")
 
 
 @app.route("/history.html")
-def history():
+def history() -> Any:
     return send_from_directory(".", "history.html")
 
 
 @app.route("/instructions.html")
-def instructions():
+def instructions() -> Any:
     return send_from_directory(".", "instructions.html")
 
 
 @app.route("/privacy.html")
-def privacy():
+def privacy() -> Any:
     return send_from_directory(".", "privacy.html")
 
 
 @app.route("/health")
-def health():
+def health() -> Tuple[dict[str, str], int]:
     return {"status": "ok"}, 200
 
 
