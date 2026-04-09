@@ -304,7 +304,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (data && data.count !== undefined && data.count > 0) {
                         counter.textContent = data.count.toLocaleString();
                     }
-                }).catch(err => console.error("Failed to fetch global stats:", err));
+                }).catch(err => {/* Failed to fetch global stats */});
         }
 
         if (!list) return;
