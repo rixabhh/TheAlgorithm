@@ -2,9 +2,11 @@ export async function onRequestPost(context) {
     const { request, env } = context;
     const ip = request.headers.get('cf-connecting-ip') || 'unknown';
 
+    let api_key_ref = '';
     try {
         const data = await request.json();
         const { stats, my_name, partner_name, connection_type, language, context, compare_data, provider = 'cloudflare', api_key = '' } = data;
+        api_key_ref = api_key;
         const tone = data.tone || 'balanced';
 
         // 1. RATE LIMITING & GLOBAL STATS (KV-based, Cloudflare only)
@@ -23,39 +25,123 @@ export async function onRequestPost(context) {
 
         // 2. AI GENERATION
         let report = null;
-        const systemPrompt = `You are 'The Algorithm', a brutally honest relationship analyst. 
+
+        const baseSystemPrompt = `You are 'The Algorithm', a brilliant friend who happens to be a therapist. You are warm, deeply insightful, empathetic, but brutally honest when needed.
+You are analyzing chat statistics. You MUST provide deep behavioral insights based ONLY on the numerical stats provided. Never assume any raw text is provided.
 CRITICAL RULES:
 1. Return ONLY a valid JSON object. Do NOT wrap in markdown code blocks.
-2. The JSON keys MUST remain exactly as follows (in English): { "relationship_persona": "", "compatibility_score": 0, "ai_insight": { "dynamic_title": "", "reality_check": "", "recent_shift": "", "red_flags": [], "green_flags": [], "brutal_verdict": "" } }.
-3. The VALUES inside the JSON MUST be written in the requested Output Language (${language || 'english'}). If Hinglish is requested, use conversational Hindi written in the English alphabet (e.g., 'Bhai kya kar raha hai'). Make it gen-z, witty, and brutal.`;
-        
+2. The JSON schema MUST be strictly adhered to: { "relationship_persona": "string", "compatibility_score": "integer 1-100", "ai_insight": { "dynamic_title": "string", "reality_check": "string", "recent_shift": "string", "red_flags": ["string"], "green_flags": ["string"], "brutal_verdict": "string" } }.
+3. The VALUES inside the JSON MUST be written in the requested Output Language (${language || 'english'}). If Hinglish is requested, use conversational Hindi written in the English alphabet. Make it engaging, perceptive, and a bit gen-z.`;
+
+        let systemPrompt = baseSystemPrompt;
+        if (provider === 'anthropic') {
+            systemPrompt = `<role>${baseSystemPrompt}</role>`;
+        }
+
         let userPrompt = `Analyze chat: ${my_name} & ${partner_name}. Connection Type: ${connection_type || 'romantic'}. Output Language: ${language || 'english'}. Tone: ${tone}. `;
         if (context) userPrompt += `User Context/Background: ${context}. `;
-        userPrompt += `Stats: ${JSON.stringify(stats)}.`;
+        userPrompt += `Stats: ${JSON.stringify(stats)}. Provide actionable, highly personalized insights depending on if it's romantic, friendship, family, or professional.`;
         
         if (compare_data) {
             userPrompt = `COMPARE two chats for ${my_name}. Chat A: ${compare_data.nameA} vs Chat B: ${compare_data.nameB}. Stats A: ${JSON.stringify(compare_data.a)}. Stats B: ${JSON.stringify(compare_data.b)}. Output Language: ${language || 'english'}. Be ${tone}.`;
         }
 
-        if (provider === 'cloudflare' && env.AI) {
-            const aiResult = await env.AI.run('@cf/meta/llama-3-8b-instruct', {
-                messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }]
+        async function fetchWithTimeout(resource, options = {}) {
+            const { timeout = 30000 } = options;
+            const controller = new AbortController();
+            const id = setTimeout(() => controller.abort(), timeout);
+            const response = await fetch(resource, {
+                ...options,
+                signal: controller.signal
             });
-            const match = aiResult.response.match(/\{[\s\S]*\}/);
-            if (match) report = JSON.parse(match[0]);
-        } else if (api_key && (provider === 'openai' || provider === 'groq' || provider === 'grok')) {
-            let url, model;
-            if (provider === 'openai') { url = 'https://api.openai.com/v1/chat/completions'; model = 'gpt-4o-mini'; }
-            else if (provider === 'groq') { url = 'https://api.groq.com/openai/v1/chat/completions'; model = 'llama-3.1-70b-versatile'; }
-            else if (provider === 'grok') { url = 'https://api.x.ai/v1/chat/completions'; model = 'grok-2-latest'; }
-            
-            const resp = await fetch(url, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${api_key}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ model, messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }], response_format: { type: "json_object" } })
-            });
-            const resData = await resp.json();
-            if (resData.choices) report = JSON.parse(resData.choices[0].message.content);
+            clearTimeout(id);
+            return response;
+        }
+
+        async function fetchLLM(currentPrompt, retry = false) {
+            let result = null;
+            if (provider === 'cloudflare' && env.AI) {
+                const aiResult = await env.AI.run('@cf/meta/llama-3-8b-instruct', {
+                    messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: currentPrompt }]
+                });
+                const match = aiResult.response.match(/\{[\s\S]*\}/);
+                if (match) result = JSON.parse(match[0]);
+            } else if (api_key) {
+                let url, model, headers, body;
+                headers = { 'Authorization': `Bearer ${api_key}`, 'Content-Type': 'application/json' };
+                body = { messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: currentPrompt }] };
+
+                if (provider === 'openai') {
+                    url = 'https://api.openai.com/v1/chat/completions'; model = 'gpt-4o-mini';
+                    body.model = model;
+                    body.response_format = { type: "json_object" };
+                } else if (provider === 'anthropic') {
+                    url = 'https://api.anthropic.com/v1/messages'; model = 'claude-3-5-sonnet-20240620';
+                    headers = { 'x-api-key': api_key, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' };
+                    body = { model, max_tokens: 1024, system: systemPrompt, messages: [{ role: 'user', content: currentPrompt }] };
+                } else if (provider === 'gemini') {
+                    url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${api_key}`;
+                    headers = { 'Content-Type': 'application/json' };
+                    body = { systemInstruction: { parts: [{ text: systemPrompt }] }, contents: [{ parts: [{ text: currentPrompt }] }], generationConfig: { responseMimeType: "application/json" } };
+                } else if (provider === 'grok') {
+                    url = 'https://api.x.ai/v1/chat/completions'; model = 'grok-2-latest';
+                    body.model = model;
+                    body.response_format = { type: "json_object" };
+                } else if (provider === 'openrouter') {
+                    url = 'https://openrouter.ai/api/v1/chat/completions'; model = 'openai/gpt-4o-mini';
+                    body.model = model;
+                    body.response_format = { type: "json_object" };
+                } else if (provider === 'mistral') {
+                    url = 'https://api.mistral.ai/v1/chat/completions'; model = 'mistral-large-latest';
+                    body.model = model;
+                    body.response_format = { type: "json_object" };
+                } else if (provider === 'cohere') {
+                    url = 'https://api.cohere.com/v1/chat'; model = 'command-r-plus';
+                    body = { message: currentPrompt, preamble: systemPrompt, model, temperature: 0.3 };
+                }
+
+                if (url) {
+                    const resp = await fetchWithTimeout(url, { method: 'POST', headers, body: JSON.stringify(body) });
+                    if (!resp.ok) {
+                        const errorText = await resp.text();
+                        if (resp.status === 401) throw new Error("Unauthorized: Please check your API key.");
+                        throw new Error(`API Error ${resp.status}: ${errorText}`);
+                    }
+                    const resData = await resp.json();
+
+                    let contentStr = '';
+                    if (provider === 'anthropic') {
+                        if (resData.content && resData.content.length > 0) contentStr = resData.content[0].text;
+                    } else if (provider === 'gemini') {
+                        if (resData.candidates && resData.candidates.length > 0) contentStr = resData.candidates[0].content.parts[0].text;
+                    } else if (provider === 'cohere') {
+                        if (resData.text) contentStr = resData.text;
+                    } else {
+                        if (resData.choices && resData.choices.length > 0) contentStr = resData.choices[0].message.content;
+                    }
+
+                    if (contentStr) {
+                        const match = contentStr.match(/\{[\s\S]*\}/);
+                        if (match) result = JSON.parse(match[0]);
+                    }
+                }
+            }
+            return result;
+        }
+
+        try {
+            report = await fetchLLM(userPrompt);
+            if (!report || !report.relationship_persona) {
+                throw new Error("Invalid format");
+            }
+        } catch (err) {
+            // Retry with stricter prompt
+            const strictPrompt = userPrompt + " You MUST reply with valid JSON ONLY. No other text.";
+            try {
+                report = await fetchLLM(strictPrompt, true);
+            } catch (err2) {
+                console.error("LLM retry failed", err2);
+            }
         }
 
         // 3. FALLBACK
@@ -105,7 +191,9 @@ CRITICAL RULES:
         return new Response(JSON.stringify({ report }), { headers: { 'Content-Type': 'application/json' } });
 
     } catch (e) {
-        return new Response(JSON.stringify({ error: e.message }), { status: 500 });
+        const errorMsg = e.message || 'Unknown error';
+        const safeErrorMsg = errorMsg.replace(/sk-[a-zA-Z0-9_-]+/g, 'sk-...').replace(api_key_ref, '***');
+        return new Response(JSON.stringify({ error: safeErrorMsg }), { status: 500 });
     }
 }
 

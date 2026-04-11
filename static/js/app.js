@@ -85,12 +85,27 @@ document.addEventListener('DOMContentLoaded', () => {
         const hasFile = fileInput && fileInput.files.length > 0;
         const provider = localStorage.getItem('llm_provider') || 'cloudflare';
         const keyRaw = sessionStorage.getItem('_llm_token');
-        const hasValidKey = (provider === 'cloudflare') || (keyRaw && keyRaw.trim() !== '' && keyRaw !== btoa(''));
+
+        let hasValidKey = false;
+        if (provider === 'cloudflare') {
+            hasValidKey = true;
+        } else if (keyRaw && keyRaw.trim() !== '' && keyRaw !== btoa('')) {
+            const decodedKey = atob(keyRaw).trim();
+            if (provider === 'openai' || provider === 'openrouter') {
+                hasValidKey = decodedKey.startsWith('sk-');
+            } else if (provider === 'anthropic') {
+                hasValidKey = decodedKey.startsWith('sk-ant-');
+            } else if (provider === 'gemini') {
+                hasValidKey = decodedKey.length >= 30; // Gemini keys are typically 39 chars
+            } else {
+                hasValidKey = decodedKey.length > 0;
+            }
+        }
         
         analyzeBtn.disabled = !(hasFile && hasValidKey);
         
         if (!hasValidKey) {
-            analyzeBtn.textContent = 'Configure API Key First →';
+            analyzeBtn.textContent = 'Configure Valid API Key First →';
             analyzeBtn.style.opacity = '0.5';
         } else if (!hasFile) {
             analyzeBtn.textContent = 'Upload File to Decode →';
@@ -222,7 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const hfContainer = document.getElementById('hfUrlContainer');
         const apiKeyContainer = document.getElementById('apiKeyContainer');
         if (!hintEl) return;
-        const hints = { 'cloudflare': 'Free Tier (2 reports/hr)', 'openai': 'sk-proj-...', 'anthropic': 'sk-ant-...', 'gemini': 'Google API Key' };
+        const hints = { 'cloudflare': 'Free Tier (2 reports/hr)', 'openai': 'sk-proj-...', 'anthropic': 'sk-ant-...', 'gemini': 'Google API Key', 'grok': 'xAI API Key', 'openrouter': 'OpenRouter API Key', 'mistral': 'Mistral API Key', 'cohere': 'Cohere API Key' };
         hintEl.textContent = hints[provider] || '';
         
         if (hfContainer) hfContainer.classList.toggle('hidden', provider !== 'huggingface');
