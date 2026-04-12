@@ -1,0 +1,4 @@
+## 2026-04-12 — Viral Share Loops & Monetization Scaffolding
+**Discovery:** Users wanted a way to flex their "Health Score" online without exposing their raw chat histories or the full text report. Waitlist modals on grayed-out premium features create highly qualified top-of-funnel leads.
+**Impact:** Base64-encoded anonymous stat URLs allow 100% private sharing that functions as a growth loop. Grayed-out "Pro" scaffolding validates monetization potential before building the actual features.
+**Action:** Prioritize releasing the real "Toxicity Timeline" feature next based on waitlist capture volume. Ensure all future shareable formats (like Instagram stories) use the same strict anonymous client-side rendering pattern.

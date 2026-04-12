@@ -492,3 +492,58 @@ async function downloadWrappedCard() {
     }
 }
 
+/**
+ * Generate Shareable URL (Stat-only, client-side decoding)
+ */
+function generateShareUrl() {
+    const btn = document.getElementById('shareUrlBtn');
+    if (!btn || btn.disabled) return;
+    const originalText = btn.textContent;
+
+    try {
+        const report = window.llmReport || {};
+        const stats = window.activeData?.stats || {};
+
+        // Strict privacy constraint: Only share computed, anonymous numbers
+        const shareData = {
+            score: report.compatibility_score || report.health_score || '--',
+            style: report.relationship_persona || '--',
+            top_strength: report.ai_insight?.green_flags ? report.ai_insight.green_flags[0] : '--'
+        };
+
+        // Use encodeURIComponent to correctly handle UTF-8 characters like emojis
+        const encodedData = btoa(encodeURIComponent(JSON.stringify(shareData)));
+        const shareUrl = `${window.location.origin}/share.html#${encodedData}`;
+
+        navigator.clipboard.writeText(shareUrl).then(() => {
+            btn.textContent = '✅ COPIED!';
+            setTimeout(() => btn.textContent = originalText, 2000);
+        }).catch(err => {
+            console.error('Failed to copy', err);
+            btn.textContent = '❌ ERROR';
+            setTimeout(() => btn.textContent = originalText, 2000);
+        });
+
+    } catch (err) {
+        console.error('Failed to generate URL', err);
+    }
+}
+
+/**
+ * Share to Twitter/X
+ */
+function shareToTwitter() {
+    try {
+        const report = window.llmReport || {};
+        const persona = report.relationship_persona || 'a mystery';
+        const score = report.compatibility_score || report.health_score || '--';
+
+        const text = `The Algorithm just decoded my chat history.\n\nVibe: ${persona}\nScore: ${score}/100\n\nFind out who's carrying your relationship:`;
+        const url = `${window.location.origin}/`;
+
+        const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+        window.open(twitterUrl, '_blank');
+    } catch (err) {
+        console.error('Failed to share to Twitter', err);
+    }
+}

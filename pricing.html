@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en" style="scroll-behavior:smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pro Pricing — The Algorithm</title>
+    <meta property="og:title" content="Pro Features — The Algorithm" />
+    <meta property="og:description" content="Find out what your chats really say about your relationship. Privacy-first, BYOK, zero data stored." />
+    <meta property="og:image" content="/static/og-image.png" />
+    <meta property="og:url" content="https://thealgorithm.rixabh.workers.dev/" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Pro Features — The Algorithm" />
+    <meta name="twitter:description" content="What do your chats say about your relationship? Find out — your data never leaves your device." />
+    <meta name="twitter:image" content="/static/og-image.png" />
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="icon" type="image/png" href="/static/favicon.png">
+</head>
+
+<body class="comic-dots">
+
+<!-- ═══ NAV ═══ -->
+<header class="nav">
+    <div class="container">
+        <a href="/" class="nav-logo">
+            <span style="font-size:1.3rem;line-height:1;letter-spacing:-0.03em">The Algorithm</span>
+            <span style="font-size:.55rem;font-family:var(--font-body);font-weight:500;color:var(--gray-400);font-style:italic;letter-spacing:0.02em;text-transform:none">decode your chats</span>
+        </a>
+    </div>
+</header>
+
+<section class="hero-main" style="background:var(--purple); position:relative; padding:8rem 0 6rem; z-index:10; overflow:hidden">
+    <div class="container text-center relative" style="z-index:5">
+        <h1 style="line-height:1.1; margin-bottom:1.5rem; letter-spacing:-0.03em; color:var(--white)">Pro Features <br><span style="color:var(--yellow); font-style:italic">Coming Soon.</span></h1>
+        <p style="color:var(--gray-300); max-width:600px; margin:0 auto 3.5rem; font-weight:500; line-height:1.6">We are building advanced features for power users. Deep-dive analytics, toxicity timelines, multi-chat comparison, and much more.</p>
+    </div>
+</section>
+
+<section class="section-py" style="background:var(--cream); min-height:50vh">
+    <div class="container" style="max-width:800px">
+        <div class="grid grid-2 gap-8">
+            <div class="card p-8" style="background:var(--white)">
+                <h3 style="font-size:1.5rem; margin-bottom:1rem; color:var(--black)">Free Tier</h3>
+                <h2 style="font-size:2.5rem; margin-bottom:0.5rem; color:var(--pink)">$0<span style="font-size:1rem; color:var(--gray-500)">/mo</span></h2>
+                <ul style="list-style:none; padding:0; margin:0 0 2rem; color:var(--gray-700)">
+                    <li style="margin-bottom:0.5rem">✅ 3 analyses per month</li>
+                    <li style="margin-bottom:0.5rem">✅ Basic Vibe Insights</li>
+                    <li style="margin-bottom:0.5rem">✅ Shareable Wrapped Card</li>
+                    <li style="margin-bottom:0.5rem">✅ BYOK Support</li>
+                </ul>
+                <a href="/" class="btn btn--black btn--full">Get Started</a>
+            </div>
+
+            <div class="card p-8" style="background:var(--black); color:var(--white); transform:scale(1.05); z-index:2">
+                <span class="pill-label pill-label--yellow" style="position:absolute; top:-10px; right:20px; font-size:0.6rem">COMING SOON</span>
+                <h3 style="font-size:1.5rem; margin-bottom:1rem; color:var(--white)">Algorithm Pro</h3>
+                <h2 style="font-size:2.5rem; margin-bottom:0.5rem; color:var(--yellow)">TBA</h2>
+                <ul style="list-style:none; padding:0; margin:0 0 2rem; color:var(--gray-400)">
+                    <li style="margin-bottom:0.5rem">✨ Unlimited Analyses</li>
+                    <li style="margin-bottom:0.5rem">✨ Toxicity Timeline</li>
+                    <li style="margin-bottom:0.5rem">✨ Compare Multiple Chats</li>
+                    <li style="margin-bottom:0.5rem">✨ Pro Coaching Mode</li>
+                </ul>
+                <button onclick="document.getElementById('waitlistModal').classList.remove('hidden');document.getElementById('waitlistModal').classList.add('active');" class="btn btn--yellow btn--full">Join Waitlist</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Waitlist Modal -->
+<div id="waitlistModal" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+    <div class="modal-content" style="max-width:400px">
+        <button class="modal-close" onclick="document.getElementById('waitlistModal').classList.remove('active');document.getElementById('waitlistModal').classList.add('hidden');">&times;</button>
+        <div class="text-center mb-6">
+            <h2 style="font-size:1.5rem">Join the Waitlist</h2>
+            <p style="font-size:0.9rem;color:var(--gray-500)">Get notified when Pro drops.</p>
+        </div>
+        <form onsubmit="event.preventDefault(); alert('You\'re on the list!'); document.getElementById('waitlistModal').classList.add('hidden');document.getElementById('waitlistModal').classList.remove('active');">
+            <input type="email" placeholder="Your Email" class="field-input mb-4" required>
+            <button type="submit" class="btn btn--pink btn--full">Notify Me</button>
+        </form>
+    </div>
+</div>
+
+</body>
+</html>

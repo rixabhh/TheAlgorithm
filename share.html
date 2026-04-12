@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shared Vibe — The Algorithm</title>
+    <meta property="og:title" content="The Algorithm — AI Relationship Analyzer" />
+    <meta property="og:description" content="Find out what your chats really say about your relationship. Privacy-first, BYOK, zero data stored." />
+    <meta property="og:image" content="/static/og-image.png" />
+    <meta property="og:url" content="https://thealgorithm.rixabh.workers.dev/" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="The Algorithm" />
+    <meta name="twitter:description" content="What do your chats say about your relationship? Find out — your data never leaves your device." />
+    <meta name="twitter:image" content="/static/og-image.png" />
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="icon" type="image/png" href="/static/favicon.png">
+</head>
+<body class="comic-dots" style="background:var(--cream)">
+
+<header class="nav">
+    <div class="container">
+        <a href="/" class="nav-logo">
+            <span style="font-size:1.3rem;line-height:1;letter-spacing:-0.03em">The Algorithm</span>
+        </a>
+    </div>
+</header>
+
+<main class="container section-py" style="max-width:800px; padding-top:6rem;">
+    <div id="error-state" class="hidden text-center">
+        <h2 style="color:var(--pink)">Invalid Link</h2>
+        <p>This shared vibe seems to be broken or malformed.</p>
+        <a href="/" class="btn btn--black mt-4">Analyse Your Own Chats</a>
+    </div>
+
+    <div id="loading-state" class="text-center py-12">
+        <div class="loader-spinner mx-auto mb-4"></div>
+        <p>Decoding Shared Vibe...</p>
+    </div>
+
+    <div id="share-content" class="hidden">
+        <div class="card p-8 mb-8" style="background:var(--white); border-width:4px;">
+            <div class="text-center mb-8">
+                <span class="pill-label pill-label--pink mb-3 inline-block">Shared Result</span>
+                <h1 id="share-score" style="font-size:4rem; color:var(--purple); margin:0; line-height:1">--</h1>
+                <p style="font-weight:700; color:var(--gray-500); text-transform:uppercase; letter-spacing:0.05em">Health Score</p>
+            </div>
+
+            <div class="grid grid-2 gap-6 mb-8">
+                <div class="p-4 rounded border" style="background:var(--cream)">
+                    <p style="font-size:0.75rem; font-weight:900; text-transform:uppercase; color:var(--gray-500); margin-bottom:0.5rem">Top Strength</p>
+                    <p id="share-strength" style="font-size:1.2rem; font-weight:900; color:var(--green)">--</p>
+                </div>
+                <div class="p-4 rounded border" style="background:var(--cream)">
+                    <p style="font-size:0.75rem; font-weight:900; text-transform:uppercase; color:var(--gray-500); margin-bottom:0.5rem">Attachment Style</p>
+                    <p id="share-style" style="font-size:1.2rem; font-weight:900; color:var(--orange)">--</p>
+                </div>
+            </div>
+
+            <div class="text-center border-t pt-6" style="border-style:dashed">
+                <h3 style="font-size:1.2rem; margin-bottom:1rem">Want to decode your own chats?</h3>
+                <a href="/" class="btn btn--yellow btn--lg">Analyse Now (100% Private)</a>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const hash = window.location.hash.substring(1);
+    const content = document.getElementById('share-content');
+    const error = document.getElementById('error-state');
+    const loading = document.getElementById('loading-state');
+
+    if(!hash) {
+        loading.classList.add('hidden');
+        error.classList.remove('hidden');
+        return;
+    }
+
+    try {
+        const decodedStr = decodeURIComponent(atob(hash));
+        const data = JSON.parse(decodedStr);
+
+        document.getElementById('share-score').textContent = data.score || '--';
+        document.getElementById('share-strength').textContent = data.top_strength || 'Unknown';
+        document.getElementById('share-style').textContent = data.style || 'Unknown';
+
+        loading.classList.add('hidden');
+        content.classList.remove('hidden');
+
+    } catch(e) {
+        console.error("Failed to decode share URL", e);
+        loading.classList.add('hidden');
+        error.classList.remove('hidden');
+    }
+});
+</script>
+</body>
+</html>
