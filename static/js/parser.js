@@ -7,6 +7,7 @@ class ChatParser {
     constructor() {
         // Regex Patterns (Ported from parsers.py)
         this.WA_MSG_PATTERN = /^\[?(?<date>\d{1,2}[/-]\d{1,2}[/-]\d{2,4})[,\s]+(?<time>\d{1,2}:\d{2}(?::\d{2})?(?:\s*[apAp][mM])?)\]?[\s-]+(?<sender>[^:]+):\s+(?<text>.*)$/;
+        this.SIGNAL_MSG_PATTERN = /^\[(?<date>\d{4}-\d{2}-\d{2})\s+(?<time>\d{2}:\d{2})\]\s+(?<sender>[^:]+):\s+(?<text>.*)$/;
         this.WA_SYS_PATTERN = /^\[?(?<date>\d{1,2}[/-]\d{1,2}[/-]\d{2,4})[,\s]+(?<time>\d{1,2}:\d{2}(?::\d{2})?(?:\s*[apAp][mM])?)\]?[\s-]+(?<sys_msg>Messages and calls are end-to-end encrypted.*|.*changed their phone number|.*joined using an invite link|.*left|.*changed the subject to|.*changed the group description|.*You deleted this message.*)$/;
 
         this.TG_DATE_PATTERN = /class="pull_right date details" title="([^"]+)"/;
@@ -22,6 +23,48 @@ class ChatParser {
     sanitize(text) {
         if (!text) return "";
         return text.replace(this.STRIP_REGEX, "").trim();
+    }
+
+    /**
+     * Detects if content is a Signal (.txt) export
+     */
+    detectSignal(textData) {
+        const lines = textData.split(/\r?\n/).slice(0, 50); // Check first 50 lines
+        for (let line of lines) {
+            line = this.sanitize(line);
+            if (this.SIGNAL_MSG_PATTERN.test(line)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Parses Signal (.txt)
+     */
+    parseSignal(textData) {
+        const messages = [];
+        const lines = textData.split(/\r?\n/);
+
+        for (let line of lines) {
+            line = this.sanitize(line);
+            if (!line) continue;
+
+            const match = line.match(this.SIGNAL_MSG_PATTERN);
+            if (match) {
+                if (messages.length >= 50000) break;
+                const { date, time, sender, text } = match.groups;
+                messages.push({
+                    timestamp: this.parseDateTime(`${date} ${time}`),
+                    sender: sender.trim(),
+                    text: text.trim()
+                });
+            } else if (messages.length > 0) {
+                // Multiline message append
+                messages[messages.length - 1].text += "\n" + line;
+            }
+        }
+        return messages;
     }
 
     /**

@@ -417,12 +417,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 let jsonPlat = document.getElementById('jsonPlatform') ? document.getElementById('jsonPlatform').value : 'Instagram';
                 let rawMessages;
+                let parsedPlatform = 'WhatsApp';
+
                 if (file.name.toLowerCase().endsWith('.html')) {
                     rawMessages = parser.parseTelegram(content);
+                    parsedPlatform = 'Telegram';
                 } else if (file.name.toLowerCase().endsWith('.json')) {
                     rawMessages = jsonPlat === 'Discord' ? parser.parseDiscord(content) : parser.parseInstagram(content);
+                    parsedPlatform = jsonPlat;
                 } else {
-                    rawMessages = parser.parseWhatsApp(content);
+                    if (parser.detectSignal(content)) {
+                        rawMessages = parser.parseSignal(content);
+                        parsedPlatform = 'Signal';
+                    } else {
+                        rawMessages = parser.parseWhatsApp(content);
+                        parsedPlatform = 'WhatsApp';
+                    }
                 }
                 
                 if (!rawMessages || !rawMessages.length) throw new Error("No readable messages found in the file.");
@@ -449,7 +459,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     context: userContext,
                     tone: analysisTone,
                     msg_count: filteredMessages.length,
-                    platform: file.name.toLowerCase().endsWith('.html') ? 'Telegram' : (file.name.toLowerCase().endsWith('.json') ? jsonPlat : 'WhatsApp')
+                    platform: parsedPlatform
                 };
 
                 historyManager.save(dashboardData);

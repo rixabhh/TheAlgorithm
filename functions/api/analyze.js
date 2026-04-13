@@ -37,25 +37,34 @@ CRITICAL RULES:
             userPrompt = `COMPARE two chats for ${my_name}. Chat A: ${compare_data.nameA} vs Chat B: ${compare_data.nameB}. Stats A: ${JSON.stringify(compare_data.a)}. Stats B: ${JSON.stringify(compare_data.b)}. Output Language: ${language || 'english'}. Be ${tone}.`;
         }
 
-        if (provider === 'cloudflare' && env.AI) {
-            const aiResult = await env.AI.run('@cf/meta/llama-3-8b-instruct', {
-                messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }]
-            });
-            const match = aiResult.response.match(/\{[\s\S]*\}/);
-            if (match) report = JSON.parse(match[0]);
-        } else if (api_key && (provider === 'openai' || provider === 'groq' || provider === 'grok')) {
-            let url, model;
-            if (provider === 'openai') { url = 'https://api.openai.com/v1/chat/completions'; model = 'gpt-4o-mini'; }
-            else if (provider === 'groq') { url = 'https://api.groq.com/openai/v1/chat/completions'; model = 'llama-3.1-70b-versatile'; }
-            else if (provider === 'grok') { url = 'https://api.x.ai/v1/chat/completions'; model = 'grok-2-latest'; }
-            
-            const resp = await fetch(url, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${api_key}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ model, messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }], response_format: { type: "json_object" } })
-            });
-            const resData = await resp.json();
-            if (resData.choices) report = JSON.parse(resData.choices[0].message.content);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+        try {
+            if (provider === 'cloudflare' && env.AI) {
+                const aiResult = await env.AI.run('@cf/meta/llama-3-8b-instruct', {
+                    messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }]
+                });
+                const match = aiResult.response.match(/\{[\s\S]*\}/);
+                if (match) report = JSON.parse(match[0]);
+            } else if (api_key && (provider === 'openai' || provider === 'groq' || provider === 'grok' || provider === 'openrouter')) {
+                let url, model;
+                if (provider === 'openai') { url = 'https://api.openai.com/v1/chat/completions'; model = 'gpt-4o-mini'; }
+                else if (provider === 'groq') { url = 'https://api.groq.com/openai/v1/chat/completions'; model = 'llama-3.1-70b-versatile'; }
+                else if (provider === 'grok') { url = 'https://api.x.ai/v1/chat/completions'; model = 'grok-2-latest'; }
+                else if (provider === 'openrouter') { url = 'https://openrouter.ai/api/v1/chat/completions'; model = 'meta-llama/llama-3-8b-instruct:free'; }
+
+                const resp = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${api_key}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ model, messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }], response_format: { type: "json_object" } }),
+                    signal: controller.signal
+                });
+                const resData = await resp.json();
+                if (resData.choices) report = JSON.parse(resData.choices[0].message.content);
+            }
+        } finally {
+            clearTimeout(timeoutId);
         }
 
         // 3. FALLBACK
@@ -105,7 +114,12 @@ CRITICAL RULES:
         return new Response(JSON.stringify({ report }), { headers: { 'Content-Type': 'application/json' } });
 
     } catch (e) {
-        return new Response(JSON.stringify({ error: e.message }), { status: 500 });
+        let safeError = e.message || "";
+        // In the catch block we don't have request body because it was consumed.
+        // However, we know api keys have sk- pattern. We can also try to replace the value from variable if data is defined but it isn't accessible here reliably.
+        // The safest fallback is to just replace the standard sk- prefix
+        safeError = safeError.replace(/sk-[a-zA-Z0-9_-]+/g, 'sk-...');
+        return new Response(JSON.stringify({ error: safeError }), { status: 500 });
     }
 }
 
