@@ -83,9 +83,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (bar) bar.style.width = val + '%';
             });
             const pills = document.getElementById(`traits-pills-${suffix}`);
-            if (pills) pills.innerHTML = (data.highlights || []).map(h => `<span class="pill-label pill-label--pink" style="font-size:0.6rem">${h.label}: ${h.count}</span>`).join('');
+            if (pills) pills.innerHTML = (data.highlights || []).map(h => {
+                const labelSafe = document.createTextNode(h.label || '').textContent;
+                return `<span class="pill-label pill-label--pink" style="font-size:0.6rem">${labelSafe}: ${h.count}</span>`;
+            }).join('');
             const summary = document.getElementById(`traits-summary-${suffix}`);
-            if (summary) summary.innerHTML = (data.summary || []).map(s => `<li>${s}</li>`).join('');
+            if (summary) summary.innerHTML = (data.summary || []).map(s => {
+                const sSafe = document.createTextNode(s || '').textContent;
+                return `<li>${sSafe}</li>`;
+            }).join('');
         };
         update('me', traits.ME);
         update('partner', traits.PARTNER);
@@ -103,12 +109,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const el = document.getElementById('engagement-list');
         if (!el) return;
         const init = stats.initiator_ratio || { me_count: 0, partner_count: 0 };
+
+        const myNameSafe = document.createTextNode(activeData.my_name || '').textContent;
+        const partnerNameSafe = document.createTextNode(activeData.partner_name || '').textContent;
+        const chatStarterSafe = document.createTextNode(init.me_initiations > init.partner_initiations ? (activeData.my_name || '') : (activeData.partner_name || '')).textContent;
+
         el.innerHTML = `
-            <div class="flex justify-between"><span>Chat Starter</span><span class="pill-label pill-label--purple">${init.me_initiations > init.partner_initiations ? activeData.my_name : activeData.partner_name}</span></div>
+            <div class="flex justify-between"><span>Chat Starter</span><span class="pill-label pill-label--purple">${chatStarterSafe}</span></div>
             <div class="flex justify-between"><span>Mirroring</span><span class="font-black">${stats.mirroring || 0}%</span></div>
             <div class="flex justify-between"><span>Max Inactivity</span><span class="font-black">${stats.max_inactivity || "N/A"} days</span></div>
-            <div class="flex justify-between"><span>Avg Response (${activeData.my_name})</span><span class="font-black">${formatTime(init.me_latency_avg)}</span></div>
-            <div class="flex justify-between"><span>Avg Response (${activeData.partner_name})</span><span class="font-black">${formatTime(init.partner_latency_avg)}</span></div>
+            <div class="flex justify-between"><span>Avg Response (${myNameSafe})</span><span class="font-black">${formatTime(init.me_latency_avg)}</span></div>
+            <div class="flex justify-between"><span>Avg Response (${partnerNameSafe})</span><span class="font-black">${formatTime(init.partner_latency_avg)}</span></div>
         `;
     };
 
@@ -116,7 +127,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const container = document.getElementById('emoji-container');
         if (!container) return;
         const emojis = [...(stats.emoji_frequency?.ME || []), ...(stats.emoji_frequency?.PARTNER || [])].sort((a,b)=>b.count-a.count).slice(0, 8);
-        container.innerHTML = emojis.map(e => `<div class="flex align-center gap-3"><span>${e.emoji}</span><div class="flex-1 h-2 bg-cream rounded-full overflow-hidden"><div class="h-full bg-pink" style="width:${(e.count / emojis[0].count * 100)}%"></div></div></div>`).join('');
+        container.innerHTML = emojis.map(e => {
+            const emojiSafe = document.createTextNode(e.emoji || '').textContent;
+            return `<div class="flex align-center gap-3"><span>${emojiSafe}</span><div class="flex-1 h-2 bg-cream rounded-full overflow-hidden"><div class="h-full bg-pink" style="width:${(e.count / emojis[0].count * 100)}%"></div></div></div>`;
+        }).join('');
     };
 
     const renderStreaks = (stats) => {
@@ -137,9 +151,13 @@ document.addEventListener('DOMContentLoaded', () => {
             container.innerHTML = '<p class="op-30">No laughs detected.</p>';
             return;
         }
+
+        const myNameSafe = document.createTextNode(activeData.my_name || '').textContent;
+        const partnerNameSafe = document.createTextNode(activeData.partner_name || '').textContent;
+
         container.innerHTML = `
-            <div class="flex justify-between mb-2"><span>${activeData.my_name} Laughs</span><span class="font-black">${h.ME}</span></div>
-            <div class="flex justify-between mb-4"><span>${activeData.partner_name} Laughs</span><span class="font-black">${h.PARTNER}</span></div>
+            <div class="flex justify-between mb-2"><span>${myNameSafe} Laughs</span><span class="font-black">${h.ME}</span></div>
+            <div class="flex justify-between mb-4"><span>${partnerNameSafe} Laughs</span><span class="font-black">${h.PARTNER}</span></div>
             <div style="height: 8px; display: flex; border-radius: 4px; overflow: hidden; border: 1px solid var(--black)">
                 <div style="width: ${(h.ME / h.total) * 100}%; background: var(--black)"></div>
                 <div style="width: ${(h.PARTNER / h.total) * 100}%; background: var(--pink)"></div>
@@ -151,12 +169,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const container = document.getElementById('ghosting-container');
         if (!container) return;
         const g = stats.ghosting || { count: 0, longest_days: 0, breakers: { ME: 0, PARTNER: 0 } };
+
+        const myNameSafe = document.createTextNode(activeData.my_name || '').textContent;
+        const partnerNameSafe = document.createTextNode(activeData.partner_name || '').textContent;
+
         container.innerHTML = `
             <div class="flex justify-between mb-2"><span>Total Ghosting Periods (>24h)</span><span class="font-black">${g.count}</span></div>
             <div class="flex justify-between mb-4"><span>Longest Silence</span><span class="font-black">${g.longest_days} days</span></div>
             <div class="text-xs uppercase op-50 mb-1">Silence Breakers</div>
-            <div class="flex justify-between mb-1"><span>${activeData.my_name} broke silence</span><span class="font-black">${g.breakers.ME} times</span></div>
-            <div class="flex justify-between"><span>${activeData.partner_name} broke silence</span><span class="font-black">${g.breakers.PARTNER} times</span></div>
+            <div class="flex justify-between mb-1"><span>${myNameSafe} broke silence</span><span class="font-black">${g.breakers.ME} times</span></div>
+            <div class="flex justify-between"><span>${partnerNameSafe} broke silence</span><span class="font-black">${g.breakers.PARTNER} times</span></div>
         `;
     };
 
@@ -166,7 +188,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const words = stats.top_words || [];
         if (!words.length) { container.innerHTML = '<p class="op-30">No data</p>'; return; }
         const max = words[0].count;
-        container.innerHTML = `<div class="flex flex-wrap justify-center p-4 gap-4">${words.slice(0, 20).map(w => `<span style="font-size:${0.8 + (w.count/max)*1.5}rem; font-weight:900; opacity:${0.4 + (w.count/max)*0.6}">${w.word}</span>`).join('')}</div>`;
+        container.innerHTML = `<div class="flex flex-wrap justify-center p-4 gap-4">${words.slice(0, 20).map(w => {
+            const wordSafe = document.createTextNode(w.word || '').textContent;
+            return `<span style="font-size:${0.8 + (w.count/max)*1.5}rem; font-weight:900; opacity:${0.4 + (w.count/max)*0.6}">${wordSafe}</span>`;
+        }).join('')}</div>`;
     };
 
     // --- CHART LOGIC ---
@@ -177,10 +202,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const ctx = document.getElementById('ratioChart')?.getContext('2d');
         if (!ctx) return;
         if (ratioChart) ratioChart.destroy();
+
+        const myNameSafe = document.createTextNode(activeData.my_name || '').textContent;
+        const partnerNameSafe = document.createTextNode(activeData.partner_name || '').textContent;
+
         ratioChart = new Chart(ctx, {
             type: 'doughnut',
             data: {
-                labels: [activeData.my_name, activeData.partner_name],
+                labels: [myNameSafe, partnerNameSafe],
                 datasets: [{
                     data: [stats.messages?.ME || 0, stats.messages?.PARTNER || 0],
                     backgroundColor: ['#000', '#FF4081'],
@@ -195,13 +224,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const ctx = document.getElementById('activityChart')?.getContext('2d');
         if (!ctx) return;
         if (activityChart) activityChart.destroy();
+
+        const myNameSafe = document.createTextNode(activeData.my_name || '').textContent;
+        const partnerNameSafe = document.createTextNode(activeData.partner_name || '').textContent;
+
         activityChart = new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: weeks.map(w => w.week_start),
                 datasets: [
-                    { label: activeData.my_name, data: weeks.map(w => w.me_count), backgroundColor: '#000' },
-                    { label: activeData.partner_name, data: weeks.map(w => w.partner_count), backgroundColor: '#FF4081' }
+                    { label: myNameSafe, data: weeks.map(w => w.me_count), backgroundColor: '#000' },
+                    { label: partnerNameSafe, data: weeks.map(w => w.partner_count), backgroundColor: '#FF4081' }
                 ]
             },
             options: { scales: { x: { stacked: true }, y: { stacked: true } } }
@@ -353,8 +386,14 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const red = document.getElementById('ai-insight-red-flags');
             const green = document.getElementById('ai-insight-green-flags');
-            if (red) red.innerHTML = (report.ai_insight?.red_flags || []).map(f => `<li>${f}</li>`).join('');
-            if (green) green.innerHTML = (report.ai_insight?.green_flags || []).map(f => `<li>${f}</li>`).join('');
+            if (red) red.innerHTML = (report.ai_insight?.red_flags || []).map(f => {
+                const textSafe = document.createTextNode(f || '').textContent;
+                return `<li>${textSafe}</li>`;
+            }).join('');
+            if (green) green.innerHTML = (report.ai_insight?.green_flags || []).map(f => {
+                const textSafe = document.createTextNode(f || '').textContent;
+                return `<li>${textSafe}</li>`;
+            }).join('');
 
             loading.classList.add('hidden');
             results.classList.remove('hidden');
@@ -395,7 +434,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const userMsg = document.createElement('div');
         userMsg.className = 'chat-message user text-sm';
         userMsg.style.cssText = 'align-self: flex-end; background: var(--pink); border: 2px solid var(--black); box-shadow: 2px 2px 0 0 var(--black); padding: 0.5rem 1rem; border-radius: 12px 12px 0 12px; max-width: 85%; font-weight: 500;';
-        userMsg.innerHTML = `<strong>You:</strong> ${text}`;
+        const textSafe = document.createTextNode(text || '').textContent;
+        userMsg.innerHTML = `<strong>You:</strong> ${textSafe}`;
         historyEl.appendChild(userMsg);
         
         inputEl.value = '';
@@ -452,7 +492,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const errMsg = document.createElement('div');
             errMsg.className = 'chat-message error text-sm';
             errMsg.style.cssText = 'align-self: center; background: #ffcc00; border: 2px solid #000; padding: 0.5rem 1rem; font-weight: 700;';
-            errMsg.innerHTML = `Error: ${err.message}`;
+            const errorSafe = document.createTextNode(err.message || '').textContent;
+            errMsg.innerHTML = `Error: ${errorSafe}`;
             historyEl.appendChild(errMsg);
         } finally {
             inputEl.disabled = false;
