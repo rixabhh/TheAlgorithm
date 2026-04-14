@@ -8,10 +8,20 @@
     <link rel="icon" type="image/png" href="static/favicon.png">
 </head>
 <body class="comic-dots">
+    <!-- ═══ NAV ═══ -->
     <header class="nav">
-        <div class="container flex justify-between items-center" style="height:100%">
-            <a href="/" class="nav-logo" style="color:var(--white)">← The Algorithm</a>
-            <span style="font-family:var(--font-heading);font-weight:700;color:var(--yellow);font-size:0.9rem;text-transform:uppercase">Export Guide</span>
+        <div class="container">
+            <a href="/" class="nav-logo">
+                <span style="font-size:1.3rem;line-height:1;letter-spacing:-0.03em">The Algorithm</span>
+                <span style="font-size:.55rem;font-family:var(--font-body);font-weight:500;color:var(--gray-400);font-style:italic;letter-spacing:0.02em;text-transform:none">decode your chats</span>
+            </a>
+            <button class="nav-hamburger" aria-label="Toggle Menu">☰</button>
+            <nav class="nav-links">
+                <a href="history.html" class="nav-link" style="padding:.25rem .7rem;border:1.5px solid var(--gray-600);border-radius:var(--r-pill);font-size:.62rem">Reports</a>
+                <a href="instructions.html" class="nav-link" style="padding:.25rem .7rem;border:1.5px solid var(--gray-600);border-radius:var(--r-pill);font-size:.62rem;background:var(--cream);color:var(--black);font-weight:900">How to Export</a>
+                <a href="privacy.html" class="nav-link" style="padding:.25rem .7rem;border:1.5px solid var(--gray-600);border-radius:var(--r-pill);font-size:.62rem">Privacy</a>
+                <a href="/#upload" class="btn btn--yellow" style="font-size:.62rem;padding:.28rem .85rem;box-shadow:2px 2px 0 0 rgba(255,255,255,0.15);border-color:var(--yellow)">Analyse Now</a>
+            </nav>
         </div>
     </header>
 
@@ -115,6 +125,45 @@
                     <li>Copy the key and paste it into our Settings.</li>
                 </ol>
             </div>
+        </div>
     </div>
+
+    <!-- ═══ FOOTER ═══ -->
+    <footer style="background:var(--black);color:var(--white);padding:4rem 0 2.5rem;position:relative;overflow:hidden">
+        <svg style="position:absolute;top:0;left:0;width:100%;transform:translateY(-98%)" preserveAspectRatio="none" viewBox="0 0 1440 64"><path fill="var(--black)" d="M0,32L120,37.3C240,43,480,53,720,48C960,43,1200,37,1320,34.7L1440,32L1440,64L0,64Z"/></svg>
+        <div style="position:absolute;top:2rem;left:2rem;display:flex;gap:6px;opacity:0.15">
+            <span style="width:8px;height:8px;border-radius:50%;background:var(--pink)"></span>
+            <span style="width:8px;height:8px;border-radius:50%;background:var(--yellow)"></span>
+            <span style="width:8px;height:8px;border-radius:50%;background:var(--green)"></span>
+        </div>
+        <div style="position:absolute;bottom:2rem;right:2rem;display:flex;gap:6px;opacity:0.15">
+            <span style="width:8px;height:8px;border-radius:50%;background:var(--orange)"></span>
+            <span style="width:8px;height:8px;border-radius:50%;background:var(--purple)"></span>
+            <span style="width:8px;height:8px;border-radius:50%;background:var(--blue)"></span>
+        </div>
+
+        <div class="container text-center" style="position:relative;z-index:1">
+            <p style="font-family:var(--font-heading);font-weight:900;font-size:2rem;color:var(--yellow);text-shadow:3px 3px 0 rgba(0,0,0,0.4);margin-bottom:.25rem;letter-spacing:-0.03em">The Algorithm</p>
+            <p style="font-family:var(--font-heading);font-style:italic;font-weight:700;font-size:.85rem;color:var(--gray-400);margin-bottom:2rem">Decode your digital relationships</p>
+
+            <div style="display:flex;justify-content:center;flex-wrap:wrap;gap:.5rem;margin-bottom:2rem">
+                <a href="/#upload" style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--black);background:var(--yellow);padding:.35rem .9rem;border-radius:var(--r-pill);border:2px solid var(--black);box-shadow:2px 2px 0 0 rgba(255,255,255,0.1);text-decoration:none;transition:all .15s">Analyse</a>
+                <a href="instructions.html" style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--white);background:transparent;padding:.35rem .9rem;border-radius:var(--r-pill);border:1.5px solid var(--gray-600);text-decoration:none;transition:all .15s;background:rgba(255,255,255,0.1)">How to Export</a>
+                <a href="privacy.html" style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--white);background:transparent;padding:.35rem .9rem;border-radius:var(--r-pill);border:1.5px solid var(--gray-600);text-decoration:none;transition:all .15s">Privacy</a>
+            </div>
+
+            <div style="width:60px;height:3px;background:var(--purple);margin:0 auto 1.5rem;border-radius:2px"></div>
+            <p style="font-size:.7rem;color:var(--gray-600);font-weight:500;margin:0">Privacy-first AI analysis. &copy; 2026 The Algorithm.</p>
+        </div>
+    </footer>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const hamburger = document.querySelector('.nav-hamburger');
+        const navLinks = document.querySelector('.nav-links');
+        if (hamburger && navLinks) {
+            hamburger.addEventListener('click', () => navLinks.classList.toggle('active'));
+        }
+    });
+</script>
 </body>
 </html>
