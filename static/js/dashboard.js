@@ -458,7 +458,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!resp.ok) throw new Error(data.error || "Failed context");
 
             // Format linebreaks correctly for HTML display
-            const formattedText = data.text.replace(/\n/g, '<br>');
+            const formattedText = escapeHTML(data.text).replace(/\n/g, '<br>');
 
             // Append Coach Message
             const coachMsg = document.createElement('div');
