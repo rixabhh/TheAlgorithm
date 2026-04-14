@@ -52,6 +52,8 @@ class AnalyticsEngine {
         // --- NEW METRICS ---
         const threads = this.calculateThreads(processed);
         const duration = this.calculateDuration(processed);
+        const humorDynamics = this.calculateHumorDynamics(processed);
+        const ghostPeriods = this.calculateGhostPeriods(processed);
         const streakInfo = this.calculateStreaks(processed);
         const lexicalDiversity = this.calculateLexicalDiversity(processed);
         const links = this.extractLinks(processed);
@@ -85,6 +87,8 @@ class AnalyticsEngine {
             chars: { ME: powerInfo.me_char_count, PARTNER: powerInfo.partner_char_count },
             threads: threads,
             duration: duration,
+            humor: humorDynamics,
+            ghosting: ghostPeriods,
             streaks: { longest: streakInfo.max_streak, current: streakInfo.current_streak || 0, active_pct: streakInfo.active_pct },
             lexical_diversity: lexicalDiversity,
             links: links,
@@ -255,6 +259,45 @@ class AnalyticsEngine {
         if (score < 40) label = "One-Sided";
         else if (score < 70) label = "Leaning";
         return { score, label };
+    }
+
+    calculateHumorDynamics(messages) {
+        let meLaughs = 0, partnerLaughs = 0;
+        const HUMOR_RE = /\b(haha+|hehe+|lol+|lmao+|rofl+|lmfao+)\b|😂|🤣|💀/i;
+        for (const m of messages) {
+            if (HUMOR_RE.test(m.text)) {
+                if (m.sender === 'ME') meLaughs++;
+                else partnerLaughs++;
+            }
+        }
+        return { ME: meLaughs, PARTNER: partnerLaughs, total: meLaughs + partnerLaughs };
+    }
+
+    calculateGhostPeriods(messages) {
+        const GHOST_THRESHOLD_MINS = 24 * 60; // 24 hours
+        let ghostPeriodsCount = 0;
+        let longestGhostMins = 0;
+        let breakerStats = { ME: 0, PARTNER: 0 };
+
+        for (let i = 1; i < messages.length; i++) {
+            const current = messages[i];
+            const prev = messages[i - 1];
+            const gapMins = current.gapMins;
+
+            if (gapMins >= GHOST_THRESHOLD_MINS) {
+                ghostPeriodsCount++;
+                if (gapMins > longestGhostMins) {
+                    longestGhostMins = gapMins;
+                }
+                breakerStats[current.sender]++;
+            }
+        }
+
+        return {
+            count: ghostPeriodsCount,
+            longest_days: (longestGhostMins / (24 * 60)).toFixed(1),
+            breakers: breakerStats
+        };
     }
 
     calculateBehavioralTraits(messages) {

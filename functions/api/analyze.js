@@ -26,8 +26,9 @@ export async function onRequestPost(context) {
         const systemPrompt = `You are 'The Algorithm', a brutally honest relationship analyst. 
 CRITICAL RULES:
 1. Return ONLY a valid JSON object. Do NOT wrap in markdown code blocks.
-2. The JSON keys MUST remain exactly as follows (in English): { "relationship_persona": "", "compatibility_score": 0, "ai_insight": { "dynamic_title": "", "reality_check": "", "recent_shift": "", "red_flags": [], "green_flags": [], "brutal_verdict": "" } }.
-3. The VALUES inside the JSON MUST be written in the requested Output Language (${language || 'english'}). If Hinglish is requested, use conversational Hindi written in the English alphabet (e.g., 'Bhai kya kar raha hai'). Make it gen-z, witty, and brutal.`;
+2. The JSON keys MUST remain exactly as follows (in English): { "relationship_persona": "", "compatibility_score": 0, "ai_insight": { "dynamic_title": "", "reality_check": "", "recent_shift": "", "communication_patterns": "", "red_flags": [], "green_flags": [], "brutal_verdict": "" } }.
+3. The VALUES inside the JSON MUST be written in the requested Output Language (${language || 'english'}). If Hinglish is requested, use conversational Hindi written in the English alphabet (e.g., 'Bhai kya kar raha hai'). Make it gen-z, witty, and brutal.
+4. Analyze the humor metrics (who laughs more) and ghosting periods (longest silence, who breaks it) to form your "communication_patterns" insight.`;
         
         let userPrompt = `Analyze chat: ${my_name} & ${partner_name}. Connection Type: ${connection_type || 'romantic'}. Output Language: ${language || 'english'}. Tone: ${tone}. `;
         if (context) userPrompt += `User Context/Background: ${context}. `;
@@ -68,6 +69,7 @@ CRITICAL RULES:
                         dynamic_title: "Quick Read",
                         reality_check: partner_name + " ke saath analysis complete ho gaya hai.",
                         recent_shift: "Energy bilkul stable lag rahi hai.",
+                        communication_patterns: "Dono ek dusre se baat kar rahe hain.",
                         red_flags: ["Deep read ke liye data thoda kam hai"],
                         green_flags: ["Dono active check-ins kar rahe ho"],
                         brutal_verdict: "Ek number vibe hai bhai/behen."
@@ -81,6 +83,7 @@ CRITICAL RULES:
                         dynamic_title: "Quick Read",
                         reality_check: partner_name + " के साथ विश्लेषण पूरा हुआ।",
                         recent_shift: "ऊर्जा स्थिर लग रही है।",
+                        communication_patterns: "दोनों एक दूसरे से बात कर रहे हैं।",
                         red_flags: ["गहन विश्लेषण के लिए डेटा अपर्याप्त है"],
                         green_flags: ["सक्रिय संवाद चल रहा है"],
                         brutal_verdict: "संबंध अच्छा है।"
@@ -94,6 +97,7 @@ CRITICAL RULES:
                         dynamic_title: "Quick Read",
                         reality_check: "Analysis complete for " + partner_name,
                         recent_shift: "The energy is stable.",
+                        communication_patterns: "Both are talking to each other.",
                         red_flags: ["Limited data for deep read"],
                         green_flags: ["Active check-ins"],
                         brutal_verdict: "It's a vibe."

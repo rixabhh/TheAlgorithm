@@ -1,0 +1,4 @@
+## 2025-04-14 — Humor and Ghosting Analytics Integration
+**Discovery:** Expanding `analytics_engine.js` with `calculateHumorDynamics` (captures 'haha', 'lol', emojis) and `calculateGhostPeriods` (tracks instances >24h gaps) enhances the statistical payload for LLM analysis. The `dashboard.html` effectively supports horizontal expansion of 'Quick Stats' cards using grid layouts, easily scaling to include these new components.
+**Impact:** Deepens the "wow" factor for relationship analysis by adding humor matching and mapping ghosting trends, which feed directly into an enhanced LLM insight capability (`communication_patterns`).
+**Action:** When adding future metrics to the backend, continue ensuring the frontend grid is horizontally and vertically robust, and update the Playwright verification script with corresponding mock data payloads.

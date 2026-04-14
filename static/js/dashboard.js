@@ -61,6 +61,8 @@ document.addEventListener('DOMContentLoaded', () => {
         renderStreaks(stats);
         renderWordCloud(stats);
         renderEmoji(stats);
+        renderHumor(stats);
+        renderGhosting(stats);
         
         if (window.Chart) {
             initRatioChart(stats);
@@ -124,6 +126,37 @@ document.addEventListener('DOMContentLoaded', () => {
         container.innerHTML = `
             <div class="card p-4 bg-cream text-center"><p class="text-xs uppercase op-50">Longest Streak</p><p class="text-xl font-black">${s.longest} days</p></div>
             <div class="card p-4 bg-cream text-center"><p class="text-xs uppercase op-50">Current Streak</p><p class="text-xl font-black">${s.current} days</p></div>
+        `;
+    };
+
+    const renderHumor = (stats) => {
+        const container = document.getElementById('humor-container');
+        if (!container) return;
+        const h = stats.humor || { ME: 0, PARTNER: 0, total: 0 };
+        if (h.total === 0) {
+            container.innerHTML = '<p class="op-30">No laughs detected.</p>';
+            return;
+        }
+        container.innerHTML = `
+            <div class="flex justify-between mb-2"><span>${activeData.my_name} Laughs</span><span class="font-black">${h.ME}</span></div>
+            <div class="flex justify-between mb-4"><span>${activeData.partner_name} Laughs</span><span class="font-black">${h.PARTNER}</span></div>
+            <div style="height: 8px; display: flex; border-radius: 4px; overflow: hidden; border: 1px solid var(--black)">
+                <div style="width: ${(h.ME / h.total) * 100}%; background: var(--black)"></div>
+                <div style="width: ${(h.PARTNER / h.total) * 100}%; background: var(--pink)"></div>
+            </div>
+        `;
+    };
+
+    const renderGhosting = (stats) => {
+        const container = document.getElementById('ghosting-container');
+        if (!container) return;
+        const g = stats.ghosting || { count: 0, longest_days: 0, breakers: { ME: 0, PARTNER: 0 } };
+        container.innerHTML = `
+            <div class="flex justify-between mb-2"><span>Total Ghosting Periods (>24h)</span><span class="font-black">${g.count}</span></div>
+            <div class="flex justify-between mb-4"><span>Longest Silence</span><span class="font-black">${g.longest_days} days</span></div>
+            <div class="text-xs uppercase op-50 mb-1">Silence Breakers</div>
+            <div class="flex justify-between mb-1"><span>${activeData.my_name} broke silence</span><span class="font-black">${g.breakers.ME} times</span></div>
+            <div class="flex justify-between"><span>${activeData.partner_name} broke silence</span><span class="font-black">${g.breakers.PARTNER} times</span></div>
         `;
     };
 
@@ -315,6 +348,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('ai-insight-title').textContent = report.ai_insight?.dynamic_title || "Analysis Complete";
             document.getElementById('ai-insight-reality').textContent = report.ai_insight?.reality_check;
             document.getElementById('ai-insight-shift').textContent = report.ai_insight?.recent_shift;
+            document.getElementById('ai-insight-patterns').textContent = report.ai_insight?.communication_patterns;
             document.getElementById('ai-insight-verdict').textContent = report.ai_insight?.brutal_verdict;
             
             const red = document.getElementById('ai-insight-red-flags');
