@@ -160,6 +160,83 @@ h3 { font-size: clamp(1.1rem, 2vw, 1.5rem); }
 .op-50 { opacity: 0.5; }
 .op-80 { opacity: 0.8; }
 
+/* ── Dashboard Layout ── */
+.dashboard-wrapper {
+    display: flex;
+    min-height: 100vh;
+}
+.sidebar {
+    width: 280px;
+    background: var(--cream);
+    border-right: var(--border-thick);
+    padding: 2rem 1.5rem;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+}
+.main-content {
+    flex-grow: 1;
+    padding: 3rem;
+    max-width: 1200px;
+}
+.sidebar-category h4 {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--gray-500);
+    margin-bottom: 1rem;
+}
+.sidebar-nav { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+.sidebar-nav a {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: var(--r-sm);
+    color: var(--black);
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.9rem;
+    border: 2px solid transparent;
+    transition: all 0.2s;
+}
+.sidebar-nav a:hover {
+    background: rgba(0,0,0,0.05);
+}
+.sidebar-nav a.active {
+    background: var(--white);
+    border: 2px solid var(--black);
+    box-shadow: 3px 3px 0 0 var(--black);
+}
+
+/* ── Boneyard Skeleton UI ── */
+.bone {
+    background-color: var(--gray-300);
+    position: relative;
+    overflow: hidden;
+}
+.bone::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background-image: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.4) 50%,
+        rgba(255, 255, 255, 0) 100%
+    );
+    animation: boneShimmer 1.5s infinite linear;
+}
+@keyframes boneShimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
 /* ── Comic-Book Halftone Dot Background + Paper Grain ── */
 .comic-dots::before {
     content: '';
@@ -598,6 +675,8 @@ textarea.field-input { resize: vertical; min-height: 60px; }
     overflow: hidden;
     white-space: nowrap;
     padding: 0.5rem 0;
+    mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
 }
 .marquee-content {
     display: inline-flex;
@@ -621,6 +700,17 @@ textarea.field-input { resize: vertical; min-height: 60px; }
 @keyframes marquee-scroll {
     0%   { transform: translateX(0); }
     100% { transform: translateX(-50%); }
+}
+
+/* ── Tone Buttons ── */
+.tone-btn {
+    background: transparent;
+    color: var(--black);
+}
+.tone-btn.active {
+    background: var(--black) !important;
+    color: var(--white) !important;
+    font-weight: 900;
 }
 
 /* ── Modals ── */
@@ -1116,6 +1206,45 @@ textarea.field-input { resize: vertical; min-height: 60px; }
 }
 .picker-item:hover { background: var(--yellow); transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--black); }
 .picker-item.selected { background: var(--pink) !important; color: var(--white); }
+
+/* ── Responsive Mobile Styles ── */
+@media (max-width: 768px) {
+    .grid-2, .grid { grid-template-columns: 1fr !important; }
+    .flex-wrap { flex-direction: column; }
+    .hero-main h1 { font-size: 2.8rem !important; }
+    
+    .dashboard-wrapper { flex-direction: column; }
+    .sidebar { width: 100%; height: auto; position: static; border-right: none; border-bottom: var(--border-thick); padding: 1.5rem; }
+    .main-content { padding: 1.5rem; }
+    
+    .nav-links {
+        display: none;
+        flex-direction: column;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: var(--black);
+        padding: 1.5rem;
+        z-index: 99;
+        border-bottom: 2px solid var(--yellow);
+        align-items: stretch;
+        text-align: center;
+    }
+    .nav-links.active { display: flex; }
+    .nav-hamburger { display: block !important; }
+}
+
+.nav-hamburger {
+    display: none;
+    background: transparent;
+    border: none;
+    color: var(--white);
+    font-size: 1.5rem;
+    cursor: pointer;
+    font-family: var(--font-heading);
+    padding: 0;
+}
 
 /* ── Comparison Sticky Nav ── */
 #comparison-sticky-nav div.active {

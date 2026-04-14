@@ -8,19 +8,21 @@
 </head>
 <body class="comic-dots">
 
-<nav class="nav">
+<header class="nav">
     <div class="container">
-        <a href="index.html" class="nav-logo">
-            <span>The Algorithm</span>
-            <span style="font-size:0.6rem;opacity:0.6;font-style:italic">decode your chats</span>
+        <a href="/" class="nav-logo">
+            <span style="font-size:1.3rem;line-height:1;letter-spacing:-0.03em">The Algorithm</span>
+            <span style="font-size:.55rem;font-family:var(--font-body);font-weight:500;color:var(--gray-400);font-style:italic;letter-spacing:0.02em;text-transform:none">decode your chats</span>
         </a>
-        <div class="nav-links">
-            <a href="index.html" class="nav-link">Home</a>
-            <a href="index.html#upload" class="nav-link">Analyse New</a>
-            <a href="history.html" class="nav-link active">History</a>
-        </div>
+        <button class="nav-hamburger" aria-label="Toggle Menu">☰</button>
+        <nav class="nav-links">
+            <a href="history.html" class="nav-link" style="padding:.25rem .7rem;border:1.5px solid var(--gray-600);border-radius:var(--r-pill);font-size:.62rem;background:var(--cream);color:var(--black);font-weight:900">Reports</a>
+            <a href="instructions.html" class="nav-link" style="padding:.25rem .7rem;border:1.5px solid var(--gray-600);border-radius:var(--r-pill);font-size:.62rem">How to Export</a>
+            <a href="privacy.html" class="nav-link" style="padding:.25rem .7rem;border:1.5px solid var(--gray-600);border-radius:var(--r-pill);font-size:.62rem">Privacy</a>
+            <a href="/#upload" class="btn btn--yellow" style="font-size:.62rem;padding:.28rem .85rem;box-shadow:2px 2px 0 0 rgba(255,255,255,0.15);border-color:var(--yellow)">Analyse Now</a>
+        </nav>
     </div>
-</nav>
+</header>
 
 <section class="section-py relative overflow-hidden" style="padding-bottom:2rem; padding-top:4rem">
     <div class="container">
@@ -81,7 +83,10 @@
                 <div id="history-list" class="flex flex-column gap-4">
                     <div id="history-empty-state" class="text-center py-12">
                         <div style="font-size:3rem; margin-bottom:1rem; opacity:0.3">📭</div>
-                        <p style="color:var(--gray-500); font-weight:500">No recent analyses found.</p>
+                        <h3 style="font-size:1.2rem; margin-bottom:0.5rem; color:var(--black)">You haven't analysed any chats yet</h3>
+                        <p style="color:var(--gray-500); font-weight:500; max-width:400px; margin:0 auto 1.5rem">Upload a chat export and get deep behavioural insights, emotional analytics, and AI coaching.</p>
+                        <a href="index.html#upload" class="btn btn--pink btn--lg">Analyse Your First Chat →</a>
+                        <p style="font-size:0.7rem; color:var(--gray-400); margin-top:1rem; font-weight:500">All reports are stored locally on this device only.</p>
                     </div>
                 </div>
             </div>
@@ -90,7 +95,7 @@
                 <h2>How To Export</h2>
                 <div class="grid gap-6 mt-6" style="grid-template-columns:1fr 1fr">
                     <div class="card p-6 bg-cream">
-                        <h4 class="mb-2">WhatsApp</h4>
+                        <h4 class="mb-2" style="color:var(--green)">WhatsApp</h4>
                         <ol class="text-sm pl-4">
                             <li>Open the chat</li>
                             <li>Tap menu > More</li>
@@ -98,13 +103,34 @@
                         </ol>
                     </div>
                     <div class="card p-6 bg-cream">
-                        <h4 class="mb-2">Telegram</h4>
+                        <h4 class="mb-2" style="color:var(--blue)">Telegram</h4>
                         <ol class="text-sm pl-4">
                             <li>Open on PC</li>
                             <li>Tap menu</li>
                             <li>Export chat history > HTML</li>
                         </ol>
                     </div>
+                    <div class="card p-6 bg-cream">
+                        <h4 class="mb-2" style="color:var(--pink)">Instagram</h4>
+                        <ol class="text-sm pl-4">
+                            <li>Go to Your Activity > Download Your Information</li>
+                            <li>Select "Messages" only</li>
+                            <li>Choose JSON format</li>
+                            <li>Extract <code>message_1.json</code></li>
+                        </ol>
+                    </div>
+                    <div class="card p-6 bg-cream">
+                        <h4 class="mb-2" style="color:var(--purple)">Discord</h4>
+                        <ol class="text-sm pl-4">
+                            <li>Use DiscordChatExporter</li>
+                            <li>Select the DM or channel</li>
+                            <li>Choose JSON format</li>
+                            <li>Save the <code>.json</code> file</li>
+                        </ol>
+                    </div>
+                </div>
+                <div class="text-center mt-6">
+                    <a href="instructions.html" class="btn btn--purple">Full Export Guide →</a>
                 </div>
             </div>
         </div>
@@ -117,6 +143,7 @@
         <button id="closeCompare" class="modal-close">&times;</button>
         <div class="mb-6">
             <h2 style="font-size:1.8rem; margin-bottom:0.5rem">Compare Setup</h2>
+            <p style="color:var(--gray-500); font-size:0.9rem">Choose 2 analysed chats available on this device.</p>
         </div>
         <div class="compare-stepper mb-8">
             <div class="step-item active" id="step-1"><span class="step-num">1</span> CHAT A</div>
@@ -127,7 +154,7 @@
         </div>
         <div class="compare-slots mb-8">
             <div id="slot-a" class="pick-slot active">
-                <div class="pick-slot__label">Chat A</div>
+                <div class="pick-slot__label">Chat A — Picking ↓</div>
                 <div id="slot-a-name" class="pick-slot__name">Click to pick</div>
             </div>
             <div id="slot-b" class="pick-slot">
@@ -136,9 +163,14 @@
             </div>
         </div>
         <div class="picker-container">
+            <div class="flex justify-between items-center mb-3">
+                <div style="font-weight:900; font-size:0.7rem; text-transform:uppercase" id="picker-status">Picking for Chat A</div>
+                <div style="font-size:0.7rem; color:var(--gray-500)" id="picker-count">0 available</div>
+            </div>
             <div id="compare-history-picker" class="history-picker"></div>
         </div>
         <div class="flex justify-end gap-4 mt-8">
+            <button id="cancelCompareBtn" class="btn btn--white">Cancel</button>
             <button id="executeCompareBtn" class="btn btn--pink" disabled>Compare Now</button>
         </div>
     </div>
@@ -147,5 +179,14 @@
 <script src="static/js/parser.js"></script>
 <script src="static/js/analytics_engine.js"></script>
 <script src="static/js/app.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const hamburger = document.querySelector('.nav-hamburger');
+        const navLinks = document.querySelector('.nav-links');
+        if (hamburger && navLinks) {
+            hamburger.addEventListener('click', () => navLinks.classList.toggle('active'));
+        }
+    });
+</script>
 </body>
 </html>

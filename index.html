@@ -18,6 +18,7 @@
             <span style="font-size:1.3rem;line-height:1;letter-spacing:-0.03em">The Algorithm</span>
             <span style="font-size:.55rem;font-family:var(--font-body);font-weight:500;color:var(--gray-400);font-style:italic;letter-spacing:0.02em;text-transform:none">decode your chats</span>
         </a>
+        <button class="nav-hamburger" aria-label="Toggle Menu">☰</button>
         <nav class="nav-links">
             <a href="history.html" class="nav-link" style="padding:.25rem .7rem;border:1.5px solid var(--gray-600);border-radius:var(--r-pill);font-size:.62rem;background:var(--cream);color:var(--black);font-weight:900">Reports</a>
             <a href="instructions.html" class="nav-link" style="padding:.25rem .7rem;border:1.5px solid var(--gray-600);border-radius:var(--r-pill);font-size:.62rem">How to Export</a>
@@ -111,13 +112,11 @@
         <span class="marquee-item">Telegram</span><span class="marquee-dot">✦</span>
         <span class="marquee-item">Instagram</span><span class="marquee-dot">✦</span>
         <span class="marquee-item">Discord</span><span class="marquee-dot">✦</span>
-        <span class="marquee-item">iMessage (Soon)</span><span class="marquee-dot">✦</span>
         <!-- Duplicate for seamless loop -->
         <span class="marquee-item">WhatsApp</span><span class="marquee-dot">✦</span>
         <span class="marquee-item">Telegram</span><span class="marquee-dot">✦</span>
         <span class="marquee-item">Instagram</span><span class="marquee-dot">✦</span>
         <span class="marquee-item">Discord</span><span class="marquee-dot">✦</span>
-        <span class="marquee-item">iMessage (Soon)</span><span class="marquee-dot">✦</span>
     </div>
 </div>
 
@@ -150,7 +149,8 @@
                         <div>
                             <label for="connectionType" style="display:block;font-weight:700;font-size:.7rem;text-transform:uppercase;margin-bottom:.25rem">Connection Type</label>
                             <select id="connectionType" class="sr-only" aria-hidden="true">
-                                <option value="romantic" selected>Romantic Partner</option>
+                                <option value="" disabled selected>Select relationship type…</option>
+                                <option value="romantic">Romantic Partner</option>
                                 <option value="friendship">Close Friend</option>
                                 <option value="professional">Professional / Work</option>
                                 <option value="family">Family Member</option>
@@ -158,11 +158,11 @@
                             </select>
                             <div class="custom-select" data-target="connectionType">
                                 <button type="button" class="custom-select-trigger" aria-haspopup="listbox" aria-expanded="false">
-                                    <span class="custom-select-label">Romantic Partner</span>
+                                    <span class="custom-select-label" style="color:var(--gray-400)">Select relationship type…</span>
                                     <svg class="custom-select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
                                 </button>
                                 <div class="custom-select-options" role="listbox">
-                                    <div class="custom-select-option selected" data-value="romantic" role="option">Romantic Partner</div>
+                                    <div class="custom-select-option" data-value="romantic" role="option">Romantic Partner</div>
                                     <div class="custom-select-option" data-value="friendship" role="option">Close Friend</div>
                                     <div class="custom-select-option" data-value="professional" role="option">Professional / Work</div>
                                     <div class="custom-select-option" data-value="family" role="option">Family Member</div>
@@ -201,9 +201,9 @@
                     <div style="padding:.75rem;border:var(--border);border-radius:var(--r-sm);background:var(--orange)">
                         <p style="font-family:var(--font-heading);font-weight:900;color:var(--white);margin-bottom:.4rem;font-size:.75rem">Analysis Tone</p>
                         <div id="toneSelector" style="display:flex;gap:0;border:2px solid var(--black);border-radius:var(--r-pill);overflow:hidden;background:var(--white)">
-                            <button type="button" data-tone="playful" class="tone-btn" style="flex:1;padding:.4rem .5rem;font-size:.7rem;font-weight:700;border:none;cursor:pointer;background:transparent;color:var(--black);font-family:var(--font-body);transition:all .15s">Playful</button>
-                            <button type="button" data-tone="balanced" class="tone-btn active" style="flex:1;padding:.4rem .5rem;font-size:.7rem;font-weight:700;border:none;cursor:pointer;background:var(--black);color:var(--white);font-family:var(--font-body);transition:all .15s">Balanced</button>
-                            <button type="button" data-tone="direct" class="tone-btn" style="flex:1;padding:.4rem .5rem;font-size:.7rem;font-weight:700;border:none;cursor:pointer;background:transparent;color:var(--black);font-family:var(--font-body);transition:all .15s">Direct</button>
+                            <button type="button" data-tone="playful" class="tone-btn" style="flex:1;padding:.4rem .5rem;font-size:.7rem;font-weight:700;border:none;cursor:pointer;font-family:var(--font-body);transition:all .15s">Playful</button>
+                            <button type="button" data-tone="balanced" class="tone-btn active" style="flex:1;padding:.4rem .5rem;font-size:.7rem;font-weight:700;border:none;cursor:pointer;font-family:var(--font-body);transition:all .15s">Balanced</button>
+                            <button type="button" data-tone="direct" class="tone-btn" style="flex:1;padding:.4rem .5rem;font-size:.7rem;font-weight:700;border:none;cursor:pointer;font-family:var(--font-body);transition:all .15s">Direct</button>
                         </div>
                         <input type="hidden" id="analysisTone" name="analysis_tone" value="balanced">
                         <p style="font-size:.65rem;font-weight:500;color:rgba(255,255,255,0.8);margin-top:.4rem" id="toneDesc">Clear, helpful insights with context.</p>
@@ -304,7 +304,7 @@
             </div>
             <div class="faq-item">
                 <button class="faq-question" type="button">Which LLM gives the best results? <span class="faq-icon">+</span></button>
-                <div class="faq-answer">All supported models (GPT-4o, Claude 3.5, Gemini Pro) produce excellent results. GPT-4o tends to give the most detailed coaching recommendations, while Claude excels at nuanced emotional analysis.</div>
+                <div class="faq-answer">All supported models (OpenAI GPT-4o, Anthropic Claude 3.5, Google Gemini 2.5 Flash, xAI Grok-2) produce excellent results. GPT-4o tends to give the most detailed coaching recommendations, while Claude excels at nuanced emotional analysis. Cloudflare AI is free with a 2 reports/hr limit.</div>
             </div>
             <div class="faq-item">
                 <button class="faq-question" type="button">How long does analysis take? <span class="faq-icon">+</span></button>
@@ -351,7 +351,7 @@
 
         <!-- Nav links as pills -->
         <div style="display:flex;justify-content:center;flex-wrap:wrap;gap:.5rem;margin-bottom:2rem">
-            <a href="#upload" style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--black);background:var(--yellow);padding:.35rem .9rem;border-radius:var(--r-pill);border:2px solid var(--black);box-shadow:2px 2px 0 0 rgba(255,255,255,0.1);text-decoration:none;transition:all .15s">Analyze</a>
+            <a href="#upload" style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--black);background:var(--yellow);padding:.35rem .9rem;border-radius:var(--r-pill);border:2px solid var(--black);box-shadow:2px 2px 0 0 rgba(255,255,255,0.1);text-decoration:none;transition:all .15s">Analyse</a>
             <a href="instructions.html" style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--white);background:transparent;padding:.35rem .9rem;border-radius:var(--r-pill);border:1.5px solid var(--gray-600);text-decoration:none;transition:all .15s">How to Export</a>
             <a href="privacy.html" style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--white);background:transparent;padding:.35rem .9rem;border-radius:var(--r-pill);border:1.5px solid var(--gray-600);text-decoration:none;transition:all .15s">Privacy</a>
         </div>
@@ -369,6 +369,7 @@
 
 <!-- Loading Overlay -->
 <div id="loading-overlay" class="loading-overlay hidden">
+    <button id="loading-overlay-close" style="position:absolute;top:1.5rem;right:1.5rem;width:44px;height:44px;border-radius:50%;border:2px solid var(--white);background:rgba(255,255,255,0.15);color:var(--white);font-size:1.5rem;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;z-index:10" aria-label="Cancel analysis">&times;</button>
     <div style="font-family:var(--font-heading);font-weight:900;font-size:3rem;margin-bottom:1rem;color:var(--yellow);text-shadow:3px 3px 0 var(--black)">...</div>
     <h2>Decoding<br>Relationship…</h2>
     <p>Running local ML + LLM extraction. Hold tight, this takes 10–20 seconds.</p>
@@ -516,5 +517,14 @@
 <script src="static/js/parser.js?v=1.0"></script>
 <script src="static/js/analytics_engine.js?v=1.0"></script>
 <script src="static/js/app.js?v=5.1"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const hamburger = document.querySelector('.nav-hamburger');
+        const navLinks = document.querySelector('.nav-links');
+        if (hamburger && navLinks) {
+            hamburger.addEventListener('click', () => navLinks.classList.toggle('active'));
+        }
+    });
+</script>
 </body>
 </html>

@@ -13,6 +13,7 @@ test_chat.txt
 .wrangler/
 node_modules/
 .aider*
+doc/
 
 # Python
 __pycache__/

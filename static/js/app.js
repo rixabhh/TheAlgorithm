@@ -79,6 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const analyzeBtn = document.getElementById('analyzeBtn');
+    let activeAbortController = null; // C-05: Track in-flight requests
 
     const updateSubmitState = () => {
         if (!analyzeBtn) return;
@@ -121,6 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateSubmitState();
     };
     updateApiKeyUI();
+    updateSubmitState(); // C-02: Disable button on page load if no file
 
     // --- Modal Helpers ---
     const showModal = (modal) => {
@@ -149,30 +151,38 @@ document.addEventListener('DOMContentLoaded', () => {
         if (modal) modal.addEventListener('click', (e) => { if (e.target === modal) hideModal(modal); });
     });
 
+    // C-06: Register trust center handlers independently to avoid one null element blocking others
     if (trustCenterBtn && trustCenterModal) {
         trustCenterBtn.addEventListener('click', () => showModal(trustCenterModal));
-        closeTrustCenter?.addEventListener('click', () => hideModal(trustCenterModal));
-        understoodBtn?.addEventListener('click', () => hideModal(trustCenterModal));
+    }
+    if (closeTrustCenter && trustCenterModal) {
+        closeTrustCenter.addEventListener('click', () => hideModal(trustCenterModal));
+    }
+    if (understoodBtn && trustCenterModal) {
+        understoodBtn.addEventListener('click', () => hideModal(trustCenterModal));
     }
 
     if (settingsBtn && settingsModal) {
-        settingsBtn.addEventListener('click', () => {
-            showModal(settingsModal);
-            document.getElementById('llmProvider')?.focus();
-        });
-        closeSettings?.addEventListener('click', () => hideModal(settingsModal));
-
         const apiKeyEl = document.getElementById('apiKey');
         const hfUrlEl = document.getElementById('hfUrl');
         const llmProviderEl = document.getElementById('llmProvider');
 
-        if (apiKeyEl) apiKeyEl.value = sessionStorage.getItem('_llm_token') ? atob(sessionStorage.getItem('_llm_token')) : '';
-        if (hfUrlEl) hfUrlEl.value = localStorage.getItem('hf_url') || '';
-        const savedProvider = localStorage.getItem('llm_provider') || 'cloudflare';
-        if (llmProviderEl) {
-            llmProviderEl.value = savedProvider;
+        // C-01: Populate modal from storage on open, not just once on load
+        settingsBtn.addEventListener('click', () => {
+            // Re-read stored values every time modal opens
+            const savedProvider = localStorage.getItem('llm_provider') || 'cloudflare';
+            if (llmProviderEl) llmProviderEl.value = savedProvider;
+            if (apiKeyEl) {
+                const storedToken = sessionStorage.getItem('_llm_token');
+                apiKeyEl.value = (storedToken && storedToken !== btoa('')) ? atob(storedToken) : '';
+            }
+            if (hfUrlEl) hfUrlEl.value = localStorage.getItem('hf_url') || '';
             updateProviderHint(savedProvider);
-        }
+            showModal(settingsModal);
+            if (llmProviderEl) llmProviderEl.focus();
+        });
+        closeSettings?.addEventListener('click', () => hideModal(settingsModal));
+
         llmProviderEl?.addEventListener('change', (e) => updateProviderHint(e.target.value));
 
         saveSettingsBtn?.addEventListener('click', () => {
@@ -193,18 +203,29 @@ document.addEventListener('DOMContentLoaded', () => {
         apiKeyInput.type = isPassword ? 'text' : 'password';
     });
 
+    // H-01: Add drag/drop visual feedback
     if (dropZone) {
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(evt => dropZone.addEventListener(evt, (e) => { e.preventDefault(); e.stopPropagation(); }));
-        dropZone.addEventListener('drop', (e) => { fileInput.files = e.dataTransfer.files; updateFileList(); });
+        dropZone.addEventListener('dragenter', () => { dropZone.classList.add('drag-over'); });
+        dropZone.addEventListener('dragover', () => { dropZone.classList.add('drag-over'); });
+        dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('drag-over'); });
+        dropZone.addEventListener('drop', (e) => {
+            dropZone.classList.remove('drag-over');
+            fileInput.files = e.dataTransfer.files;
+            updateFileList();
+        });
     }
     fileInput?.addEventListener('change', updateFileList);
 
     function updateFileList() {
         if (fileList && fileInput.files.length > 0) {
-            const fileName = fileInput.files[0].name;
+            const file = fileInput.files[0];
+            const fileName = file.name;
+            const fileSize = (file.size / 1024).toFixed(1);
             fileList.classList.remove('hidden');
-            fileList.textContent = `✅ Selected: ${fileName}`;
+            fileList.textContent = `✅ ${fileName} (${fileSize} KB)`;
             
+            // C-03: Show/hide JSON platform selector based on file type
             const jsonSelector = document.getElementById('jsonPlatformSelector');
             if (jsonSelector) {
                 if (fileName.toLowerCase().endsWith('.json')) {
@@ -347,21 +368,35 @@ document.addEventListener('DOMContentLoaded', () => {
     const compareTriggers = document.querySelectorAll('.compare-trigger'); 
     let compareSelection = { a: null, b: null, activeSlot: 'a' };
 
+    // C-04: Fix compare UI to populate picker from localStorage
     const updateCompareUI = () => {
         const history = historyManager.getAll();
         const picker = document.getElementById('compare-history-picker');
         if (!picker) return;
-        document.getElementById('picker-status').textContent = `Picking for Chat ${compareSelection.activeSlot.toUpperCase()}`;
-        document.getElementById('slot-a').classList.toggle('active', compareSelection.activeSlot === 'a');
-        document.getElementById('slot-b').classList.toggle('active', compareSelection.activeSlot === 'b');
-        document.getElementById('slot-a-name').textContent = compareSelection.a ? `${compareSelection.a.my_name} & ${compareSelection.a.partner_name}` : 'Click to pick';
-        document.getElementById('slot-b-name').textContent = compareSelection.b ? `${compareSelection.b.my_name} & ${compareSelection.b.partner_name}` : 'Click to pick';
+        
+        const pickerStatus = document.getElementById('picker-status');
+        const pickerCount = document.getElementById('picker-count');
+        if (pickerStatus) pickerStatus.textContent = `Picking for Chat ${compareSelection.activeSlot.toUpperCase()}`;
+        if (pickerCount) pickerCount.textContent = `${history.length} available`;
+        
+        const slotA = document.getElementById('slot-a');
+        const slotB = document.getElementById('slot-b');
+        const slotAName = document.getElementById('slot-a-name');
+        const slotBName = document.getElementById('slot-b-name');
+        
+        if (slotA) slotA.classList.toggle('active', compareSelection.activeSlot === 'a');
+        if (slotB) slotB.classList.toggle('active', compareSelection.activeSlot === 'b');
+        if (slotAName) slotAName.textContent = compareSelection.a ? `${compareSelection.a.my_name} & ${compareSelection.a.partner_name}` : 'Click to pick';
+        if (slotBName) slotBName.textContent = compareSelection.b ? `${compareSelection.b.my_name} & ${compareSelection.b.partner_name}` : 'Click to pick';
         
         picker.innerHTML = '';
+        if (history.length === 0) {
+            picker.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--gray-500);font-weight:500">No analyses found. Analyse a chat first.</div>';
+        }
         history.forEach(item => {
             const el = document.createElement('div');
             el.className = `picker-item ${ (compareSelection.a?.id === item.id || compareSelection.b?.id === item.id) ? 'selected' : '' }`;
-            el.innerHTML = `<div style="font-weight:900">${item.my_name} & ${item.partner_name}</div><div style="font-size:0.65rem">${item.date}</div>`;
+            el.innerHTML = `<div style="font-weight:900">${item.my_name} & ${item.partner_name}</div><div style="font-size:0.65rem">${item.date} • ${item.platform || 'Unknown'}</div>`;
             el.addEventListener('click', () => {
                 if (compareSelection.activeSlot === 'a') { compareSelection.a = item; compareSelection.activeSlot = 'b'; }
                 else compareSelection.b = item;
@@ -369,7 +404,8 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             picker.appendChild(el);
         });
-        document.getElementById('executeCompareBtn').disabled = !(compareSelection.a && compareSelection.b);
+        const execBtn = document.getElementById('executeCompareBtn');
+        if (execBtn) execBtn.disabled = !(compareSelection.a && compareSelection.b);
     };
 
     compareTriggers.forEach(btn => btn.addEventListener('click', () => { showModal(compareModal); compareSelection = { a: null, b: null, activeSlot: 'a' }; updateCompareUI(); }));
@@ -381,40 +417,91 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = '/dashboard.html?mode=compare';
     });
 
+    // C-05: Reset form state helper
+    const resetFormState = () => {
+        if (activeAbortController) {
+            activeAbortController.abort();
+            activeAbortController = null;
+        }
+        const loadingOverlay = document.getElementById('loading-overlay');
+        if (loadingOverlay) loadingOverlay.classList.add('hidden');
+        if (analyzeBtn) {
+            analyzeBtn.disabled = false;
+            analyzeBtn.textContent = 'Decode My Chat →';
+            analyzeBtn.style.opacity = '1';
+        }
+        updateSubmitState();
+    };
+
+    // C-05: Wire loading overlay dismiss button
+    const loadingOverlayDismiss = document.getElementById('loading-overlay-close');
+    if (loadingOverlayDismiss) {
+        loadingOverlayDismiss.addEventListener('click', () => {
+            resetFormState();
+        });
+    }
+
+    // M-02: Context textarea character counter
+    const userContextEl = document.getElementById('userContext');
+    const userContextCount = document.getElementById('userContextCharCount');
+    if (userContextEl && userContextCount) {
+        userContextEl.addEventListener('input', () => {
+            userContextCount.textContent = `${userContextEl.value.length} / 2000`;
+        });
+    }
+
     // --- Form Submission ---
     if (uploadForm) {
         uploadForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-                hideError();
-                
-                const provider = localStorage.getItem('llm_provider') || 'cloudflare';
-                const apiKeyB64 = sessionStorage.getItem('_llm_token');
-                if (provider !== 'cloudflare' && (!apiKeyB64 || apiKeyB64.trim() === '' || apiKeyB64 === btoa(''))) {
-                    showError(`An API Key is required for ${document.querySelector('#llmProvider option:checked')?.text || provider}. Configure it first.`);
-                    if (analyzeBtn) {
-                        analyzeBtn.disabled = false;
-                        analyzeBtn.textContent = 'Configure API Key First →';
-                    }
-                    return;
-                }
-                
-                if (!fileInput.files.length) { showError('Select a file.'); return; }
-                
-                const loadingOverlay = document.getElementById('loading-overlay');
-                if (loadingOverlay) loadingOverlay.classList.remove('hidden');
-
-                const parser = new ChatParser();
-                const analytics = new AnalyticsEngine();
-
+            hideError();
+            
+            // C-02: Validate file BEFORE showing loading overlay
+            if (!fileInput || !fileInput.files.length) {
+                showError('Please upload a chat export first.');
+                return;
+            }
+            
+            // M-05: Validate connection type is selected
+            const connectionTypeVal = document.getElementById('connectionType')?.value;
+            if (!connectionTypeVal) {
+                showError('Please select a relationship type before analysing.');
+                return;
+            }
+            
+            const provider = localStorage.getItem('llm_provider') || 'cloudflare';
+            const apiKeyB64 = sessionStorage.getItem('_llm_token');
+            if (provider !== 'cloudflare' && (!apiKeyB64 || apiKeyB64.trim() === '' || apiKeyB64 === btoa(''))) {
+                showError(`An API Key is required for ${document.querySelector('#llmProvider option:checked')?.text || provider}. Configure it first.`);
                 if (analyzeBtn) {
-                    analyzeBtn.disabled = true;
-                    analyzeBtn.textContent = 'Processing...';
+                    analyzeBtn.disabled = false;
+                    analyzeBtn.textContent = 'Configure API Key First →';
                 }
+                return;
+            }
+            
+            // C-05: Create abort controller for this request
+            activeAbortController = new AbortController();
+            
+            const loadingOverlay = document.getElementById('loading-overlay');
+            if (loadingOverlay) loadingOverlay.classList.remove('hidden');
+
+            const parser = new ChatParser();
+            const analytics = new AnalyticsEngine();
+
+            if (analyzeBtn) {
+                analyzeBtn.disabled = true;
+                analyzeBtn.textContent = 'Processing...';
+            }
 
             try {
+                // Check if aborted
+                if (activeAbortController?.signal.aborted) throw new Error('Analysis cancelled.');
+                
                 const file = fileInput.files[0];
                 const content = await file.text();
                 
+                // C-03: Read platform from the hidden select (synced by custom dropdown)
                 let jsonPlat = document.getElementById('jsonPlatform') ? document.getElementById('jsonPlatform').value : 'Instagram';
                 let rawMessages;
                 if (file.name.toLowerCase().endsWith('.html')) {
@@ -426,6 +513,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 
                 if (!rawMessages || !rawMessages.length) throw new Error("No readable messages found in the file.");
+                if (activeAbortController?.signal.aborted) throw new Error('Analysis cancelled.');
 
                 const myName = document.getElementById('myName').value;
                 const partnerName = document.getElementById('partnerName').value;
@@ -438,6 +526,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const analysisTone = document.getElementById('analysisTone') ? document.getElementById('analysisTone').value : 'balanced';
 
                 const analyticsResult = analytics.runPipeline(filteredMessages, connectionType);
+                if (activeAbortController?.signal.aborted) throw new Error('Analysis cancelled.');
 
                 const dashboardData = {
                     stats: analyticsResult,
@@ -454,11 +543,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 historyManager.save(dashboardData);
                 sessionStorage.setItem('dashboard_data', JSON.stringify(dashboardData));
-                window.location.href = '/dashboard.html';
+                
+                // M-01: Success toast/feedback before redirect
+                const loadingOverlay = document.getElementById('loading-overlay');
+                if (loadingOverlay) {
+                    loadingOverlay.innerHTML = `<div style="font-size:4rem;margin-bottom:1rem;animation:pulse 1.5s infinite">✅</div><h2 style="color:var(--green);text-shadow:2px 2px 0 var(--black)">Analysis Complete!</h2><p style="font-weight:700">Opening your personalized report...</p>`;
+                }
+                
+                setTimeout(() => {
+                    window.location.href = '/dashboard.html';
+                }, 1200);
 
             } catch (err) {
                 showError(err.message);
-                if (loadingOverlay) loadingOverlay.classList.add('hidden');
+                resetFormState();
             }
         });
     }
