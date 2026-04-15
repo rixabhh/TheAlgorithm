@@ -1,35 +1,37 @@
+from typing import Tuple, Dict
 from flask import Flask, send_from_directory
+from werkzeug.wrappers.response import Response
 
 app = Flask(__name__, static_folder="static")
 
 
 @app.route("/")
-def index():
+def index() -> Response:
     return send_from_directory(".", "index.html")
 
 
 @app.route("/dashboard.html")
-def dashboard():
+def dashboard() -> Response:
     return send_from_directory(".", "dashboard.html")
 
 
 @app.route("/history.html")
-def history():
+def history() -> Response:
     return send_from_directory(".", "history.html")
 
 
 @app.route("/instructions.html")
-def instructions():
+def instructions() -> Response:
     return send_from_directory(".", "instructions.html")
 
 
 @app.route("/privacy.html")
-def privacy():
+def privacy() -> Response:
     return send_from_directory(".", "privacy.html")
 
 
 @app.route("/health")
-def health():
+def health() -> Tuple[Dict[str, str], int]:
     return {"status": "ok"}, 200
 
 

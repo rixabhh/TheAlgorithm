@@ -1,19 +1,31 @@
-# PR Labeler configuration
-
 frontend:
-  - 'static/**/*'
-  - '*.html'
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'static/css/**/*'
+      - 'static/js/**/*'
+      - '*.html'
 
 backend:
-  - 'functions/**/*'
-  - 'app.py'
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'app.py'
+      - 'functions/**/*'
+      - 'tests/**/*'
 
-infra:
-  - 'Dockerfile'
-  - '.github/**/*'
-  - 'requirements.txt'
-  - 'pyproject.toml'
-  - 'Makefile'
+infrastructure:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'Dockerfile'
+      - 'Makefile'
+      - 'requirements.txt'
+      - 'pyproject.toml'
+      - '.github/**/*'
+      - '.pre-commit-config.yaml'
 
-docs:
-  - '*.md'
+documentation:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'README.md'
+      - 'CONTRIBUTING.md'
+      - 'issue-*.md'
+      - '.jules/**/*'
