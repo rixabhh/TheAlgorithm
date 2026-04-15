@@ -1,31 +1,31 @@
 frontend:
-- any:
-  - changed-files:
-    - any-glob-to-any-file: 'static/css/**/*'
-    - any-glob-to-any-file: 'static/js/**/*'
-    - any-glob-to-any-file: '*.html'
+- changed-files:
+  - any-glob-to-any-file:
+    - 'static/css/**/*'
+    - 'static/js/**/*'
+    - '*.html'
 
 backend:
-- any:
-  - changed-files:
-    - any-glob-to-any-file: 'app.py'
-    - any-glob-to-any-file: 'functions/**/*'
-    - any-glob-to-any-file: 'tests/**/*'
+- changed-files:
+  - any-glob-to-any-file:
+    - 'app.py'
+    - 'functions/**/*'
+    - 'tests/**/*'
 
 infrastructure:
-- any:
-  - changed-files:
-    - any-glob-to-any-file: 'Dockerfile'
-    - any-glob-to-any-file: 'Makefile'
-    - any-glob-to-any-file: 'requirements.txt'
-    - any-glob-to-any-file: 'pyproject.toml'
-    - any-glob-to-any-file: '.github/**/*'
-    - any-glob-to-any-file: '.pre-commit-config.yaml'
+- changed-files:
+  - any-glob-to-any-file:
+    - 'Dockerfile'
+    - 'Makefile'
+    - 'requirements.txt'
+    - 'pyproject.toml'
+    - '.github/**/*'
+    - '.pre-commit-config.yaml'
 
 documentation:
-- any:
-  - changed-files:
-    - any-glob-to-any-file: 'README.md'
-    - any-glob-to-any-file: 'CONTRIBUTING.md'
-    - any-glob-to-any-file: 'issue-*.md'
-    - any-glob-to-any-file: '.jules/**/*'
+- changed-files:
+  - any-glob-to-any-file:
+    - 'README.md'
+    - 'CONTRIBUTING.md'
+    - 'issue-*.md'
+    - '.jules/**/*'
