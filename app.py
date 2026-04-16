@@ -1,4 +1,4 @@
-from flask import Flask, send_from_directory, jsonify
+from flask import Flask, send_from_directory, jsonify, request
 from collections import defaultdict
 import time
 import os
@@ -31,8 +31,6 @@ def validate_upload(file) -> tuple[bool, str]:
 
     return True, ""
 
-
-from flask import request
 
 @app.before_request
 def enforce_security():

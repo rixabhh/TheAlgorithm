@@ -27,4 +27,4 @@ jobs:
         run: ruff check .
 
       - name: Test with pytest
-        run: pytest tests/ --cov=. --cov-report=xml
+        run: python -m pytest tests/ --cov=. --cov-report=xml
