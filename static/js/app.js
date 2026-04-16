@@ -494,6 +494,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 analyzeBtn.textContent = 'Processing...';
             }
 
+            let rawMessages = null;
+            let filteredMessages = null;
             try {
                 // Check if aborted
                 if (activeAbortController?.signal.aborted) throw new Error('Analysis cancelled.');
@@ -503,7 +505,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 // C-03: Read platform from the hidden select (synced by custom dropdown)
                 let jsonPlat = document.getElementById('jsonPlatform') ? document.getElementById('jsonPlatform').value : 'Instagram';
-                let rawMessages;
+
                 if (file.name.toLowerCase().endsWith('.html')) {
                     rawMessages = parser.parseTelegram(content);
                 } else if (file.name.toLowerCase().endsWith('.json')) {
@@ -517,7 +519,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const myName = document.getElementById('myName').value;
                 const partnerName = document.getElementById('partnerName').value;
-                const filteredMessages = parser.standardizeEntities(rawMessages, myName, partnerName);
+                filteredMessages = parser.standardizeEntities(rawMessages, myName, partnerName);
                 if (!filteredMessages.length) throw new Error("Sender names not mapped correctly.");
 
                 const connectionType = document.getElementById('connectionType').value;
@@ -557,6 +559,10 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (err) {
                 showError(err.message);
                 resetFormState();
+            } finally {
+                // Ensure memory is freed explicitly
+                if (rawMessages) { rawMessages.length = 0; rawMessages = null; }
+                if (filteredMessages) { filteredMessages.length = 0; filteredMessages = null; }
             }
         });
     }

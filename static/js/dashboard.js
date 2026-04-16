@@ -250,7 +250,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const provider = localStorage.getItem('llm_provider') || 'cloudflare';
         const hasKey = sessionStorage.getItem('_llm_token');
         if (provider === 'cloudflare' || hasKey) {
-            console.log("Auto-triggering AI insights...");
             setTimeout(() => {
                 document.getElementById('generateAiBtn')?.click();
             }, 1000);
@@ -484,7 +483,6 @@ async function downloadWrappedCard() {
         link.href = canvas.toDataURL('image/png');
         link.click();
     } catch (err) {
-        console.error("Download failed:", err);
         alert('Download failed.');
     } finally {
         btn.disabled = false;

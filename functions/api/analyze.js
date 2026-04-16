@@ -49,13 +49,21 @@ CRITICAL RULES:
             else if (provider === 'groq') { url = 'https://api.groq.com/openai/v1/chat/completions'; model = 'llama-3.1-70b-versatile'; }
             else if (provider === 'grok') { url = 'https://api.x.ai/v1/chat/completions'; model = 'grok-2-latest'; }
             
-            const resp = await fetch(url, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${api_key}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ model, messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }], response_format: { type: "json_object" } })
-            });
-            const resData = await resp.json();
-            if (resData.choices) report = JSON.parse(resData.choices[0].message.content);
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+            try {
+                const resp = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${api_key}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ model, messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }], response_format: { type: "json_object" } }),
+                    signal: controller.signal
+                });
+                const resData = await resp.json();
+                if (resData.choices) report = JSON.parse(resData.choices[0].message.content);
+            } finally {
+                clearTimeout(timeoutId);
+            }
         }
 
         // 3. FALLBACK
@@ -105,7 +113,8 @@ CRITICAL RULES:
         return new Response(JSON.stringify({ report }), { headers: { 'Content-Type': 'application/json' } });
 
     } catch (e) {
-        return new Response(JSON.stringify({ error: e.message }), { status: 500 });
+        const safeErrorMsg = (e.message || "Unknown error").replace(/sk-[a-zA-Z0-9_-]+/g, 'sk-...MASKED...');
+        return new Response(JSON.stringify({ error: safeErrorMsg }), { status: 500 });
     }
 }
 
