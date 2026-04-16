@@ -1,17 +1,31 @@
 # PR Labeler configuration
 
 frontend:
-  - changed-files:
-      - any-glob-to-any-file: ['static/**/*', '*.html']
+  - any:
+    - changed-files:
+      - any-glob-to-any-file:
+        - 'static/**/*'
+        - '*.html'
 
 backend:
-  - changed-files:
-      - any-glob-to-any-file: ['functions/**/*', 'app.py']
+  - any:
+    - changed-files:
+      - any-glob-to-any-file:
+        - 'functions/**/*'
+        - 'app.py'
 
 infra:
-  - changed-files:
-      - any-glob-to-any-file: ['Dockerfile', '.github/**/*', 'requirements.txt', 'pyproject.toml', 'Makefile']
+  - any:
+    - changed-files:
+      - any-glob-to-any-file:
+        - 'Dockerfile'
+        - '.github/**/*'
+        - 'requirements.txt'
+        - 'pyproject.toml'
+        - 'Makefile'
 
 docs:
-  - changed-files:
-      - any-glob-to-any-file: ['*.md']
+  - any:
+    - changed-files:
+      - any-glob-to-any-file:
+        - '*.md'
