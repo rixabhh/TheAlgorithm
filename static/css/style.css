@@ -1208,10 +1208,6 @@ textarea.field-input { resize: vertical; min-height: 60px; }
 .picker-item.selected { background: var(--pink) !important; color: var(--white); }
 
 /* ── Responsive Mobile Styles ── */
-@media (max-width: 639px) {
-    .compare-slots { grid-template-columns: 1fr; }
-}
-
 @media (max-width: 768px) {
     .grid-2, .grid { grid-template-columns: 1fr !important; }
     .flex-wrap { flex-direction: column; }

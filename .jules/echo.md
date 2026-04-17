@@ -1,5 +1,0 @@
-## 2024-04-17 — UX Polish & Accessibility
-**UX Issue:** The upload and onboarding flow had significant friction: users didn't know what file type was detected or how many messages it contained prior to uploading. The API key input lacked reassurance. Accessibility was poor (missing ARIA labels), and mobile layout for the comparison section was broken.
-**Root Cause:** Initial MVP implementation focused on function over user trust, feedback, and mobile responsiveness.
-**Solution:** Implemented instant file parsing (first ~1MB) via vanilla JS to preview detected platform and message count. Added dynamic progress indicators ("Parsing messages...") during analysis. Enhanced API key input with visual security hints. Added ARIA labels to buttons, `aria-busy` to the submit button, and a media query for mobile comparison stacking.
-**Pattern:** For file uploads handling sensitive data, *always* provide a preview of what was successfully detected on the client-side *before* any backend action occurs, building trust. Use `aria-busy` to visually and semantically indicate loading states.
