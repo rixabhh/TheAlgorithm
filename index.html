@@ -220,6 +220,7 @@
                         <label for="chatFile" class="btn btn--purple" style="font-size:.65rem;padding:.3rem .85rem;cursor:pointer;margin:0">Browse Files</label>
                         <input type="file" id="chatFile" class="sr-only" accept=".txt,.html,.json" multiple required>
                     </div>
+                    <div id="file-detection-preview" class="hidden"></div>
                     <div id="fileList" class="hidden" style="font-size:.85rem;font-weight:700;padding:.75rem 1rem;background:var(--green);color:var(--white);border:var(--border);border-radius:var(--r-sm);box-shadow:2px 2px 0 0 var(--black)"></div>
                     <div id="filename-display" class="hidden"></div>
                     
@@ -404,11 +405,12 @@
                     <a href="instructions.html#api-keys" style="font-size:.7rem;font-weight:600;color:var(--pink);text-decoration:none">Where to get this?</a>
                 </div>
                 <div style="position:relative">
-                    <input type="password" id="apiKey" placeholder="sk-..." class="field-input" maxlength="512" style="padding-right:3rem">
+                    <input type="password" id="apiKey" placeholder="sk-..." class="field-input" maxlength="512" aria-describedby="api-key-hint" style="padding-right:3rem">
                     <button type="button" id="toggleApiKey" aria-label="Show API Key" style="position:absolute;right:.75rem;top:50%;transform:translateY(-50%);background:var(--white);border:var(--border-thin);border-radius:4px;padding:3px 5px;cursor:pointer;display:flex">
                         <svg id="eyeIcon" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                     </button>
                 </div>
+                <p id="api-key-hint" class="text-xs" style="color:var(--gray-500);margin-top:4px">Your key is never stored or logged</p>
                 <p id="providerHint" style="font-size:.65rem;font-weight:500;color:var(--gray-400);margin-top:.35rem;min-height:1rem"></p>
             </div>
 

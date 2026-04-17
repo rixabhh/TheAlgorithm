@@ -217,7 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     fileInput?.addEventListener('change', updateFileList);
 
-    function updateFileList() {
+    async function updateFileList() {
         if (fileList && fileInput.files.length > 0) {
             const file = fileInput.files[0];
             const fileName = file.name;
@@ -233,6 +233,57 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     jsonSelector.classList.add('hidden');
                 }
+            }
+
+            // Read the file and detect platform / message count
+            try {
+                let platform = 'Unknown';
+                let msgCount = 0;
+                let jsonPlat = document.getElementById('jsonPlatform') ? document.getElementById('jsonPlatform').value : 'Instagram';
+
+                if (file.name.toLowerCase().endsWith('.html')) {
+                    platform = 'Telegram';
+                    const content = await file.slice(0, 1000000).text();
+                    msgCount = content.split('<div class="message').length - 1;
+                } else if (file.name.toLowerCase().endsWith('.json')) {
+                    platform = jsonPlat;
+                    // For JSON, use file size estimation to avoid partial JSON SyntaxError
+                    msgCount = Math.floor(file.size / 150); // rough heuristic: ~150 bytes per message
+                } else {
+                    platform = 'WhatsApp';
+                    const content = await file.slice(0, 1000000).text();
+                    msgCount = (content.match(/^(?:\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4}|\[\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4}).*?:\s/gm) || []).length;
+                }
+
+                const detectionCard = document.getElementById('file-detection-preview');
+                if (detectionCard) {
+                    const PLATFORM_ICONS = {
+                        'WhatsApp': '💬',
+                        'Telegram': '✈️',
+                        'Instagram': '📷',
+                        'Discord': '👾',
+                        'Unknown': '📄'
+                    };
+                    const messageCount = messages.length > 0 ? messages.length : '0';
+                    const icon = PLATFORM_ICONS[platform] || '📄';
+                    detectionCard.innerHTML = `
+                        <div class="flex items-center gap-3 p-4 bg-white/10 rounded-lg border border-white/20 mb-4" style="background:var(--gray-100); border:2px solid var(--black)">
+                          <span class="text-2xl">${icon}</span>
+                          <div>
+                            <p class="font-medium" style="color:var(--black);font-weight:900;margin:0;font-size:0.85rem">Detected: ${platform}</p>
+                            <p class="text-sm" style="color:var(--gray-600);margin:0;font-size:0.75rem;font-weight:700">~${messageCount} messages found</p>
+                          </div>
+                        </div>
+                    `;
+                    detectionCard.classList.remove('hidden');
+                }
+            } catch (err) {
+                console.error("Error reading file preview:", err);
+            }
+        } else {
+            const detectionCard = document.getElementById('file-detection-preview');
+            if (detectionCard) {
+                detectionCard.classList.add('hidden');
             }
         }
         updateSubmitState();
@@ -418,10 +469,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // C-05: Reset form state helper
+    let progressInterval = null;
+
     const resetFormState = () => {
         if (activeAbortController) {
             activeAbortController.abort();
             activeAbortController = null;
+        }
+        if (progressInterval) {
+            clearInterval(progressInterval);
+            progressInterval = null;
         }
         const loadingOverlay = document.getElementById('loading-overlay');
         if (loadingOverlay) loadingOverlay.classList.add('hidden');
@@ -429,6 +486,7 @@ document.addEventListener('DOMContentLoaded', () => {
             analyzeBtn.disabled = false;
             analyzeBtn.textContent = 'Decode My Chat →';
             analyzeBtn.style.opacity = '1';
+            analyzeBtn.removeAttribute('aria-busy');
         }
         updateSubmitState();
     };
@@ -492,6 +550,19 @@ document.addEventListener('DOMContentLoaded', () => {
             if (analyzeBtn) {
                 analyzeBtn.disabled = true;
                 analyzeBtn.textContent = 'Processing...';
+                analyzeBtn.setAttribute('aria-busy', 'true');
+            }
+
+            // Start cycling loading text
+            const loadingTextEl = document.getElementById('loading-overlay-text');
+            if (loadingTextEl) {
+                const steps = ['Parsing messages...', 'Calculating statistics...', 'Generating insights...'];
+                let stepIndex = 0;
+                loadingTextEl.textContent = steps[stepIndex];
+                progressInterval = setInterval(() => {
+                    stepIndex = (stepIndex + 1) % steps.length;
+                    loadingTextEl.textContent = steps[stepIndex];
+                }, 4000);
             }
 
             try {
