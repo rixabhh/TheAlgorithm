@@ -5,7 +5,8 @@
   "main": "index.html",
   "scripts": {
     "dev": "wrangler pages dev .",
-    "deploy": "wrangler pages deploy ."
+    "deploy": "wrangler pages deploy .",
+    "lint": "eslint ."
   },
   "keywords": [
     "privacy",
@@ -16,6 +17,7 @@
   "author": "rixabhh",
   "license": "MIT",
   "devDependencies": {
-    "wrangler": "^3.0.0"
+    "wrangler": "^3.0.0",
+    "eslint": "^8.57.0"
   }
 }

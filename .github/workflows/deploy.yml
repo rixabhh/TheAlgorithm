@@ -23,10 +23,26 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Run Lint
+        run: npm run lint
+
       - name: Publish to Cloudflare Pages
+        id: cloudflare_deploy
         if: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy . --project-name=the-algorithm --branch=${{ github.head_ref || github.ref_name }}
+
+      - name: Deployment Summary
+        if: steps.cloudflare_deploy.outcome == 'success'
+        run: |
+          echo "### 🚀 Deployment Successful!" >> $GITHUB_STEP_SUMMARY
+          echo "The latest version of **The Algorithm** has been deployed." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "> [!TIP]" >> $GITHUB_STEP_SUMMARY
+          echo "> **Live URL:** [${{ steps.cloudflare_deploy.outputs.deployment-url }}](${{ steps.cloudflare_deploy.outputs.deployment-url }})" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Branch: \`${{ github.head_ref || github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "Deployment ID: \`${{ steps.cloudflare_deploy.outputs.deployment-id }}\`" >> $GITHUB_STEP_SUMMARY
