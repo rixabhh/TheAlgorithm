@@ -56,7 +56,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy . --project-name=the-algorithm --branch=main
+          command: pages deploy . --project-name=thealgorithm --branch=main
 
       - name: Deployment Summary
         if: success()
