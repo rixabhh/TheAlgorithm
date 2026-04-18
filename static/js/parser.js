@@ -16,6 +16,7 @@ class ChatParser {
         this.TG_MEDIA_PATTERN = /<div class="media_wrap[^>]*>.*?<div class="title">\s*([^<]+)\s*<\/div>.*?<div class="status">\s*([^<]+)\s*<\/div>/gs;
 
         // Invisible characters to strip (LTR, RTL, BOM, etc.)
+        // eslint-disable-next-line no-control-regex
         this.STRIP_REGEX = /[\u200B-\u200D\uFEFF\u202A-\u202E\u0000-\u0008\u000B\u000C\u000E-\u001F]/g;
     }
 

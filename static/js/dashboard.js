@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let dataA = null;
     let dataB = null;
     let activeData = null;
-    let activeSlot = 'a';
+    let activeData = null;
 
     // 1. DATA LOADING
     if (isCompareMode) {
@@ -262,13 +262,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const slotA = document.getElementById('comp-slot-a');
         const slotB = document.getElementById('comp-slot-b');
         slotA?.addEventListener('click', () => {
-            activeSlot = 'a'; activeData = dataA;
+            activeData = dataA;
             window.activeData = activeData;
             slotA.classList.add('active'); slotB.classList.remove('active');
             refreshAll();
         });
         slotB?.addEventListener('click', () => {
-            activeSlot = 'b'; activeData = dataB;
+            activeData = dataB;
             window.activeData = activeData;
             slotB.classList.add('active'); slotA.classList.remove('active');
             refreshAll();
@@ -433,6 +433,7 @@ document.addEventListener('DOMContentLoaded', () => {
 /**
  * Premium Vibe Card Generation (Vertical Format)
  */
+// eslint-disable-next-line no-unused-vars
 async function downloadWrappedCard() {
     const btn = document.getElementById('downloadVibeBtn');
     if (!btn || btn.disabled) return;
