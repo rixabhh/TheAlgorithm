@@ -1,4 +1,4 @@
-name: Deploy to Cloudflare Pages
+name: CI/CD Pipeline
 
 on:
   push:
@@ -7,9 +7,37 @@ on:
   pull_request:
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    name: Test & Security Scan
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Python dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pytest pytest-cov ruff pip-audit
+
+      - name: Security Scan
+        run: pip-audit -r requirements.txt
+
+      - name: Lint with Ruff
+        run: ruff check .
+
+      - name: Run Pytest
+        run: pytest tests/ --cov=. --cov-report=xml
+
   deploy:
     runs-on: ubuntu-latest
-    name: Deploy
+    name: Deploy to Cloudflare
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -23,20 +51,19 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Run Lint
+      - name: Run ESLint
         run: npm run lint
 
       - name: Publish to Cloudflare Pages
         id: cloudflare_deploy
-        if: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy . --project-name=the-algorithm --branch=${{ github.head_ref || github.ref_name }}
+          command: pages deploy . --project-name=the-algorithm --branch=main
 
       - name: Deployment Summary
-        if: steps.cloudflare_deploy.outcome == 'success'
+        if: success()
         run: |
           echo "### 🚀 Deployment Successful!" >> $GITHUB_STEP_SUMMARY
           echo "The latest version of **The Algorithm** has been deployed." >> $GITHUB_STEP_SUMMARY
@@ -44,5 +71,5 @@ jobs:
           echo "> [!TIP]" >> $GITHUB_STEP_SUMMARY
           echo "> **Live URL:** [${{ steps.cloudflare_deploy.outputs.deployment-url }}](${{ steps.cloudflare_deploy.outputs.deployment-url }})" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Branch: \`${{ github.head_ref || github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "Branch: \`main\`" >> $GITHUB_STEP_SUMMARY
           echo "Deployment ID: \`${{ steps.cloudflare_deploy.outputs.deployment-id }}\`" >> $GITHUB_STEP_SUMMARY
