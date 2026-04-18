@@ -9,7 +9,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let dataA = null;
     let dataB = null;
     let activeData = null;
-    let activeData = null;
 
     // 1. DATA LOADING
     if (isCompareMode) {

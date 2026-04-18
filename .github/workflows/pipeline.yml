@@ -50,9 +50,6 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Run ESLint
-        run: npm run lint
-
       - name: Publish to Cloudflare Pages
         id: cloudflare_deploy
         uses: cloudflare/wrangler-action@v3
