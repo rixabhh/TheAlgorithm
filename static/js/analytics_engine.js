@@ -23,7 +23,7 @@ class AnalyticsEngine {
         this.STOP_WORDS = new Set(['the', 'a', 'an', 'is', 'are', 'was', 'were', 'to', 'for', 'and', 'but', 'or', 'if', 'this', 'that', 'it', 'me', 'you', 'my', 'your', 'on', 'at', 'in', 'of', 'i', 'im', 'with', 'hi', 'hey', 'hello', 'ya', 'ye', 'na', 'h', 'hai', 'tha', 'thee', 'ke', 'ka', 'ko', 'ki', 'ne', 'mein', 'par', 'tha', 'the', 'thi', 'raha', 'rahi', 'rahe', 'hota', 'hote', 'hoti', 'lekin', 'kyun', 'kya', 'kise', 'kisko', 'kaise', 'kahan', 'kab']);
     }
 
-    runPipeline(messages, connectionType = 'romantic') {
+    runPipeline(messages, connectionType) { // removed default value to satisfy unused rule if possible, or just keep it
         if (!messages.length) return null;
 
         const processed = messages.map(m => ({
@@ -39,9 +39,9 @@ class AnalyticsEngine {
         const initiatorInfo = this.calculateInitiatorRatio(latencyInfo);
         const powerInfo = this.calculatePowerDynamics(processed);
         const supportInfo = this.calculateSupportGap(processed);
-        const topicMix = this.calculateTopicMix(processed, connectionType);
+        const topicMix = this.calculateTopicMix(processed);
         const mirroringValue = this.calculateMirroring(processed);
-        const attachment = this.calculateAttachmentStyle(processed, latencyInfo);
+        const attachment = this.calculateAttachmentStyle(processed);
         const topWords = this.calculateTopWords(processed);
         
         const doubleTexts = this.calculateDoubleTexts(processed);
@@ -415,7 +415,7 @@ class AnalyticsEngine {
         return Math.round((common / 30) * 100);
     }
 
-    calculateTopicMix(messages, connectionType) {
+    calculateTopicMix(messages) {
         const topics = { Logistics: 0, Intimacy: 0, Conflict: 0, External: 0 };
         for (const m of messages) {
             if (this.LOGISTICS_RE.test(m.text)) topics.Logistics++;
@@ -427,7 +427,7 @@ class AnalyticsEngine {
         return { breakdown: topics, top_topic: sorted[0][1] > 0 ? sorted[0][0] : "Life Talk" };
     }
 
-    calculateAttachmentStyle(messages, latencyInfo) {
+    calculateAttachmentStyle(messages) {
         let anxiousScore = 0, avoidantScore = 0;
         if (messages.length < 10) return "Secure";
         for (const m of messages) {
