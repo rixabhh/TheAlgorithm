@@ -1,0 +1,21 @@
+{
+  "name": "the-algorithm",
+  "version": "1.0.0",
+  "description": "A paranoid-level, privacy-first AI relationship analyzer.",
+  "main": "index.html",
+  "scripts": {
+    "dev": "wrangler pages dev .",
+    "deploy": "wrangler pages deploy ."
+  },
+  "keywords": [
+    "privacy",
+    "ai",
+    "relationship-analyzer",
+    "cloudflare-pages"
+  ],
+  "author": "rixabhh",
+  "license": "MIT",
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  }
+}

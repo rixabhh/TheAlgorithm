@@ -1,5 +1,6 @@
 name = "the-algorithm"
 pages_build_output_dir = "."
+compatibility_date = "2024-04-01"
 
 [vars]
 LLM_PROVIDER = "openai"
@@ -7,6 +8,7 @@ LLM_PROVIDER = "openai"
 [ai]
 binding = "AI"
 
+# KV Namespaces for rate limiting (Uncomment and update ID after creating in dashboard)
 # [[kv_namespaces]]
 # binding = "KV_RATELIMIT"
-# id = "ratelimit_kv" # Placeholder, user needs to create this in dashboard
+# id = "c5c7d8e9f0...your_id_here"
