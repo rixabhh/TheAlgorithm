@@ -17,7 +17,7 @@ export async function onRequestPost(context) {
         }
 
         // 2. SYSTEM PROMPT
-        const systemPrompt = `You are 'The Algorithm', a brutally honest relationship coaching analyst.
+        const systemPrompt = `You are 'The Algorithm', an expert relationship analyst and communication coach. You act like a brilliant friend who happens to be a therapist - warm, insightful, empathetic, but brutally honest.
 The user has generated an AI Insight Vibe Report based on their chat exports.
 Your job is to answer their specific follow-up questions about this relationship, using their exact STATS and REPORT context below.
 Be direct, deeply insightful, and don't coddle them. Reference their data explicitly if it helps make a point regarding their behaviors or power dynamics.
@@ -37,30 +37,49 @@ ${JSON.stringify(llmReport)}
 
         let responseText = null;
 
-        if (provider === 'cloudflare' && env.AI) {
-            // Use Llama 3 via Workers AI
-            const aiResult = await env.AI.run('@cf/meta/llama-3-8b-instruct', {
-                messages: messages
-            });
-            responseText = aiResult.response;
-        } else if (api_key && (provider === 'openai' || provider === 'groq' || provider === 'grok')) {
-            let url, model;
-            if (provider === 'openai') { url = 'https://api.openai.com/v1/chat/completions'; model = 'gpt-4o-mini'; }
-            else if (provider === 'groq') { url = 'https://api.groq.com/openai/v1/chat/completions'; model = 'llama-3.1-70b-versatile'; }
-            else if (provider === 'grok') { url = 'https://api.x.ai/v1/chat/completions'; model = 'grok-2-latest'; }
-            
-            const resp = await fetch(url, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${api_key}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ model, messages, max_tokens: 500 })
-            });
-            
-            const resData = await resp.json();
-            if (resData.choices && resData.choices.length > 0) {
-                responseText = resData.choices[0].message.content;
-            } else {
-                throw new Error("Invalid format from API provider.");
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30-second timeout max
+
+        try {
+            if (provider === 'cloudflare' && env.AI) {
+                // Use Llama 3 via Workers AI
+                const aiResult = await env.AI.run('@cf/meta/llama-3-8b-instruct', {
+                    messages: messages
+                });
+                responseText = aiResult.response;
+            } else if (api_key && (provider === 'openai' || provider === 'groq' || provider === 'grok' || provider === 'openrouter')) {
+                let url, model;
+                if (provider === 'openai') { url = 'https://api.openai.com/v1/chat/completions'; model = 'gpt-4o-mini'; }
+                else if (provider === 'groq') { url = 'https://api.groq.com/openai/v1/chat/completions'; model = 'llama-3.1-70b-versatile'; }
+                else if (provider === 'grok') { url = 'https://api.x.ai/v1/chat/completions'; model = 'grok-2-latest'; }
+                else if (provider === 'openrouter') { url = 'https://openrouter.ai/api/v1/chat/completions'; model = 'openai/gpt-4o'; }
+
+                const resp = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${api_key}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ model, messages, max_tokens: 500 }),
+                    signal: controller.signal
+                });
+
+                if (!resp.ok) {
+                    throw new Error(`API returned ${resp.status}`);
+                }
+
+                const resData = await resp.json();
+                if (resData.choices && resData.choices.length > 0) {
+                    responseText = resData.choices[0].message.content;
+                } else {
+                    throw new Error("Invalid format from API provider.");
+                }
             }
+            
+            clearTimeout(timeoutId);
+        } catch (callError) {
+            clearTimeout(timeoutId);
+            if (callError.name === 'AbortError') {
+                throw new Error("Chat request timed out. Please try again.");
+            }
+            throw callError;
         }
 
         if (!responseText) {
@@ -70,6 +89,9 @@ ${JSON.stringify(llmReport)}
         return new Response(JSON.stringify({ text: responseText }), { headers: { 'Content-Type': 'application/json' } });
 
     } catch (e) {
-        return new Response(JSON.stringify({ error: e.message }), { status: 500 });
+        let errorMsg = e.message || "Chat failed. Check your API key and try again.";
+        // Mask any API keys that might have leaked in the error message
+        errorMsg = errorMsg.replace(/sk-[a-zA-Z0-9_-]+/g, 'sk-...');
+        return new Response(JSON.stringify({ error: errorMsg }), { status: 500 });
     }
 }
