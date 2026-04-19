@@ -22,6 +22,18 @@
             box-shadow: 0 0 10px var(--pink);
         }
     </style>
+
+    <!-- Open Graph / Twitter Card tags -->
+    <meta property="og:title" content="The Algorithm — AI Relationship Analyzer" />
+    <meta property="og:description" content="Find out what your chats really say about your relationship. Privacy-first, BYOK, zero data stored." />
+    <meta property="og:image" content="https://thealgorithm.rixabh.workers.dev/static/og-image.png" />
+    <meta property="og:url" content="https://thealgorithm.rixabh.workers.dev/" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="The Algorithm" />
+    <meta name="twitter:description" content="What do your chats say about your relationship? Find out — your data never leaves your device." />
+    <meta name="twitter:image" content="https://thealgorithm.rixabh.workers.dev/static/og-image.png" />
+
 </head>
 
 <body class="comic-dots dashboard-body">
@@ -103,7 +115,13 @@
         <header class="dashboard-header mb-8 flex justify-between items-center card p-4 mb-8" style="background:var(--white);">
             <h1 id="profile-name" class="font-heading-black" style="font-size: 1.8rem; margin: 0;">-- & --</h1>
             <div class="flex gap-2">
+
                 <button onclick="window.print()" class="btn btn--black" style="padding:0.5rem 1rem;font-size:0.8rem">🖨️ Print Report</button>
+
+                <button id="shareLinkBtn" class="btn btn--yellow" style="padding:0.5rem 1rem;font-size:0.8rem">🔗 Share Report</button>
+                <button id="share-btn" class="btn btn--pink" style="padding:0.5rem 1rem;font-size:0.8rem">📸 Save Vibe Card</button>
+
+
             </div>
         </header>
 

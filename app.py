@@ -28,6 +28,27 @@ def privacy():
     return send_from_directory(".", "privacy.html")
 
 
+
+@app.route("/share")
+def share():
+    return send_from_directory(".", "dashboard.html")
+
+@app.route("/pricing.html")
+def pricing():
+    return send_from_directory(".", "pricing.html")
+
+@app.route("/robots.txt")
+def robots():
+    return send_from_directory(".", "robots.txt")
+
+@app.route("/sitemap.xml")
+def sitemap():
+    return send_from_directory(".", "sitemap.xml")
+
+@app.errorhandler(404)
+def not_found(e):
+    return send_from_directory(".", "404.html"), 404
+
 @app.route("/health")
 def health():
     return {"status": "ok"}, 200
