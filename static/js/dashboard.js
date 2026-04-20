@@ -492,3 +492,146 @@ async function downloadWrappedCard() {
     }
 }
 
+
+
+/**
+ * Generates and copies a shareable URL containing anonymous statistics.
+ */
+document.getElementById('shareLinkBtn')?.addEventListener('click', async () => {
+    const btn = document.getElementById('shareLinkBtn');
+    const originalText = btn.textContent;
+    btn.textContent = "⏳ Generating...";
+
+    try {
+        if (!window.activeData) throw new Error("No data to share");
+
+        // Strip out any raw messages or content - ONLY anonymous stats
+        const shareData = {
+            stats: window.activeData.stats || {},
+            mood_timeline: window.activeData.mood_timeline || [],
+            llmReport: window.llmReport || {},
+            my_name: "Person A",
+            partner_name: "Person B"
+        };
+
+        // Ensure no raw chat content accidentally slips through
+        delete shareData.stats.raw_messages;
+
+        const base64Data = btoa(encodeURIComponent(JSON.stringify(shareData)));
+        const shareUrl = `${window.location.origin}/share#${base64Data}`;
+
+        await navigator.clipboard.writeText(shareUrl);
+
+        btn.textContent = "✅ Link Copied!";
+        setTimeout(() => { btn.textContent = originalText; }, 2000);
+    } catch (err) {
+        console.error("Share failed", err);
+        btn.textContent = "❌ Failed";
+        setTimeout(() => { btn.textContent = originalText; }, 2000);
+    }
+});
+
+// Check if we arrived via a share link
+window.addEventListener('DOMContentLoaded', () => {
+    if (window.location.hash && window.location.hash.length > 10) {
+        try {
+            const hashData = window.location.hash.substring(1);
+            const decodedStr = decodeURIComponent(atob(hashData));
+            const sharedData = JSON.parse(decodedStr);
+
+            // Override active data and hide elements that don't apply to shared view
+            window.activeData = sharedData;
+            window.llmReport = sharedData.llmReport;
+
+            // Re-trigger render logic
+            if (typeof refreshAll === 'function') {
+                refreshAll();
+            }
+        } catch (e) {
+            console.error("Failed to parse shared link data", e);
+        }
+    }
+});
+
+
+
+/**
+ * Share Card Generation
+ */
+function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+    if (!text) return;
+    const words = text.split(' ');
+    let line = '';
+
+    for(let n = 0; n < words.length; n++) {
+      const testLine = line + words[n] + ' ';
+      const metrics = ctx.measureText(testLine);
+      const testWidth = metrics.width;
+      if (testWidth > maxWidth && n > 0) {
+        ctx.fillText(line, x, y);
+        line = words[n] + ' ';
+        y += lineHeight;
+      }
+      else {
+        line = testLine;
+      }
+    }
+    ctx.fillText(line, x, y);
+}
+
+function generateShareCard(analysisData) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1200;
+  canvas.height = 630; // OG image dimensions
+  const ctx = canvas.getContext('2d');
+
+  // Dark gradient background
+  const gradient = ctx.createLinearGradient(0, 0, 1200, 630);
+  gradient.addColorStop(0, '#1a0a2e');
+  gradient.addColorStop(1, '#0f0a1e');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, 1200, 630);
+
+  // Logo / branding
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 48px Inter, sans-serif';
+  ctx.fillText('The Algorithm', 60, 100);
+
+  // Health score
+  ctx.fillStyle = '#a855f7';
+  ctx.font = 'bold 120px Inter, sans-serif';
+  // We use score or 0 if not present
+  const score = analysisData.llmReport?.ai_insight?.health_score || '--';
+  ctx.fillText(`${score}`, 60, 260);
+  ctx.fillStyle = '#ffffff80';
+  ctx.font = '32px Inter, sans-serif';
+  ctx.fillText('relationship health score', 60, 310);
+
+  // Top insight
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '28px Inter, sans-serif';
+  const insight = analysisData.llmReport?.ai_insight?.brutal_verdict || "Your chat data has been decoded.";
+  wrapText(ctx, insight, 60, 400, 1080, 40);
+
+  // Footer
+  ctx.fillStyle = '#ffffff40';
+  ctx.font = '24px Inter, sans-serif';
+  ctx.fillText('thealgorithm.rixabh.workers.dev', 60, 590);
+
+  return canvas.toDataURL('image/png');
+}
+
+// Add download image button logic (if requested by UI, assuming standard layout from prompt)
+document.addEventListener('DOMContentLoaded', () => {
+    // Check if we need to add a share button
+    const shareImageBtn = document.getElementById('share-btn');
+    if (shareImageBtn) {
+        shareImageBtn.addEventListener('click', () => {
+            const imageData = generateShareCard(window.activeData);
+            const link = document.createElement('a');
+            link.download = 'my-algorithm-results.png';
+            link.href = imageData;
+            link.click();
+        });
+    }
+});
