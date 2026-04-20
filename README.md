@@ -7,13 +7,23 @@
   <p><strong>A paranoid-level, privacy-first AI relationship analyzer.</strong></p>
   <p>Stop sending your most intimate chat history to random servers.</p>
 
+
   <p>
     <a href="https://img.shields.io/badge/JavaScript-ES6+-yellow?style=for-the-badge&logo=javascript&logoColor=white"><img src="https://img.shields.io/badge/JavaScript-ES6+-yellow?style=for-the-badge&logo=javascript&logoColor=white" alt="JavaScript" /></a>
     <a href="https://img.shields.io/badge/Cloudflare_Pages-Serverless-orange?style=for-the-badge&logo=cloudflare&logoColor=white"><img src="https://img.shields.io/badge/Cloudflare_Pages-Serverless-orange?style=for-the-badge&logo=cloudflare&logoColor=white" alt="Cloudflare Pages" /></a>
     <a href="https://img.shields.io/badge/Privacy-100%25%20Zero--Knowledge-22c55e?style=for-the-badge"><img src="https://img.shields.io/badge/Privacy-100%25%20Zero--Knowledge-22c55e?style=for-the-badge" alt="Privacy" /></a>
+    <a href="https://img.shields.io/badge/License-MIT-blue?style=for-the-badge"><img src="https://img.shields.io/badge/License-MIT-blue?style=for-the-badge" alt="License: MIT"></a>
   </p>
 
-  <h3>🚀 <a href="https://the-algorithm.pages.dev/">Try the Live App Here</a></h3>
+
+
+### 🚀 [Try the Live App Here](https://thealgorithm.rixabh.workers.dev/)
+
+<!-- Demo GIF/Screenshot Placeholder -->
+<p align="center">
+  <img src="static/favicon.png" width="400" alt="The Algorithm Demo Screenshot" style="border-radius: 8px; border: 2px solid #000; box-shadow: 4px 4px 0 #000;" />
+</p>
+
 </div>
 
 <hr/>
