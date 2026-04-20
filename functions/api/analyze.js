@@ -95,26 +95,51 @@ CRITICAL RULES:
                     messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }]
                 });
                 rawResponseText = aiResult.response;
-            } else if (api_key && (provider === 'openai' || provider === 'groq' || provider === 'grok' || provider === 'openrouter')) {
-                let url, model;
-                if (provider === 'openai') { url = 'https://api.openai.com/v1/chat/completions'; model = 'gpt-4o-mini'; }
-                else if (provider === 'groq') { url = 'https://api.groq.com/openai/v1/chat/completions'; model = 'llama-3.1-70b-versatile'; }
-                else if (provider === 'grok') { url = 'https://api.x.ai/v1/chat/completions'; model = 'grok-2-latest'; }
-                else if (provider === 'openrouter') { url = 'https://openrouter.ai/api/v1/chat/completions'; model = 'openai/gpt-4o'; }
+            } else if (api_key && (provider === 'openai' || provider === 'groq' || provider === 'grok' || provider === 'openrouter' || provider === 'cohere')) {
+                if (provider === 'cohere') {
+                    // Cohere uses a different payload structure
+                    const url = 'https://api.cohere.ai/v1/chat';
+                    const model = 'command-r-plus';
 
-                const resp = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${api_key}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ model, messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }], response_format: { type: "json_object" } }),
-                    signal: controller.signal
-                });
+                    const resp = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${api_key}`, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            model: model,
+                            message: userPrompt,
+                            preamble: systemPrompt,
+                            response_format: { type: "json_object" }
+                        }),
+                        signal: controller.signal
+                    });
 
-                if (!resp.ok) {
-                    throw new Error(`API returned ${resp.status}`);
+                    if (!resp.ok) {
+                        throw new Error(`API returned ${resp.status}`);
+                    }
+
+                    const resData = await resp.json();
+                    if (resData.text) rawResponseText = resData.text;
+                } else {
+                    let url, model;
+                    if (provider === 'openai') { url = 'https://api.openai.com/v1/chat/completions'; model = 'gpt-4o-mini'; }
+                    else if (provider === 'groq') { url = 'https://api.groq.com/openai/v1/chat/completions'; model = 'llama-3.1-70b-versatile'; }
+                    else if (provider === 'grok') { url = 'https://api.x.ai/v1/chat/completions'; model = 'grok-2-latest'; }
+                    else if (provider === 'openrouter') { url = 'https://openrouter.ai/api/v1/chat/completions'; model = 'openai/gpt-4o'; }
+
+                    const resp = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${api_key}`, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ model, messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }], response_format: { type: "json_object" } }),
+                        signal: controller.signal
+                    });
+
+                    if (!resp.ok) {
+                        throw new Error(`API returned ${resp.status}`);
+                    }
+
+                    const resData = await resp.json();
+                    if (resData.choices) rawResponseText = resData.choices[0].message.content;
                 }
-
-                const resData = await resp.json();
-                if (resData.choices) rawResponseText = resData.choices[0].message.content;
             }
 
             clearTimeout(timeoutId);
