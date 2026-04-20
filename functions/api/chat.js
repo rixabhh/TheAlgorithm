@@ -47,29 +47,64 @@ ${JSON.stringify(llmReport)}
                     messages: messages
                 });
                 responseText = aiResult.response;
-            } else if (api_key && (provider === 'openai' || provider === 'groq' || provider === 'grok' || provider === 'openrouter')) {
-                let url, model;
-                if (provider === 'openai') { url = 'https://api.openai.com/v1/chat/completions'; model = 'gpt-4o-mini'; }
-                else if (provider === 'groq') { url = 'https://api.groq.com/openai/v1/chat/completions'; model = 'llama-3.1-70b-versatile'; }
-                else if (provider === 'grok') { url = 'https://api.x.ai/v1/chat/completions'; model = 'grok-2-latest'; }
-                else if (provider === 'openrouter') { url = 'https://openrouter.ai/api/v1/chat/completions'; model = 'openai/gpt-4o'; }
+            } else if (api_key && (provider === 'openai' || provider === 'groq' || provider === 'grok' || provider === 'openrouter' || provider === 'cohere')) {
+                if (provider === 'cohere') {
+                    const url = 'https://api.cohere.ai/v1/chat';
+                    const model = 'command-r-plus';
 
-                const resp = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${api_key}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ model, messages, max_tokens: 500 }),
-                    signal: controller.signal
-                });
+                    // Map chat_history to cohere's specific format
+                    const cohereChatHistory = chat_history.map(msg => ({
+                        role: msg.role === 'user' ? 'USER' : 'CHATBOT',
+                        message: msg.content
+                    }));
 
-                if (!resp.ok) {
-                    throw new Error(`API returned ${resp.status}`);
-                }
+                    const resp = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${api_key}`, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            model: model,
+                            message: message,
+                            preamble: systemPrompt,
+                            chat_history: cohereChatHistory,
+                            max_tokens: 500
+                        }),
+                        signal: controller.signal
+                    });
 
-                const resData = await resp.json();
-                if (resData.choices && resData.choices.length > 0) {
-                    responseText = resData.choices[0].message.content;
+                    if (!resp.ok) {
+                        throw new Error(`API returned ${resp.status}`);
+                    }
+
+                    const resData = await resp.json();
+                    if (resData.text) {
+                        responseText = resData.text;
+                    } else {
+                        throw new Error("Invalid format from API provider.");
+                    }
                 } else {
-                    throw new Error("Invalid format from API provider.");
+                    let url, model;
+                    if (provider === 'openai') { url = 'https://api.openai.com/v1/chat/completions'; model = 'gpt-4o-mini'; }
+                    else if (provider === 'groq') { url = 'https://api.groq.com/openai/v1/chat/completions'; model = 'llama-3.1-70b-versatile'; }
+                    else if (provider === 'grok') { url = 'https://api.x.ai/v1/chat/completions'; model = 'grok-2-latest'; }
+                    else if (provider === 'openrouter') { url = 'https://openrouter.ai/api/v1/chat/completions'; model = 'openai/gpt-4o'; }
+
+                    const resp = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${api_key}`, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ model, messages, max_tokens: 500 }),
+                        signal: controller.signal
+                    });
+
+                    if (!resp.ok) {
+                        throw new Error(`API returned ${resp.status}`);
+                    }
+
+                    const resData = await resp.json();
+                    if (resData.choices && resData.choices.length > 0) {
+                        responseText = resData.choices[0].message.content;
+                    } else {
+                        throw new Error("Invalid format from API provider.");
+                    }
                 }
             }
             

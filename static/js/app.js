@@ -503,11 +503,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 // C-03: Read platform from the hidden select (synced by custom dropdown)
                 let jsonPlat = document.getElementById('jsonPlatform') ? document.getElementById('jsonPlatform').value : 'Instagram';
+
+                // Detect platform
+                let detectedPlatform = parser.detect(content, file.name);
+                if (detectedPlatform === 'JSON') detectedPlatform = jsonPlat;
+
                 let rawMessages;
-                if (file.name.toLowerCase().endsWith('.html')) {
+                if (detectedPlatform === 'Telegram') {
                     rawMessages = parser.parseTelegram(content);
-                } else if (file.name.toLowerCase().endsWith('.json')) {
-                    rawMessages = jsonPlat === 'Discord' ? parser.parseDiscord(content) : parser.parseInstagram(content);
+                } else if (detectedPlatform === 'Discord') {
+                    rawMessages = parser.parseDiscord(content);
+                } else if (detectedPlatform === 'Instagram') {
+                    rawMessages = parser.parseInstagram(content);
+                } else if (detectedPlatform === 'Signal') {
+                    rawMessages = parser.parseSignal(content);
                 } else {
                     rawMessages = parser.parseWhatsApp(content);
                 }
@@ -538,7 +547,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     context: userContext,
                     tone: analysisTone,
                     msg_count: filteredMessages.length,
-                    platform: file.name.toLowerCase().endsWith('.html') ? 'Telegram' : (file.name.toLowerCase().endsWith('.json') ? jsonPlat : 'WhatsApp')
+                    platform: detectedPlatform
                 };
 
                 historyManager.save(dashboardData);
