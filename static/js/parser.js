@@ -15,6 +15,8 @@ class ChatParser {
         this.TG_TEXT_PATTERN = /<div class="text"[^>]*>(.*?)<\/div>/gs;
         this.TG_MEDIA_PATTERN = /<div class="media_wrap[^>]*>.*?<div class="title">\s*([^<]+)\s*<\/div>.*?<div class="status">\s*([^<]+)\s*<\/div>/gs;
 
+        this.SIGNAL_MSG_PATTERN = /^\[?(?<date>\d{4}-\d{2}-\d{2}) (?<time>\d{2}:\d{2})\]? (?<sender>[^:]+):\s+(?<text>.*)$/;
+
         // Invisible characters to strip (LTR, RTL, BOM, etc.)
         // eslint-disable-next-line no-control-regex
         this.STRIP_REGEX = /[\u200B-\u200D\uFEFF\u202A-\u202E\u0000-\u0008\u000B\u000C\u000E-\u001F]/g;
@@ -23,6 +25,68 @@ class ChatParser {
     sanitize(text) {
         if (!text) return "";
         return text.replace(this.STRIP_REGEX, "").trim();
+    }
+
+    /**
+     * Autodetects the platform
+     */
+    detect(content, fileName = "") {
+        const lowerName = fileName.toLowerCase();
+
+        // Check extensions and explicit markers first
+        if (lowerName.endsWith('.html')) return 'Telegram';
+        if (lowerName.endsWith('.json')) {
+            // Check content structure if needed, or rely on user choice
+            // Defaulting to JSON platform based on what app.js handles
+            if (content.includes('"author":') && content.includes('"timestamp":')) return 'Discord';
+            if (content.includes('"sender_name":') && content.includes('"timestamp_ms":')) return 'Instagram';
+            return 'JSON';
+        }
+
+        if (lowerName.endsWith('.txt')) {
+            // Differentiate between WhatsApp and Signal by checking the first few lines
+            const lines = content.slice(0, 2000).split(/\r?\n/);
+            let waCount = 0;
+            let signalCount = 0;
+
+            for (const line of lines) {
+                if (this.SIGNAL_MSG_PATTERN.test(line)) signalCount++;
+                if (this.WA_MSG_PATTERN.test(line)) waCount++;
+            }
+
+            if (signalCount > waCount) return 'Signal';
+            return 'WhatsApp';
+        }
+
+        return 'WhatsApp'; // Default fallback
+    }
+
+    /**
+     * Parses Signal (.txt)
+     */
+    parseSignal(textData) {
+        const messages = [];
+        const lines = textData.split(/\r?\n/);
+
+        for (let line of lines) {
+            line = this.sanitize(line);
+            if (!line) continue;
+
+            const match = line.match(this.SIGNAL_MSG_PATTERN);
+            if (match) {
+                if (messages.length >= 50000) break;
+                const { date, time, sender, text } = match.groups;
+                messages.push({
+                    timestamp: this.parseDateTime(`${date} ${time}`),
+                    sender: sender.trim(),
+                    text: text.trim()
+                });
+            } else if (messages.length > 0) {
+                // Multiline message append
+                messages[messages.length - 1].text += "\n" + line;
+            }
+        }
+        return messages;
     }
 
     /**
