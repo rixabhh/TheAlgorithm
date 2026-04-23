@@ -249,7 +249,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const provider = localStorage.getItem('llm_provider') || 'cloudflare';
         const hasKey = sessionStorage.getItem('_llm_token');
         if (provider === 'cloudflare' || hasKey) {
-            console.log("Auto-triggering AI insights...");
             setTimeout(() => {
                 document.getElementById('generateAiBtn')?.click();
             }, 1000);
@@ -484,7 +483,6 @@ async function downloadWrappedCard() {
         link.href = canvas.toDataURL('image/png');
         link.click();
     } catch (err) {
-        console.error("Download failed:", err);
         alert('Download failed.');
     } finally {
         btn.disabled = false;
@@ -525,7 +523,6 @@ document.getElementById('shareLinkBtn')?.addEventListener('click', async () => {
         btn.textContent = "✅ Link Copied!";
         setTimeout(() => { btn.textContent = originalText; }, 2000);
     } catch (err) {
-        console.error("Share failed", err);
         btn.textContent = "❌ Failed";
         setTimeout(() => { btn.textContent = originalText; }, 2000);
     }
@@ -548,7 +545,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 refreshAll();
             }
         } catch (e) {
-            console.error("Failed to parse shared link data", e);
+            // failed to parse
         }
     }
 });
