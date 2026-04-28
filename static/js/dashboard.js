@@ -60,6 +60,8 @@ document.addEventListener('DOMContentLoaded', () => {
         renderStreaks(stats);
         renderWordCloud(stats);
         renderEmoji(stats);
+        renderHumorAndEnergy(stats);
+        renderSilenceBreakers(stats);
         
         if (window.Chart) {
             initRatioChart(stats);
@@ -114,6 +116,31 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!container) return;
         const emojis = [...(stats.emoji_frequency?.ME || []), ...(stats.emoji_frequency?.PARTNER || [])].sort((a,b)=>b.count-a.count).slice(0, 8);
         container.innerHTML = emojis.map(e => `<div class="flex align-center gap-3"><span>${e.emoji}</span><div class="flex-1 h-2 bg-cream rounded-full overflow-hidden"><div class="h-full bg-pink" style="width:${(e.count / emojis[0].count * 100)}%"></div></div></div>`).join('');
+    };
+
+    const renderHumorAndEnergy = (stats) => {
+        const container = document.getElementById('humor-container');
+        if (!container) return;
+        const laughter = stats.laughter || { ME: 0, PARTNER: 0 };
+        const caps = stats.caps_lock || { ME: 0, PARTNER: 0 };
+
+        container.innerHTML = `
+            <div class="flex justify-between"><span>Laughter (${activeData.my_name})</span><span class="font-black">${laughter.ME}</span></div>
+            <div class="flex justify-between"><span>Laughter (${activeData.partner_name})</span><span class="font-black">${laughter.PARTNER}</span></div>
+            <div class="flex justify-between mt-2"><span>Caps Lock Energy (${activeData.my_name})</span><span class="font-black">${caps.ME}</span></div>
+            <div class="flex justify-between"><span>Caps Lock Energy (${activeData.partner_name})</span><span class="font-black">${caps.PARTNER}</span></div>
+        `;
+    };
+
+    const renderSilenceBreakers = (stats) => {
+        const container = document.getElementById('silence-container');
+        if (!container) return;
+        const breakers = stats.silence_breakers || { ME: 0, PARTNER: 0 };
+
+        container.innerHTML = `
+            <div class="flex justify-between"><span>Ice Broken by ${activeData.my_name}</span><span class="font-black">${breakers.ME} times</span></div>
+            <div class="flex justify-between"><span>Ice Broken by ${activeData.partner_name}</span><span class="font-black">${breakers.PARTNER} times</span></div>
+        `;
     };
 
     const renderStreaks = (stats) => {

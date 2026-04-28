@@ -25,7 +25,7 @@ export async function onRequestPost(context) {
         let report = null;
 
         // Define standard keys we need back
-        const requiredKeys = ["relationship_persona", "compatibility_score", "ai_insight", "overall_health_score", "communication_style", "attachment_style", "key_insights", "strengths", "growth_areas", "coaching_advice", "fun_fact"];
+        const requiredKeys = ["relationship_persona", "compatibility_score", "ai_insight", "overall_health_score", "communication_style", "attachment_style", "humor_dynamics", "silence_breaking", "key_insights", "strengths", "growth_areas", "coaching_advice", "fun_fact"];
 
         const systemPrompt = `You are 'The Algorithm', an expert relationship analyst and communication coach. You act like a brilliant friend who happens to be a therapist - warm, insightful, empathetic, but brutally honest.
 CRITICAL RULES:
@@ -44,6 +44,14 @@ CRITICAL RULES:
     "person_1": "secure|anxious|avoidant|disorganized",
     "person_2": "secure|anxious|avoidant|disorganized",
     "compatibility_note": "string"
+  },
+  "humor_dynamics": {
+    "fun_person": "string",
+    "laughter_balance": "string"
+  },
+  "silence_breaking": {
+    "ice_breaker": "string",
+    "insight": "string"
   },
   "key_insights": ["string", "string", "string"],
   "strengths": ["string"],
