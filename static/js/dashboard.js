@@ -2,6 +2,17 @@
  * The Algorithm - Dashboard Controller (V10.0 Premium Comparison)
  */
 
+const escapeHTML = (str) => {
+    if (typeof str !== 'string') return str;
+    return str.replace(/[&<>'"]/g, tag => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        "'": '&#39;',
+        '"': '&quot;'
+    }[tag] || tag));
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const isCompareMode = urlParams.get('mode') === 'compare';
@@ -124,11 +135,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const laughter = stats.laughter || { ME: 0, PARTNER: 0 };
         const caps = stats.caps_lock || { ME: 0, PARTNER: 0 };
 
+        const myName = escapeHTML(activeData.my_name);
+        const partnerName = escapeHTML(activeData.partner_name);
+
         container.innerHTML = `
-            <div class="flex justify-between"><span>Laughter (${activeData.my_name})</span><span class="font-black">${laughter.ME}</span></div>
-            <div class="flex justify-between"><span>Laughter (${activeData.partner_name})</span><span class="font-black">${laughter.PARTNER}</span></div>
-            <div class="flex justify-between mt-2"><span>Caps Lock Energy (${activeData.my_name})</span><span class="font-black">${caps.ME}</span></div>
-            <div class="flex justify-between"><span>Caps Lock Energy (${activeData.partner_name})</span><span class="font-black">${caps.PARTNER}</span></div>
+            <div class="flex justify-between"><span>Laughter (${myName})</span><span class="font-black">${escapeHTML(String(laughter.ME))}</span></div>
+            <div class="flex justify-between"><span>Laughter (${partnerName})</span><span class="font-black">${escapeHTML(String(laughter.PARTNER))}</span></div>
+            <div class="flex justify-between mt-2"><span>Caps Lock Energy (${myName})</span><span class="font-black">${escapeHTML(String(caps.ME))}</span></div>
+            <div class="flex justify-between"><span>Caps Lock Energy (${partnerName})</span><span class="font-black">${escapeHTML(String(caps.PARTNER))}</span></div>
         `;
     };
 
@@ -137,9 +151,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!container) return;
         const breakers = stats.silence_breakers || { ME: 0, PARTNER: 0 };
 
+        const myName = escapeHTML(activeData.my_name);
+        const partnerName = escapeHTML(activeData.partner_name);
+
         container.innerHTML = `
-            <div class="flex justify-between"><span>Ice Broken by ${activeData.my_name}</span><span class="font-black">${breakers.ME} times</span></div>
-            <div class="flex justify-between"><span>Ice Broken by ${activeData.partner_name}</span><span class="font-black">${breakers.PARTNER} times</span></div>
+            <div class="flex justify-between"><span>Ice Broken by ${myName}</span><span class="font-black">${escapeHTML(String(breakers.ME))} times</span></div>
+            <div class="flex justify-between"><span>Ice Broken by ${partnerName}</span><span class="font-black">${escapeHTML(String(breakers.PARTNER))} times</span></div>
         `;
     };
 
