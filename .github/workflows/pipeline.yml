@@ -22,7 +22,7 @@ jobs:
       - name: Install Python dependencies
         run: |
           pip install -r requirements.txt
-          pip install pytest pytest-cov ruff pip-audit
+          pip install pytest pytest-cov ruff pip-audit mypy types-Flask
 
       - name: Security Scan
         run: pip-audit -r requirements.txt
@@ -30,8 +30,11 @@ jobs:
       - name: Lint with Ruff
         run: ruff check .
 
+      - name: Run Mypy
+        run: mypy app.py tests/
+
       - name: Run Pytest
-        run: pytest tests/ --cov=. --cov-report=xml
+        run: python -m pytest tests/ --cov=. --cov-report=xml
 
   deploy:
     runs-on: ubuntu-latest
