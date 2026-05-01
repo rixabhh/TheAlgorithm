@@ -122,6 +122,21 @@ document.addEventListener('DOMContentLoaded', () => {
         updateSubmitState();
     };
     updateApiKeyUI();
+    const apiKeyInput = document.getElementById('apiKey');
+
+    if (apiKeyInput) {
+        apiKeyInput.addEventListener('input', () => {
+            const val = apiKeyInput.value.trim();
+            if (val === '') {
+                apiKeyInput.style.borderColor = '';
+            } else if (val.startsWith('sk-') || val.length > 20) {
+                apiKeyInput.style.borderColor = 'var(--green)';
+            } else {
+                apiKeyInput.style.borderColor = 'var(--red)';
+            }
+        });
+    }
+
     updateSubmitState(); // C-02: Disable button on page load if no file
 
     // --- Modal Helpers ---
@@ -197,11 +212,98 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- UI Utilities ---
     const toggleBtn = document.getElementById('toggleApiKey');
-    const apiKeyInput = document.getElementById('apiKey');
+    // apiKeyInput is already defined above
     toggleBtn?.addEventListener('click', () => {
+        if (!apiKeyInput) return;
         const isPassword = apiKeyInput.type === 'password';
         apiKeyInput.type = isPassword ? 'text' : 'password';
     });
+
+    const handleFileSelection = async () => {
+        if (!fileInput || fileInput.files.length === 0) return;
+        const file = fileInput.files[0];
+        const fileName = file.name;
+        const fileSize = (file.size / 1024).toFixed(1);
+
+        // Hide old list
+        if (fileList) fileList.classList.add('hidden');
+
+        const detectionCard = document.getElementById('detectionCard');
+        if (detectionCard) {
+            // Show loading state first
+            detectionCard.innerHTML = `
+                <div class="flex items-center gap-3 p-4 bg-white/10 rounded-lg border border-white/20">
+                    <span class="text-2xl animate-spin">⟳</span>
+                    <div>
+                        <p class="font-medium text-white">Analyzing file...</p>
+                    </div>
+                </div>
+            `;
+            detectionCard.classList.remove('hidden');
+
+            try {
+                // Read a small chunk for detection to be fast
+                const chunk = file.slice(0, 500000);
+                const content = await chunk.text();
+                const parser = new ChatParser();
+                const platform = parser.detect(content, fileName);
+
+                // Estimate message count roughly (newlines for txt, divs for html)
+                let messageCountStr = '...';
+                const ratio = file.size > 500000 ? (file.size / 500000) : 1;
+
+                if (fileName.toLowerCase().endsWith('.txt')) {
+                    const lines = content.split('\n').length;
+                    messageCountStr = `~${Math.floor(lines / 2 * ratio || lines)} messages`;
+                } else if (fileName.toLowerCase().endsWith('.html')) {
+                    const divs = (content.match(/<div class="message /g) || []).length;
+                    messageCountStr = `~${Math.floor(divs * ratio || divs)} messages`;
+                } else {
+                    messageCountStr = `${fileSize} KB`;
+                }
+
+                const PLATFORM_ICONS = {
+                    'WhatsApp': '💬',
+                    'Telegram': '✈️',
+                    'Signal': '🔒',
+                    'Instagram': '📷',
+                    'Discord': '🎮',
+                    'JSON': '📄'
+                };
+
+                detectionCard.innerHTML = `
+                    <div class="flex items-center gap-3 p-4 bg-white/10 rounded-lg border border-white/20">
+                        <span class="text-2xl">${PLATFORM_ICONS[platform] || '📄'}</span>
+                        <div>
+                            <p class="font-medium text-white">Detected: ${platform}</p>
+                            <p class="text-sm text-white/60">${fileName} • ${messageCountStr}</p>
+                        </div>
+                    </div>
+                `;
+            } catch (err) {
+                 detectionCard.innerHTML = `
+                    <div class="flex items-center gap-3 p-4 bg-white/10 rounded-lg border border-white/20">
+                        <span class="text-2xl">📄</span>
+                        <div>
+                            <p class="font-medium text-white">${fileName}</p>
+                            <p class="text-sm text-white/60">${fileSize} KB</p>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // C-03: Show/hide JSON platform selector based on file type
+        const jsonSelector = document.getElementById('jsonPlatformSelector');
+        if (jsonSelector) {
+            if (fileName.toLowerCase().endsWith('.json')) {
+                jsonSelector.classList.remove('hidden');
+            } else {
+                jsonSelector.classList.add('hidden');
+            }
+        }
+        updateSubmitState();
+    };
 
     // H-01: Add drag/drop visual feedback
     if (dropZone) {
@@ -212,28 +314,22 @@ document.addEventListener('DOMContentLoaded', () => {
         dropZone.addEventListener('drop', (e) => {
             dropZone.classList.remove('drag-over');
             fileInput.files = e.dataTransfer.files;
-            updateFileList();
+            handleFileSelection();
         });
     }
-    fileInput?.addEventListener('change', updateFileList);
+    fileInput?.addEventListener('change', async (e) => {
+        await handleFileSelection();
+    });
 
     function updateFileList() {
+        // Kept for backward compatibility if needed by other parts,
+        // but main logic moved to async event listener above
         if (fileList && fileInput.files.length > 0) {
             const file = fileInput.files[0];
             const fileName = file.name;
             const fileSize = (file.size / 1024).toFixed(1);
             fileList.classList.remove('hidden');
             fileList.textContent = `✅ ${fileName} (${fileSize} KB)`;
-            
-            // C-03: Show/hide JSON platform selector based on file type
-            const jsonSelector = document.getElementById('jsonPlatformSelector');
-            if (jsonSelector) {
-                if (fileName.toLowerCase().endsWith('.json')) {
-                    jsonSelector.classList.remove('hidden');
-                } else {
-                    jsonSelector.classList.add('hidden');
-                }
-            }
         }
         updateSubmitState();
     }
@@ -450,6 +546,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    let progressInterval = null;
+
     // --- Form Submission ---
     if (uploadForm) {
         uploadForm.addEventListener('submit', async (e) => {
@@ -484,14 +582,28 @@ document.addEventListener('DOMContentLoaded', () => {
             activeAbortController = new AbortController();
             
             const loadingOverlay = document.getElementById('loading-overlay');
-            if (loadingOverlay) loadingOverlay.classList.remove('hidden');
+            const progressText = document.getElementById('progress-text');
+            if (loadingOverlay) {
+                loadingOverlay.classList.remove('hidden');
+                if (progressText) {
+                    const steps = ['Parsing messages...', 'Calculating statistics...', 'Extracting insights...'];
+                    let stepIndex = 0;
+                    progressText.textContent = steps[stepIndex++];
+                    progressInterval = setInterval(() => {
+                        if (stepIndex < steps.length) {
+                            progressText.textContent = steps[stepIndex++];
+                        }
+                    }, 2500);
+                }
+            }
 
             const parser = new ChatParser();
             const analytics = new AnalyticsEngine();
 
             if (analyzeBtn) {
                 analyzeBtn.disabled = true;
-                analyzeBtn.textContent = 'Processing...';
+                analyzeBtn.setAttribute('aria-busy', 'true');
+                analyzeBtn.innerHTML = '<span class="animate-spin inline-block mr-2">⟳</span> Analyzing...';
             }
 
             try {
@@ -566,6 +678,14 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (err) {
                 showError(err.message);
                 resetFormState();
+            } finally {
+                if (progressInterval) {
+                    clearInterval(progressInterval);
+                    progressInterval = null;
+                }
+                if (analyzeBtn) {
+                    analyzeBtn.removeAttribute('aria-busy');
+                }
             }
         });
     }
