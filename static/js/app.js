@@ -271,25 +271,29 @@ document.addEventListener('DOMContentLoaded', () => {
                     'JSON': '📄'
                 };
 
+
+                // Use textContent for user input to prevent XSS
                 detectionCard.innerHTML = `
                     <div class="flex items-center gap-3 p-4 bg-white/10 rounded-lg border border-white/20">
                         <span class="text-2xl">${PLATFORM_ICONS[platform] || '📄'}</span>
                         <div>
                             <p class="font-medium text-white">Detected: ${platform}</p>
-                            <p class="text-sm text-white/60">${fileName} • ${messageCountStr}</p>
+                            <p class="text-sm text-white/60"><span id="previewFileName"></span> • ${messageCountStr}</p>
                         </div>
                     </div>
                 `;
+                document.getElementById('previewFileName').textContent = fileName;
             } catch (err) {
                  detectionCard.innerHTML = `
                     <div class="flex items-center gap-3 p-4 bg-white/10 rounded-lg border border-white/20">
                         <span class="text-2xl">📄</span>
                         <div>
-                            <p class="font-medium text-white">${fileName}</p>
+                            <p class="font-medium text-white" id="fallbackPreviewFileName"></p>
                             <p class="text-sm text-white/60">${fileSize} KB</p>
                         </div>
                     </div>
                 `;
+                document.getElementById('fallbackPreviewFileName').textContent = fileName;
             }
         }
 
