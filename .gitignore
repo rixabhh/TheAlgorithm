@@ -35,3 +35,5 @@ htmlcov/
 
 # Ruff
 .ruff_cache/
+
+.TheAlgorithm_ProductionRoadmap.md

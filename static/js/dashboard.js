@@ -1,17 +1,7 @@
 /**
  * The Algorithm - Dashboard Controller (V10.0 Premium Comparison)
+ * Note: escapeHTML is provided by dashboard_utils.js (loaded first)
  */
-
-const escapeHTML = (str) => {
-    if (typeof str !== 'string') return str;
-    return str.replace(/[&<>'"]/g, tag => ({
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        "'": '&#39;',
-        '"': '&quot;'
-    }[tag] || tag));
-};
 
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -64,7 +54,9 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('profile-name').textContent = `${meName} & ${partnerName}`;
         document.getElementById('traits-name-me').textContent = meName;
         document.getElementById('traits-name-partner').textContent = partnerName;
-        document.getElementById('report-headline').textContent = isCompareMode ? `Comparing Chats` : `Analysis: ${partnerName}`;
+        document.getElementById('report-headline').textContent = isCompareMode ? 'Comparative Analysis' : `${meName} & ${partnerName}`;
+        const pulse = document.getElementById('report-pulse');
+        if (pulse) pulse.textContent = `${((stats.messages?.ME || 0) + (stats.messages?.PARTNER || 0)).toLocaleString()} messages · ${stats.duration || '--'} · ${activeData.platform || 'Unknown'}`;
 
         renderSocialDynamics(stats);
         renderEngagement(stats);
@@ -73,7 +65,8 @@ document.addEventListener('DOMContentLoaded', () => {
         renderEmoji(stats);
         renderHumorAndEnergy(stats);
         renderSilenceBreakers(stats);
-        
+        renderLinks(stats);
+
         if (window.Chart) {
             initRatioChart(stats);
             initActivityChart(stats.weekly_data || []);
@@ -126,7 +119,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const container = document.getElementById('emoji-container');
         if (!container) return;
         const emojis = [...(stats.emoji_frequency?.ME || []), ...(stats.emoji_frequency?.PARTNER || [])].sort((a,b)=>b.count-a.count).slice(0, 8);
-        container.innerHTML = emojis.map(e => `<div class="flex align-center gap-3"><span>${e.emoji}</span><div class="flex-1 h-2 bg-cream rounded-full overflow-hidden"><div class="h-full bg-pink" style="width:${(e.count / emojis[0].count * 100)}%"></div></div></div>`).join('');
+        if (!emojis.length) {
+            container.innerHTML = '<p class="op-30 text-xs">No emojis found</p>';
+            return;
+        }
+        const max = emojis[0].count;
+        container.innerHTML = emojis.map(e => `<div class="flex align-center gap-3"><span>${e.emoji}</span><div class="flex-1 h-2 bg-cream rounded-full overflow-hidden"><div class="h-full bg-pink" style="width:${(e.count / max * 100)}%"></div></div></div>`).join('');
     };
 
     const renderHumorAndEnergy = (stats) => {
@@ -177,6 +175,25 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!words.length) { container.innerHTML = '<p class="op-30">No data</p>'; return; }
         const max = words[0].count;
         container.innerHTML = `<div class="flex flex-wrap justify-center p-4 gap-4">${words.slice(0, 20).map(w => `<span style="font-size:${0.8 + (w.count/max)*1.5}rem; font-weight:900; opacity:${0.4 + (w.count/max)*0.6}">${w.word}</span>`).join('')}</div>`;
+    };
+
+    const renderLinks = (stats) => {
+        const container = document.getElementById('links-container');
+        if (!container) return;
+        const links = stats.links || { total: 0, top: [] };
+        if (!links.total) {
+            container.innerHTML = '<p class="op-30 text-xs">No links shared</p>';
+            return;
+        }
+        container.innerHTML = `
+            <p class="text-xs font-black mb-2">${links.total} links shared</p>
+            ${links.top.map(l => `
+                <div class="flex justify-between text-xs">
+                    <span class="truncate">${escapeHTML(l.domain)}</span>
+                    <span class="font-black ml-2">${l.count}</span>
+                </div>
+            `).join('')}
+        `;
     };
 
     // --- CHART LOGIC ---
@@ -270,10 +287,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    window.switchTab = (type, mode) => {
-        const btns = event.target.parentElement.querySelectorAll('.tab-btn');
+    window.switchTab = (e, type, mode) => {
+        const btns = e.target.parentElement.querySelectorAll('.tab-btn');
         btns.forEach(b => b.classList.remove('active'));
-        event.target.classList.add('active');
+        e.target.classList.add('active');
         
         if (type === 'ratio') {
             const s = activeData.stats || {};
@@ -317,8 +334,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    refreshAll();
-    autoTriggerAi();
+    try {
+        refreshAll();
+    } catch (err) {
+        console.error('Dashboard render failed:', err);
+        document.querySelector('main')?.insertAdjacentHTML('afterbegin',
+            `<div class="card p-6 mb-8" style="background:var(--red);color:var(--white)">
+                <strong>Render error:</strong> ${escapeHTML(err.message)}.
+                <a href="/" style="color:white;text-decoration:underline">Start over →</a>
+             </div>`
+        );
+    }
 
     // --- AI INSIGHTS ---
     const generateBtn = document.getElementById('generateAiBtn');
@@ -329,6 +355,14 @@ document.addEventListener('DOMContentLoaded', () => {
         
         permission.classList.add('hidden');
         loading.classList.remove('hidden');
+
+        // U-05: Rotating status messages during AI loading
+        const statusMessages = ['Calculating dynamics...', 'Reading between the lines...', 'Running the algorithm...', 'Almost there...'];
+        let statusIdx = 0;
+        const statusEl = document.getElementById('ai-loading-status');
+        const statusInterval = setInterval(() => {
+            if (statusEl) statusEl.textContent = statusMessages[statusIdx++ % statusMessages.length];
+        }, 3000);
 
         try {
             const payload = {
@@ -364,6 +398,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (red) red.innerHTML = (report.ai_insight?.red_flags || []).map(f => `<li>${f}</li>`).join('');
             if (green) green.innerHTML = (report.ai_insight?.green_flags || []).map(f => `<li>${f}</li>`).join('');
 
+            clearInterval(statusInterval);
             loading.classList.add('hidden');
             results.classList.remove('hidden');
 
@@ -378,15 +413,46 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
         } catch (e) {
-            if (e.message && e.message.includes('Free tier limit')) {
-                alert("Cloudflare free tier limit reached (2 requests per hour). Please try again later or configure your own API key in the settings to generate immediately.");
-            } else {
-                alert("Analysis Error: " + e.message);
-            }
+            clearInterval(statusInterval);
             loading.classList.add('hidden');
+            // M-02: Inline error recovery instead of alert()
+            const errorMsg = e.message && e.message.includes('Free tier limit')
+                ? 'Cloudflare free tier limit reached (2 requests per hour). Configure your own API key for unlimited access.'
+                : `Analysis failed: ${escapeHTML(e.message)}`;
+            permission.innerHTML = `
+                <div class="text-center p-8">
+                    <div style="font-size:3rem;margin-bottom:1rem">⚠️</div>
+                    <h3 style="font-size:1.5rem;margin-bottom:1rem;color:var(--red)">Something went wrong</h3>
+                    <p style="max-width:500px;margin:0 auto 2rem;color:var(--gray-600);line-height:1.6">${errorMsg}</p>
+                    <div class="flex justify-center gap-3">
+                        <button id="retryAiBtn" class="btn btn--pink">✨ Try Again</button>
+                        <button onclick="document.getElementById('settingsBtn')?.click()" class="btn btn--white">⚙ Settings</button>
+                    </div>
+                </div>
+            `;
             permission.classList.remove('hidden');
+            document.getElementById('retryAiBtn')?.addEventListener('click', () => {
+                permission.innerHTML = `
+                    <div class="text-center p-12" style="background:var(--white);border-width:4px">
+                        <div style="font-size:3rem;margin-bottom:1rem">🧠</div>
+                        <h3 style="font-size:1.75rem;margin-bottom:1rem">Unlock AI-Powered Vibe Analytics</h3>
+                        <div><button id="generateAiBtn" class="btn btn--pink btn--lg px-12">✨ GENERATE INSIGHTS</button></div>
+                    </div>
+                `;
+                document.getElementById('generateAiBtn')?.click();
+            });
         }
     });
+
+    // Wire regenerate button (C-03)
+    document.getElementById('regenerateBtn')?.addEventListener('click', () => {
+        document.getElementById('ai-results-container')?.classList.add('hidden');
+        document.getElementById('ai-permission-container')?.classList.remove('hidden');
+        document.getElementById('generateAiBtn')?.click();
+    });
+
+    // Auto-trigger AI — MUST be after generateBtn listener is wired (C-04)
+    autoTriggerAi();
 
     // --- COACHING CHAT LOGIC ---
     const chatForm = document.getElementById('coaching-chat-form');
@@ -398,6 +464,18 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const text = inputEl.value.trim();
         if (!text) return;
+
+        // S-03: Client-side soft rate limit for BYOK users
+        const chatCount = parseInt(sessionStorage.getItem('_chat_count') || '0', 10);
+        if (chatCount >= 50) {
+            const errMsg = document.createElement('div');
+            errMsg.className = 'chat-message error text-sm';
+            errMsg.style.cssText = 'align-self: center; background: #ffcc00; border: 2px solid #000; padding: 0.5rem 1rem; font-weight: 700;';
+            errMsg.textContent = 'Session limit reached (50 messages). Refresh the page to continue.';
+            historyEl.appendChild(errMsg);
+            return;
+        }
+        sessionStorage.setItem('_chat_count', String(chatCount + 1));
 
         // Append User Message
         const userMsg = document.createElement('div');
@@ -549,11 +627,17 @@ document.getElementById('shareLinkBtn')?.addEventListener('click', async () => {
 
         // Strip out any raw messages or content - ONLY anonymous stats
         const shareData = {
-            stats: window.activeData.stats || {},
-            mood_timeline: window.activeData.mood_timeline || [],
             llmReport: window.llmReport || {},
             my_name: "Person A",
-            partner_name: "Person B"
+            partner_name: "Person B",
+            stats: {
+                messages: window.activeData.stats?.messages,
+                duration: window.activeData.stats?.duration,
+                mirroring: window.activeData.stats?.mirroring,
+                symmetry: window.activeData.stats?.symmetry,
+                attachment_style: window.activeData.stats?.attachment_style,
+                streaks: window.activeData.stats?.streaks,
+            }
         };
 
         // Ensure no raw chat content accidentally slips through

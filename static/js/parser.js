@@ -302,20 +302,24 @@ class ChatParser {
      * Robust Date Parsing
      */
     parseDateTime(dtStr) {
-        // Handle common formats manually or via Date object
-        // WhatsApp often uses DD/MM/YYYY or MM/DD/YYYY
-        // For simplicity in the browser, we'll try a few common patterns or use Date.parse
-        
-        // Attempt to swap DD/MM to MM/DD if suspect
-        let cleaned = dtStr.replace(/[\[\]]/g, "").replace(/,/g, "");
-        
-        // Telegram style: 14.12.2023 10:20:30
-        if (cleaned.match(/^\d{2}\.\d{2}\.\d{4}/)) {
-            const [date, time] = cleaned.split(' ');
-            const [d, m, y] = date.split('.');
-            cleaned = `${y}-${m}-${d} ${time}`;
+        let cleaned = dtStr.replace(/[\[\]]/g, '').replace(/,/g, '').trim();
+
+        // Telegram style: DD.MM.YYYY HH:MM:SS
+        if (/^\d{2}\.\d{2}\.\d{4}/.test(cleaned)) {
+            const [datePart, ...rest] = cleaned.split(' ');
+            const [d, m, y] = datePart.split('.');
+            cleaned = `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')} ${rest.join(' ')}`;
         }
-        
+
+        // WhatsApp: DD/MM/YYYY or DD/MM/YY (treat first component as day)
+        const waMatch = cleaned.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+        if (waMatch) {
+            let [, d, m, y] = waMatch;
+            if (y.length === 2) y = '20' + y;
+            const time = cleaned.slice(waMatch[0].length).trim();
+            cleaned = `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')} ${time}`;
+        }
+
         const d = new Date(cleaned);
         return isNaN(d.getTime()) ? new Date() : d;
     }

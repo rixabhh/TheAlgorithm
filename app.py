@@ -124,6 +124,21 @@ def not_found(e: Any) -> Tuple[Response, int]:
     return send_from_directory(".", "404.html"), 404
 
 
+@app.route("/api/stats")
+def api_stats() -> Tuple[Dict[str, int], int]:
+    return {"count": 0}, 200
+
+
+@app.route("/api/analyze", methods=["POST"])
+def api_analyze() -> Tuple[Response, int]:
+    return jsonify({"error": "AI features require Cloudflare Pages deployment."}), 501
+
+
+@app.route("/api/chat", methods=["POST"])
+def api_chat() -> Tuple[Response, int]:
+    return jsonify({"error": "AI features require Cloudflare Pages deployment."}), 501
+
+
 @app.route("/health")
 def health() -> Tuple[Dict[str, str], int]:
     return {"status": "ok"}, 200

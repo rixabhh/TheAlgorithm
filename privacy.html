@@ -56,6 +56,11 @@
                 <h3 class="mb-2" style="color:var(--orange)">3. Third Party Processors</h3>
                 <p style="color:var(--gray-600); line-height:1.6">The analytics output is directly forwarded via secure TLS to the AI provider of your choice (OpenAI, Anthropic, Cloudflare AI, etc.). We configure zero-retention policies using standard enterprise headers to mandate exclusion from LLM training pools.</p>
             </div>
+
+            <div class="mb-6">
+                <h3 class="mb-2" style="color:var(--blue)">4. Cloudflare AI (Free Tier)</h3>
+                <p style="color:var(--gray-600); line-height:1.6">When using the free tier, anonymous statistics (message counts, response times, sentiment scores — never raw message content) are processed by Cloudflare's AI service (<code style="font-size:.85em;background:var(--cream);padding:1px 4px;border-radius:3px">@cf/meta/llama-3-8b-instruct</code>) under <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener" style="color:var(--blue);font-weight:700">Cloudflare's privacy policy</a>. Cloudflare Workers AI does not use inference data for model training.</p>
+            </div>
             
             <div class="mt-10 pt-6 text-center" style="border-top:2px dashed var(--gray-300)">
                 <a href="/" class="btn btn--black btn--lg">Back to Home</a>

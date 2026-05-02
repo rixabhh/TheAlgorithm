@@ -26,13 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (toneSelector) {
         toneSelector.querySelectorAll('.tone-btn').forEach(btn => {
             btn.addEventListener('click', () => {
-                toneSelector.querySelectorAll('.tone-btn').forEach(b => {
-                    b.style.background = 'transparent';
-                    b.style.color = 'var(--black)';
-                    b.classList.remove('active');
-                });
-                btn.style.background = 'var(--black)';
-                btn.style.color = 'var(--white)';
+                toneSelector.querySelectorAll('.tone-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 const tone = btn.dataset.tone;
                 if (toneInput) toneInput.value = tone;
@@ -40,6 +34,15 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     }
+
+    // U-01: Wire hamburger nav toggle
+    const hamburger = document.querySelector('.nav-hamburger');
+    const navLinks = document.querySelector('.nav-links');
+    hamburger?.addEventListener('click', () => {
+        navLinks?.classList.toggle('active');
+        hamburger.setAttribute('aria-expanded',
+            navLinks?.classList.contains('active') ? 'true' : 'false');
+    });
 
     // --- Custom Select Dropdowns ---
     document.querySelectorAll('.custom-select').forEach(wrapper => {
@@ -84,11 +87,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const updateSubmitState = () => {
         if (!analyzeBtn) return;
         const hasFile = fileInput && fileInput.files.length > 0;
+        const hasNames = document.getElementById('myName')?.value.trim() &&
+                         document.getElementById('partnerName')?.value.trim();
         const provider = localStorage.getItem('llm_provider') || 'cloudflare';
         const keyRaw = sessionStorage.getItem('_llm_token');
         const hasValidKey = (provider === 'cloudflare') || (keyRaw && keyRaw.trim() !== '' && keyRaw !== btoa(''));
         
-        analyzeBtn.disabled = !(hasFile && hasValidKey);
+        analyzeBtn.disabled = !(hasFile && hasNames && hasValidKey);
         
         if (!hasValidKey) {
             analyzeBtn.textContent = 'Configure API Key First →';
@@ -96,11 +101,18 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (!hasFile) {
             analyzeBtn.textContent = 'Upload File to Decode →';
             analyzeBtn.style.opacity = '0.5';
+        } else if (!hasNames) {
+            analyzeBtn.textContent = 'Enter Both Names →';
+            analyzeBtn.style.opacity = '0.5';
         } else {
             analyzeBtn.textContent = 'Decode My Chat →';
             analyzeBtn.style.opacity = '1';
         }
     };
+
+    // U-03: Re-evaluate submit state when name fields change
+    document.getElementById('myName')?.addEventListener('input', updateSubmitState);
+    document.getElementById('partnerName')?.addEventListener('input', updateSubmitState);
 
     // --- API Key Status ---
     const updateApiKeyUI = () => {
@@ -202,7 +214,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         saveSettingsBtn?.addEventListener('click', () => {
             const key = apiKeyEl ? apiKeyEl.value.trim() : '';
-            sessionStorage.setItem('_llm_token', btoa(key));
+            sessionStorage.setItem('_llm_token', btoa(unescape(encodeURIComponent(key))));
             localStorage.setItem('hf_url', hfUrlEl ? hfUrlEl.value.trim() : '');
             localStorage.setItem('llm_provider', llmProviderEl ? llmProviderEl.value : 'cloudflare');
             updateApiKeyUI();
@@ -354,7 +366,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const showError = (message) => {
         const container = document.getElementById('errorContainer');
         if (container) {
-            container.innerHTML = `<p>${message}</p>`;
+            const p = document.createElement('p');
+            p.textContent = message;
+            container.innerHTML = '';
+            container.appendChild(p);
             container.classList.remove('hidden');
         } else alert(message);
     };
@@ -380,7 +395,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 connection_type: data.connection_type
             };
             history.unshift(entry);
-            if (history.length > 5) history.pop();
+            if (history.length > 20) history.pop();
             localStorage.setItem(this.STORAGE_KEY, JSON.stringify(history));
             return entry;
         }
@@ -436,7 +451,7 @@ document.addEventListener('DOMContentLoaded', () => {
             card.className = 'history-card';
             card.innerHTML = `
                 <div class="history-card__info">
-                    <h4 class="m-0">${item.my_name} & ${item.partner_name}</h4>
+                    <h4 class="m-0">${escapeHTML(item.my_name)} & ${escapeHTML(item.partner_name)}</h4>
                     <div class="history-card__meta mt-1">
                         <span class="pill-label pill-label--white" style="font-size:0.6rem; padding: 2px 6px">${item.platform}</span>
                         <span>${item.msg_count.toLocaleString()} msgs</span>
@@ -568,6 +583,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const connectionTypeVal = document.getElementById('connectionType')?.value;
             if (!connectionTypeVal) {
                 showError('Please select a relationship type before analysing.');
+                document.querySelector('[data-target="connectionType"] .custom-select-trigger')
+                    ?.style.setProperty('border-color', 'var(--red)');
                 return;
             }
             
@@ -583,7 +600,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
 
-                const rawKey = atob(decodeURIComponent(apiKeyB64)).trim();
+                const rawKey = decodeURIComponent(escape(atob(apiKeyB64))).trim();
                 let isKeyValid = true;
                 let keyError = '';
 
@@ -641,6 +658,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (activeAbortController?.signal.aborted) throw new Error('Analysis cancelled.');
                 
                 const file = fileInput.files[0];
+
+                // P-02: Client-side file size check before parsing
+                if (file.size > 20 * 1024 * 1024) {
+                    showError('File too large. Max 20MB. Try exporting a shorter date range.');
+                    resetFormState();
+                    return;
+                }
+
                 const content = await file.text();
                 
                 // C-03: Read platform from the hidden select (synced by custom dropdown)
@@ -718,5 +743,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         });
+    }
+    // M-01: First-visit onboarding — auto-show Trust Center
+    if (!localStorage.getItem('algo_seen') && trustCenterModal) {
+        setTimeout(() => {
+            showModal(trustCenterModal);
+        }, 800);
+        // Set flag on any dismiss
+        const markSeen = () => localStorage.setItem('algo_seen', '1');
+        closeTrustCenter?.addEventListener('click', markSeen);
+        understoodBtn?.addEventListener('click', markSeen);
     }
 });

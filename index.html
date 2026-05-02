@@ -253,7 +253,7 @@
                         <svg style="width:32px;height:32px;margin-bottom:.4rem;opacity:0.6" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
                         <p style="font-weight:700;margin-bottom:.5rem;font-size:.9rem">Drop your chats here</p>
                         <label for="chatFile" class="btn btn--purple" style="font-size:.65rem;padding:.3rem .85rem;cursor:pointer;margin:0">Browse Files</label>
-                        <input type="file" id="chatFile" class="sr-only" accept=".txt,.html,.json" multiple required>
+                        <input type="file" id="chatFile" class="sr-only" accept=".txt,.html,.json" required>
                     </div>
                     <div id="fileList" class="hidden" style="font-size:.85rem;font-weight:700;padding:.75rem 1rem;background:var(--green);color:var(--white);border:var(--border);border-radius:var(--r-sm);box-shadow:2px 2px 0 0 var(--black)"></div>
                     <div id="detectionCard" class="hidden mt-2"></div>
@@ -458,7 +458,9 @@
             </div>
 
             <button id="saveSettingsBtn" class="btn btn--purple btn--full" style="margin-top:.5rem">Save & Close</button>
-            <p id="apiKeyFormatHint" style="font-size:.6rem;font-weight:600;color:var(--gray-400);text-align:center;margin:0;text-transform:uppercase">🔒 Locally stored in browser • Never hits our databases</p>
+            <div style="background:var(--cream);border:var(--border-thin);border-radius:var(--r-sm);padding:.6rem .8rem;margin-top:.75rem">
+                <p style="font-size:.6rem;font-weight:600;color:var(--gray-500);text-align:center;margin:0">🔒 Your API key is stored in browser session memory only. It is cleared when you close this tab and is never sent to our servers.</p>
+            </div>
         </div>
     </div>
 </div>

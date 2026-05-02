@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Your Report — The Algorithm</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js" defer></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js" defer></script>
     <link rel="stylesheet" href="static/css/style.css">
     <style>
         /* Tooltip and micro-interaction additions */
@@ -132,8 +132,8 @@
                 <div class="card p-6">
                     <h3 class="mb-4 text-sm uppercase opacity-50">Communication Ratios</h3>
                     <div class="tabs flex border rounded mb-4 overflow-hidden" style="font-size:0.7rem">
-                        <button class="tab-btn active p-2 flex-1" onclick="switchTab('ratio', 'messages')">Messages</button>
-                        <button class="tab-btn p-2 flex-1" onclick="switchTab('ratio', 'words')">Words</button>
+                        <button class="tab-btn active p-2 flex-1" onclick="switchTab(event, 'ratio', 'messages')">Messages</button>
+                        <button class="tab-btn p-2 flex-1" onclick="switchTab(event, 'ratio', 'words')">Words</button>
                     </div>
                     <div id="ratio-chart-container" style="height:250px">
                         <canvas id="ratioChart"></canvas>
@@ -156,7 +156,7 @@
             <div class="card p-6">
                 <h3 class="mb-4 text-sm uppercase opacity-50">Emotional Tone Over Time</h3>
                 <div id="mood-chart-container" style="height:300px; width: 100%">
-                    <canvas id="moodChart"></canvas>
+                    <canvas id="moodChart" style="height:300px"></canvas>
                 </div>
             </div>
         </section>
@@ -299,6 +299,9 @@
                         <div class="bone mb-3" style="width:85%;height:16px;border-radius:4px"></div>
                         <div class="bone mb-3" style="width:90%;height:16px;border-radius:4px"></div>
                     </div>
+                </div>
+                <div id="ai-loading-status" class="text-center mt-6" style="font-size:0.85rem;font-weight:700;color:var(--gray-500)">
+                    Analysing patterns...
                 </div>
             </div>
 
