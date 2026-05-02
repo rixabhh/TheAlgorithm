@@ -17,7 +17,7 @@
 
 
 
-### 🚀 [Try the Live App Here](https://thealgorithm.rixabh.workers.dev/)
+### 🚀 [Try the Live App Here](https://the-algorithm.pages.dev/)
 
 <!-- Demo GIF/Screenshot Placeholder -->
 <p align="center">
