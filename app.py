@@ -1,10 +1,11 @@
 from collections import defaultdict
 import time
 import os
-from typing import Any, Tuple, List, Dict
+from typing import Any, Tuple, List, Dict, cast
 
 from flask import Flask, send_from_directory, jsonify, request
 from flask.wrappers import Response
+from werkzeug.datastructures import FileStorage
 
 app = Flask(__name__, static_folder="static")
 
@@ -43,7 +44,7 @@ def before_request() -> "Response | Tuple[Response, int] | None":
             return jsonify({"error": "Too many requests. Please try again later."}), 429
 
         if request.files:
-            for file in list(request.files.values()):
+            for file in cast(List[FileStorage], list(request.files.values())):
                 if file and file.filename:
                     is_valid, error_msg = validate_upload(file)
                     if not is_valid:
@@ -74,52 +75,52 @@ def handle_error(e: Any) -> Tuple[Response, int]:
 
 @app.route("/")
 def index() -> Response:
-    return send_from_directory(".", "index.html")  # type: ignore[return-value]
+    return send_from_directory(".", "index.html")
 
 
 @app.route("/dashboard.html")
 def dashboard() -> Response:
-    return send_from_directory(".", "dashboard.html")  # type: ignore[return-value]
+    return send_from_directory(".", "dashboard.html")
 
 
 @app.route("/history.html")
 def history() -> Response:
-    return send_from_directory(".", "history.html")  # type: ignore[return-value]
+    return send_from_directory(".", "history.html")
 
 
 @app.route("/instructions.html")
 def instructions() -> Response:
-    return send_from_directory(".", "instructions.html")  # type: ignore[return-value]
+    return send_from_directory(".", "instructions.html")
 
 
 @app.route("/privacy.html")
 def privacy() -> Response:
-    return send_from_directory(".", "privacy.html")  # type: ignore[return-value]
+    return send_from_directory(".", "privacy.html")
 
 
 @app.route("/share")
 def share() -> Response:
-    return send_from_directory(".", "dashboard.html")  # type: ignore[return-value]
+    return send_from_directory(".", "dashboard.html")
 
 
 @app.route("/pricing.html")
 def pricing() -> Response:
-    return send_from_directory(".", "pricing.html")  # type: ignore[return-value]
+    return send_from_directory(".", "pricing.html")
 
 
 @app.route("/robots.txt")
 def robots() -> Response:
-    return send_from_directory(".", "robots.txt")  # type: ignore[return-value]
+    return send_from_directory(".", "robots.txt")
 
 
 @app.route("/sitemap.xml")
 def sitemap() -> Response:
-    return send_from_directory(".", "sitemap.xml")  # type: ignore[return-value]
+    return send_from_directory(".", "sitemap.xml")
 
 
 @app.errorhandler(404)
 def not_found(e: Any) -> Tuple[Response, int]:
-    return send_from_directory(".", "404.html"), 404  # type: ignore[return-value]
+    return send_from_directory(".", "404.html"), 404
 
 
 @app.route("/health")
