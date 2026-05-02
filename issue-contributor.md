@@ -1,9 +1,6 @@
-Title: Add anonymized sample chat exports for local testing
+Title: Contributor Experience: Create a setup script or interactive CLI tool
 
-Currently, if a new contributor wants to test changes to the parser or verify UI updates in the dashboard, they have to export their own personal chat history from WhatsApp or Telegram.
+Currently, contributors have to manually copy `.env.example`, potentially set up their own virtual environment, install dependencies, and run multiple `make` commands before they can get started. We should create a simple `./setup.sh` or Python script that automates the initial configuration.
 
-**Proposed Solution:**
-Create a `tests/fixtures/` directory containing small, fully anonymized sample exports (e.g., `sample_whatsapp.txt`, `sample_telegram.html`, `sample_instagram.json`). These samples should use fake names and generic text but match the exact structural format of real exports.
-
-**Why it matters for contributors:**
-This removes a significant barrier to entry. New developers can instantly test the app's core functionality and parsing logic without needing to locate, export, and upload their own private data, ensuring a "clone and run in 5 minutes" experience.
+Why it matters for contributors:
+A one-click or single-command setup reduces friction for first-time contributors and ensures everyone starts from a correctly configured environment. A contributor who can clone and be running in under 5 minutes is a contributor who might actually submit a PR.
