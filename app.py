@@ -1,7 +1,7 @@
 from collections import defaultdict
 import time
 import os
-from typing import Any, Tuple, List, Dict, cast
+from typing import Any, Tuple, Dict
 
 from flask import Flask, send_from_directory, jsonify, request
 from flask.wrappers import Response
@@ -44,7 +44,8 @@ def before_request() -> "Response | Tuple[Response, int] | None":
             return jsonify({"error": "Too many requests. Please try again later."}), 429
 
         if request.files:
-            for file in cast(List[FileStorage], list(request.files.values())):
+            for key in request.files:
+                file: FileStorage = request.files[key]
                 if file and file.filename:
                     is_valid, error_msg = validate_upload(file)
                     if not is_valid:
