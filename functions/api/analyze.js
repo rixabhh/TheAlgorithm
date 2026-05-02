@@ -1,3 +1,5 @@
+import { makeLLMCall } from './llm_helper.js';
+
 export async function onRequestPost(context) {
     const { request, env } = context;
     const ip = request.headers.get('cf-connecting-ip') || 'unknown';
@@ -27,7 +29,7 @@ export async function onRequestPost(context) {
         // Define standard keys we need back
         const requiredKeys = ["relationship_persona", "compatibility_score", "ai_insight", "overall_health_score", "communication_style", "attachment_style", "key_insights", "strengths", "growth_areas", "coaching_advice", "fun_fact"];
 
-        const systemPrompt = `You are 'The Algorithm', an expert relationship analyst and communication coach. You act like a brilliant friend who happens to be a therapist - warm, insightful, empathetic, but brutally honest.
+        const baseSystemPrompt = `You are 'The Algorithm', an expert relationship analyst and communication coach. You act like a brilliant friend who happens to be a therapist - warm, insightful, empathetic, but brutally honest.
 CRITICAL RULES:
 1. Return ONLY a valid JSON object. Do NOT wrap in markdown code blocks.
 2. The JSON keys MUST remain exactly as follows (in English):
@@ -60,6 +62,12 @@ CRITICAL RULES:
   }
 }
 3. The VALUES inside the JSON MUST be written in the requested Output Language (${language || 'english'}). If Hinglish is requested, use conversational Hindi written in the English alphabet (e.g., 'Bhai kya kar raha hai'). Make it gen-z, witty, and brutal.`;
+
+        const PROVIDER_SYSTEM_PROMPTS = {
+            "anthropic": `<role>\n${baseSystemPrompt}\n</role>`,
+            "default": baseSystemPrompt
+        };
+        const systemPrompt = PROVIDER_SYSTEM_PROMPTS[provider] || PROVIDER_SYSTEM_PROMPTS["default"];
         
         let userPrompt = `Analyze these anonymous conversation statistics and provide deep behavioral insights.
 ## Relationship Context
@@ -88,79 +96,47 @@ CRITICAL RULES:
         const timeoutId = setTimeout(() => controller.abort(), 30000); // 30-second timeout max
 
         try {
-            let rawResponseText = null;
-
-            if (provider === 'cloudflare' && env.AI) {
-                const aiResult = await env.AI.run('@cf/meta/llama-3-8b-instruct', {
-                    messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }]
-                });
-                rawResponseText = aiResult.response;
-            } else if (api_key && (provider === 'openai' || provider === 'groq' || provider === 'grok' || provider === 'openrouter' || provider === 'cohere')) {
-                if (provider === 'cohere') {
-                    // Cohere uses a different payload structure
-                    const url = 'https://api.cohere.ai/v1/chat';
-                    const model = 'command-r-plus';
-
-                    const resp = await fetch(url, {
-                        method: 'POST',
-                        headers: { 'Authorization': `Bearer ${api_key}`, 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            model: model,
-                            message: userPrompt,
-                            preamble: systemPrompt,
-                            response_format: { type: "json_object" }
-                        }),
-                        signal: controller.signal
-                    });
-
-                    if (!resp.ok) {
-                        throw new Error(`API returned ${resp.status}`);
-                    }
-
-                    const resData = await resp.json();
-                    if (resData.text) rawResponseText = resData.text;
-                } else {
-                    let url, model;
-                    if (provider === 'openai') { url = 'https://api.openai.com/v1/chat/completions'; model = 'gpt-4o-mini'; }
-                    else if (provider === 'groq') { url = 'https://api.groq.com/openai/v1/chat/completions'; model = 'llama-3.1-70b-versatile'; }
-                    else if (provider === 'grok') { url = 'https://api.x.ai/v1/chat/completions'; model = 'grok-2-latest'; }
-                    else if (provider === 'openrouter') { url = 'https://openrouter.ai/api/v1/chat/completions'; model = 'openai/gpt-4o'; }
-
-                    const resp = await fetch(url, {
-                        method: 'POST',
-                        headers: { 'Authorization': `Bearer ${api_key}`, 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ model, messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }], response_format: { type: "json_object" } }),
-                        signal: controller.signal
-                    });
-
-                    if (!resp.ok) {
-                        throw new Error(`API returned ${resp.status}`);
-                    }
-
-                    const resData = await resp.json();
-                    if (resData.choices) rawResponseText = resData.choices[0].message.content;
-                }
-            }
+            let rawResponseText = await makeLLMCall(provider, api_key, systemPrompt, userPrompt, env, controller.signal);
 
             clearTimeout(timeoutId);
 
-            if (rawResponseText) {
-                const match = rawResponseText.match(/\{[\s\S]*\}/);
+            const parseResponse = (text) => {
+                const match = text.match(/\{[\s\S]*\}/);
                 if (match) {
                     try {
                         const parsed = JSON.parse(match[0]);
-                        // Basic validation
                         const isValid = requiredKeys.every(k => Object.hasOwn(parsed, k));
                         if (isValid || Object.hasOwn(parsed, 'compatibility_score')) {
-                            report = parsed;
-                        } else {
-                            throw new Error("Invalid schema from LLM.");
+                            return parsed;
                         }
                     } catch (e) {
-                        throw new Error("Couldn't parse the analysis. Please try again.");
+                        return null;
                     }
-                } else {
-                    throw new Error("No JSON found in LLM response.");
+                }
+                return null;
+            };
+
+            if (rawResponseText) {
+                report = parseResponse(rawResponseText);
+
+                // Fallback / Retry Logic
+                if (!report && api_key && provider !== 'cloudflare') {
+                    // Try one more time with a stricter prompt if parsing failed
+                    const stricterUserPrompt = userPrompt + "\n\nWARNING: Your previous response failed validation. You MUST return ONLY a valid JSON object matching the requested schema. No conversational text.";
+                    const retryController = new AbortController();
+                    const retryTimeoutId = setTimeout(() => retryController.abort(), 30000);
+                    try {
+                        const retryResponseText = await makeLLMCall(provider, api_key, systemPrompt, stricterUserPrompt, env, retryController.signal);
+                        report = parseResponse(retryResponseText);
+                    } catch (retryErr) {
+                        console.error("Retry failed:", retryErr);
+                    } finally {
+                        clearTimeout(retryTimeoutId);
+                    }
+                }
+
+                if (!report) {
+                    throw new Error("Invalid schema from LLM or parsing failed.");
                 }
             }
         } catch (callError) {
