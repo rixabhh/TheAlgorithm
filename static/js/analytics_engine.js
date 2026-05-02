@@ -52,6 +52,9 @@ class AnalyticsEngine {
         // --- NEW METRICS ---
         const threads = this.calculateThreads(processed);
         const duration = this.calculateDuration(processed);
+        const laughter = this.calculateLaughter(processed);
+        const silenceBreakers = this.calculateSilenceBreakers(processed);
+        const capsLock = this.calculateCapsLock(processed);
         const streakInfo = this.calculateStreaks(processed);
         const lexicalDiversity = this.calculateLexicalDiversity(processed);
         const links = this.extractLinks(processed);
@@ -85,6 +88,9 @@ class AnalyticsEngine {
             chars: { ME: powerInfo.me_char_count, PARTNER: powerInfo.partner_char_count },
             threads: threads,
             duration: duration,
+            laughter: laughter,
+            silence_breakers: silenceBreakers,
+            caps_lock: capsLock,
             streaks: { longest: streakInfo.max_streak, current: streakInfo.current_streak || 0, active_pct: streakInfo.active_pct },
             lexical_diversity: lexicalDiversity,
             links: links,
@@ -211,6 +217,41 @@ class AnalyticsEngine {
             days_active: activeDays.size,
             active_pct: Math.round((activeDays.size / (totalDaysRange || 1)) * 100)
         };
+    }
+
+    calculateLaughter(messages) {
+        const laughter = { ME: 0, PARTNER: 0 };
+        const LAUGH_RE = /haha|hehe|lmao|lol|rofl|😂|🤣/i;
+        for (const m of messages) {
+            if (LAUGH_RE.test(m.text || '')) {
+                laughter[m.sender]++;
+            }
+        }
+        return laughter;
+    }
+
+    calculateSilenceBreakers(messages) {
+        const breakers = { ME: 0, PARTNER: 0 };
+        const LONG_GAP_THRESHOLD = 720; // 12 hours
+        for (let i = 1; i < messages.length; i++) {
+            const current = messages[i];
+            if (current.gapMins >= LONG_GAP_THRESHOLD) {
+                breakers[current.sender]++;
+            }
+        }
+        return breakers;
+    }
+
+    calculateCapsLock(messages) {
+        const caps = { ME: 0, PARTNER: 0 };
+        for (const m of messages) {
+            const text = m.text || '';
+            const alpha = text.replace(/[^a-zA-Z]/g, '');
+            if (alpha.length >= 3 && alpha === alpha.toUpperCase()) {
+                caps[m.sender]++;
+            }
+        }
+        return caps;
     }
 
     calculateLexicalDiversity(messages) {
