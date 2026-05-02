@@ -1,6 +1,5 @@
-from typing import Generator
+from typing import Generator, Optional
 import io
-import time
 
 import pytest
 from flask.testing import FlaskClient
@@ -13,6 +12,13 @@ def client() -> Generator[FlaskClient, None, None]:
     app.config["TESTING"] = True
     with app.test_client() as client:
         yield client
+
+
+class DummyFile:
+    def __init__(self, filename: str, content_length: Optional[int] = None) -> None:
+        self.filename = filename
+        self.content_length = content_length
+
 
 def test_health(client: FlaskClient) -> None:
     rv = client.get("/health")
@@ -41,31 +47,20 @@ def test_404(client: FlaskClient) -> None:
 
 def test_is_rate_limited() -> None:
     ip = "192.168.1.1"
-    request_counts[ip] = [] # clear it
+    request_counts[ip] = []
 
-    # Send up to limit
     for _ in range(10):
         assert not is_rate_limited(ip, limit=10, window=60)
 
-    # Next should be limited
     assert is_rate_limited(ip, limit=10, window=60)
 
-from typing import Optional, Any
-class DummyFile:
-    def __init__(self, filename: str, content_length: Optional[int] = None) -> None:
-        self.filename = filename
-        self.content_length = content_length
-
 def test_validate_upload() -> None:
-    # Good file
     assert validate_upload(DummyFile("test.txt", 100)) == (True, "")
     assert validate_upload(DummyFile("test.html", 100)) == (True, "")
     assert validate_upload(DummyFile("test.json", 100)) == (True, "")
 
-    # Bad extension
     assert validate_upload(DummyFile("test.png", 100)) == (False, "File type not supported")
 
-    # Too large
     MAX_FILE_SIZE = 10 * 1024 * 1024
     assert validate_upload(DummyFile("test.txt", MAX_FILE_SIZE + 1)) == (False, "File too large (max 10MB)")
 
@@ -84,7 +79,7 @@ def test_rate_limit_middleware(client: FlaskClient) -> None:
 def test_upload_validation_middleware(client: FlaskClient) -> None:
     ip = "127.0.0.2"
     request_counts[ip] = []
-    # Test file upload with bad extension
+
     data = {
         'file': (io.BytesIO(b"test"), 'test.xyz')
     }
@@ -93,7 +88,6 @@ def test_upload_validation_middleware(client: FlaskClient) -> None:
     assert rv.json is not None
     assert "File type not supported" in rv.json["error"]
 
-    # Test file upload with valid extension
     data_valid = {
         'file': (io.BytesIO(b"test"), 'test.txt')
     }
