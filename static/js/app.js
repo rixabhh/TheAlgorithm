@@ -243,7 +243,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const hfContainer = document.getElementById('hfUrlContainer');
         const apiKeyContainer = document.getElementById('apiKeyContainer');
         if (!hintEl) return;
-        const hints = { 'cloudflare': 'Free Tier (2 reports/hr)', 'openai': 'sk-proj-...', 'anthropic': 'sk-ant-...', 'gemini': 'Google API Key' };
+        const hints = { 'cloudflare': 'Free Tier (2 reports/hr)', 'openai': 'sk-...', 'anthropic': 'sk-ant-...', 'gemini': '39-char API Key', 'mistral': 'API Key', 'grok': 'xAI API Key', 'openrouter': 'OpenRouter API Key', 'cohere': 'Cohere API Key' };
         hintEl.textContent = hints[provider] || '';
         
         if (hfContainer) hfContainer.classList.toggle('hidden', provider !== 'huggingface');
@@ -471,13 +471,39 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const provider = localStorage.getItem('llm_provider') || 'cloudflare';
             const apiKeyB64 = sessionStorage.getItem('_llm_token');
-            if (provider !== 'cloudflare' && (!apiKeyB64 || apiKeyB64.trim() === '' || apiKeyB64 === btoa(''))) {
-                showError(`An API Key is required for ${document.querySelector('#llmProvider option:checked')?.text || provider}. Configure it first.`);
-                if (analyzeBtn) {
-                    analyzeBtn.disabled = false;
-                    analyzeBtn.textContent = 'Configure API Key First →';
+            if (provider !== 'cloudflare') {
+                if (!apiKeyB64 || apiKeyB64.trim() === '' || apiKeyB64 === btoa('')) {
+                    showError(`An API Key is required for ${document.querySelector('#llmProvider option:checked')?.text || provider}. Configure it first.`);
+                    if (analyzeBtn) {
+                        analyzeBtn.disabled = false;
+                        analyzeBtn.textContent = 'Configure API Key First →';
+                    }
+                    return;
                 }
-                return;
+
+                const rawKey = atob(decodeURIComponent(apiKeyB64)).trim();
+                let isKeyValid = true;
+                let keyError = '';
+
+                if (provider === 'openai' && !rawKey.startsWith('sk-')) {
+                    isKeyValid = false;
+                    keyError = 'OpenAI keys must start with "sk-"';
+                } else if (provider === 'anthropic' && !rawKey.startsWith('sk-ant-')) {
+                    isKeyValid = false;
+                    keyError = 'Anthropic keys must start with "sk-ant-"';
+                } else if (provider === 'gemini' && rawKey.length !== 39) {
+                    isKeyValid = false;
+                    keyError = 'Gemini keys must be exactly 39 characters';
+                }
+
+                if (!isKeyValid) {
+                    showError(`Invalid API Key format: ${keyError}.`);
+                    if (analyzeBtn) {
+                        analyzeBtn.disabled = false;
+                        analyzeBtn.textContent = 'Fix API Key First →';
+                    }
+                    return;
+                }
             }
             
             // C-05: Create abort controller for this request

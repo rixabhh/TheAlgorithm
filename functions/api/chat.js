@@ -1,3 +1,5 @@
+import { makeChatLLMCall } from './llm_helper.js';
+
 export async function onRequestPost(context) {
     const { request, env } = context;
     const ip = request.headers.get('cf-connecting-ip') || 'unknown';
@@ -17,7 +19,7 @@ export async function onRequestPost(context) {
         }
 
         // 2. SYSTEM PROMPT
-        const systemPrompt = `You are 'The Algorithm', an expert relationship analyst and communication coach. You act like a brilliant friend who happens to be a therapist - warm, insightful, empathetic, but brutally honest.
+        const baseSystemPrompt = `You are 'The Algorithm', an expert relationship analyst and communication coach. You act like a brilliant friend who happens to be a therapist - warm, insightful, empathetic, but brutally honest.
 The user has generated an AI Insight Vibe Report based on their chat exports.
 Your job is to answer their specific follow-up questions about this relationship, using their exact STATS and REPORT context below.
 Be direct, deeply insightful, and don't coddle them. Reference their data explicitly if it helps make a point regarding their behaviors or power dynamics.
@@ -30,10 +32,11 @@ ${JSON.stringify(stats)}
 ${JSON.stringify(llmReport)}
 -------------------------`;
 
-        // Format conversation history
-        const messages = [{ role: 'system', content: systemPrompt }];
-        chat_history.forEach(msg => messages.push({ role: msg.role, content: msg.content }));
-        messages.push({ role: 'user', content: message });
+        const PROVIDER_SYSTEM_PROMPTS = {
+            "anthropic": `<role>\n${baseSystemPrompt}\n</role>`,
+            "default": baseSystemPrompt
+        };
+        const systemPrompt = PROVIDER_SYSTEM_PROMPTS[provider] || PROVIDER_SYSTEM_PROMPTS["default"];
 
         let responseText = null;
 
@@ -41,73 +44,7 @@ ${JSON.stringify(llmReport)}
         const timeoutId = setTimeout(() => controller.abort(), 30000); // 30-second timeout max
 
         try {
-            if (provider === 'cloudflare' && env.AI) {
-                // Use Llama 3 via Workers AI
-                const aiResult = await env.AI.run('@cf/meta/llama-3-8b-instruct', {
-                    messages: messages
-                });
-                responseText = aiResult.response;
-            } else if (api_key && (provider === 'openai' || provider === 'groq' || provider === 'grok' || provider === 'openrouter' || provider === 'cohere')) {
-                if (provider === 'cohere') {
-                    const url = 'https://api.cohere.ai/v1/chat';
-                    const model = 'command-r-plus';
-
-                    // Map chat_history to cohere's specific format
-                    const cohereChatHistory = chat_history.map(msg => ({
-                        role: msg.role === 'user' ? 'USER' : 'CHATBOT',
-                        message: msg.content
-                    }));
-
-                    const resp = await fetch(url, {
-                        method: 'POST',
-                        headers: { 'Authorization': `Bearer ${api_key}`, 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            model: model,
-                            message: message,
-                            preamble: systemPrompt,
-                            chat_history: cohereChatHistory,
-                            max_tokens: 500
-                        }),
-                        signal: controller.signal
-                    });
-
-                    if (!resp.ok) {
-                        throw new Error(`API returned ${resp.status}`);
-                    }
-
-                    const resData = await resp.json();
-                    if (resData.text) {
-                        responseText = resData.text;
-                    } else {
-                        throw new Error("Invalid format from API provider.");
-                    }
-                } else {
-                    let url, model;
-                    if (provider === 'openai') { url = 'https://api.openai.com/v1/chat/completions'; model = 'gpt-4o-mini'; }
-                    else if (provider === 'groq') { url = 'https://api.groq.com/openai/v1/chat/completions'; model = 'llama-3.1-70b-versatile'; }
-                    else if (provider === 'grok') { url = 'https://api.x.ai/v1/chat/completions'; model = 'grok-2-latest'; }
-                    else if (provider === 'openrouter') { url = 'https://openrouter.ai/api/v1/chat/completions'; model = 'openai/gpt-4o'; }
-
-                    const resp = await fetch(url, {
-                        method: 'POST',
-                        headers: { 'Authorization': `Bearer ${api_key}`, 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ model, messages, max_tokens: 500 }),
-                        signal: controller.signal
-                    });
-
-                    if (!resp.ok) {
-                        throw new Error(`API returned ${resp.status}`);
-                    }
-
-                    const resData = await resp.json();
-                    if (resData.choices && resData.choices.length > 0) {
-                        responseText = resData.choices[0].message.content;
-                    } else {
-                        throw new Error("Invalid format from API provider.");
-                    }
-                }
-            }
-            
+            responseText = await makeChatLLMCall(provider, api_key, systemPrompt, chat_history, message, env, controller.signal);
             clearTimeout(timeoutId);
         } catch (callError) {
             clearTimeout(timeoutId);
