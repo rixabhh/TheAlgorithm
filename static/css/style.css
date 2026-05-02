@@ -1020,6 +1020,30 @@ textarea.field-input { resize: vertical; min-height: 60px; }
     animation: fade-in 0.3s ease forwards;
 }
 
+/* ── Dashboard Layout ── */
+.dashboard-wrapper {
+    display: flex;
+    min-height: 100vh;
+    align-items: flex-start;
+}
+.sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 52px;
+    height: calc(100vh - 52px);
+    overflow-y: auto;
+    border-right: var(--border-thick);
+    padding: 2rem;
+    background: var(--white);
+    z-index: 10;
+}
+.main-content {
+    flex-grow: 1;
+    padding: 3rem;
+    max-width: 1200px;
+}
+
 /* ═══════════════════════════════════════
    RESPONSIVE — Comprehensive Breakpoints
    ═══════════════════════════════════════ */

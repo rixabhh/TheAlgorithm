@@ -311,11 +311,22 @@ class ChatParser {
             cleaned = `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')} ${rest.join(' ')}`;
         }
 
-        // WhatsApp: DD/MM/YYYY or DD/MM/YY (treat first component as day)
+        // WhatsApp: DD/MM/YYYY or MM/DD/YYYY
         const waMatch = cleaned.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
         if (waMatch) {
-            let [, d, m, y] = waMatch;
+            let [, p1, p2, y] = waMatch;
             if (y.length === 2) y = '20' + y;
+            let m, d;
+            if (parseInt(p2) > 12) {
+                // Must be MM/DD/YYYY
+                m = p1; d = p2;
+            } else if (parseInt(p1) > 12) {
+                // Must be DD/MM/YYYY
+                d = p1; m = p2;
+            } else {
+                // Ambiguous. Default to DD/MM as it is the most common globally.
+                d = p1; m = p2;
+            }
             const time = cleaned.slice(waMatch[0].length).trim();
             cleaned = `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')} ${time}`;
         }
