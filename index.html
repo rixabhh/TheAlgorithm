@@ -192,7 +192,7 @@
                                 <option value="casual">Casual</option>
                             </select>
                             <div class="custom-select" data-target="connectionType">
-                                <button type="button" class="custom-select-trigger" aria-haspopup="listbox" aria-expanded="false">
+                                <button type="button" class="custom-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Select relationship type">
                                     <span class="custom-select-label" style="color:var(--gray-400)">Select relationship type…</span>
                                     <svg class="custom-select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
                                 </button>
@@ -206,14 +206,14 @@
                             </div>
                         </div>
                         <div>
-                            <label style="display:block;font-weight:700;font-size:.7rem;text-transform:uppercase;margin-bottom:.25rem">Language</label>
+                        <label id="languageLabel" style="display:block;font-weight:700;font-size:.7rem;text-transform:uppercase;margin-bottom:.25rem">Language</label>
                             <select id="outputLanguage" class="sr-only" aria-hidden="true">
                                 <option value="english" selected>English</option>
                                 <option value="hinglish">Hinglish</option>
                                 <option value="hindi">Hindi</option>
                             </select>
                             <div class="custom-select" data-target="outputLanguage">
-                                <button type="button" class="custom-select-trigger" aria-haspopup="listbox" aria-expanded="false">
+                                <button type="button" class="custom-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="languageLabel">
                                     <span class="custom-select-label">English</span>
                                     <svg class="custom-select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
                                 </button>
@@ -256,6 +256,7 @@
                         <input type="file" id="chatFile" class="sr-only" accept=".txt,.html,.json" multiple required>
                     </div>
                     <div id="fileList" class="hidden" style="font-size:.85rem;font-weight:700;padding:.75rem 1rem;background:var(--green);color:var(--white);border:var(--border);border-radius:var(--r-sm);box-shadow:2px 2px 0 0 var(--black)"></div>
+                    <div id="detectionCard" class="hidden mt-2"></div>
                     <div id="filename-display" class="hidden"></div>
                     
                     <div id="jsonPlatformSelector" class="hidden" style="padding:1rem;border:var(--border);border-radius:var(--r-sm);background:var(--blue);box-shadow:2px 2px 0 0 var(--black)">
@@ -265,7 +266,7 @@
                             <option value="Discord">Discord</option>
                         </select>
                         <div class="custom-select" data-target="jsonPlatform">
-                            <button type="button" class="custom-select-trigger" aria-haspopup="listbox" aria-expanded="false" style="border:2px solid var(--black);font-weight:700">
+                                <button type="button" class="custom-select-trigger" aria-haspopup="listbox" aria-expanded="false" style="border:2px solid var(--black);font-weight:700" aria-label="Confirm JSON Platform Output">
                                 <span class="custom-select-label">Instagram</span>
                                 <svg class="custom-select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
                             </button>
@@ -407,7 +408,8 @@
     <button id="loading-overlay-close" style="position:absolute;top:1.5rem;right:1.5rem;width:44px;height:44px;border-radius:50%;border:2px solid var(--white);background:rgba(255,255,255,0.15);color:var(--white);font-size:1.5rem;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;z-index:10" aria-label="Cancel analysis">&times;</button>
     <div style="font-family:var(--font-heading);font-weight:900;font-size:3rem;margin-bottom:1rem;color:var(--yellow);text-shadow:3px 3px 0 var(--black)">...</div>
     <h2>Decoding<br>Relationship…</h2>
-    <p>Running local ML + LLM extraction. Hold tight, this takes 10–20 seconds.</p>
+    <p id="progress-text" style="font-weight:700;font-size:1.1rem;margin-bottom:0.5rem">Running local ML + LLM extraction.</p>
+    <p style="opacity:0.8">Hold tight, this takes 10–20 seconds.</p>
 </div>
 
 <!-- Settings Modal -->
@@ -442,7 +444,7 @@
                     <a href="instructions.html#api-keys" style="font-size:.7rem;font-weight:600;color:var(--pink);text-decoration:none">Where to get this?</a>
                 </div>
                 <div style="position:relative">
-                    <input type="password" id="apiKey" placeholder="sk-..." class="field-input" maxlength="512" style="padding-right:3rem">
+                    <input type="password" id="apiKey" aria-describedby="providerHint apiKeyFormatHint" placeholder="sk-..." class="field-input" maxlength="512" style="padding-right:3rem">
                     <button type="button" id="toggleApiKey" aria-label="Show API Key" style="position:absolute;right:.75rem;top:50%;transform:translateY(-50%);background:var(--white);border:var(--border-thin);border-radius:4px;padding:3px 5px;cursor:pointer;display:flex">
                         <svg id="eyeIcon" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                     </button>
@@ -456,7 +458,7 @@
             </div>
 
             <button id="saveSettingsBtn" class="btn btn--purple btn--full" style="margin-top:.5rem">Save & Close</button>
-            <p id="apiKeyFormatHint" style="font-size:.6rem;font-weight:600;color:var(--gray-400);text-align:center;margin:0;text-transform:uppercase">Locally stored • Never hits databases</p>
+            <p id="apiKeyFormatHint" style="font-size:.6rem;font-weight:600;color:var(--gray-400);text-align:center;margin:0;text-transform:uppercase">🔒 Locally stored in browser • Never hits our databases</p>
         </div>
     </div>
 </div>
