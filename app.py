@@ -76,52 +76,52 @@ def handle_error(e: Any) -> Tuple[Response, int]:
 
 @app.route("/")
 def index() -> Response:
-    return send_from_directory(".", "index.html")
+    return send_from_directory("templates", "index.html")
 
 
 @app.route("/dashboard.html")
 def dashboard() -> Response:
-    return send_from_directory(".", "dashboard.html")
+    return send_from_directory("templates", "dashboard.html")
 
 
 @app.route("/history.html")
 def history() -> Response:
-    return send_from_directory(".", "history.html")
+    return send_from_directory("templates", "history.html")
 
 
 @app.route("/instructions.html")
 def instructions() -> Response:
-    return send_from_directory(".", "instructions.html")
+    return send_from_directory("templates", "instructions.html")
 
 
 @app.route("/privacy.html")
 def privacy() -> Response:
-    return send_from_directory(".", "privacy.html")
+    return send_from_directory("templates", "privacy.html")
 
 
 @app.route("/share")
 def share() -> Response:
-    return send_from_directory(".", "dashboard.html")
+    return send_from_directory("templates", "dashboard.html")
 
 
 @app.route("/pricing.html")
 def pricing() -> Response:
-    return send_from_directory(".", "pricing.html")
+    return send_from_directory("templates", "pricing.html")
 
 
 @app.route("/robots.txt")
 def robots() -> Response:
-    return send_from_directory(".", "robots.txt")
+    return send_from_directory("static", "robots.txt")
 
 
 @app.route("/sitemap.xml")
 def sitemap() -> Response:
-    return send_from_directory(".", "sitemap.xml")
+    return send_from_directory("static", "sitemap.xml")
 
 
 @app.errorhandler(404)
 def not_found(e: Any) -> Tuple[Response, int]:
-    return send_from_directory(".", "404.html"), 404
+    return send_from_directory("templates", "404.html"), 404
 
 
 @app.route("/api/stats")
