@@ -610,17 +610,15 @@ async function downloadWrappedCard() {
         document.getElementById('share-bar-me').style.width = mePct + '%';
         document.getElementById('share-bar-partner').style.width = (100 - mePct) + '%';
 
-        const canvas = await html2canvas(card, {
-            scale: 2,
-            backgroundColor: "#FFF8F0",
-            logging: false,
-            useCORS: true,
-            allowTaint: true
-        });
-
+        // Provide a stats object based solely on anonymous statistics
+        const statsPayload = {
+            health_score: report.ai_insight?.health_score || '--',
+            top_insight: report.ai_insight?.brutal_verdict || "Your chat data has been decoded."
+        };
+        const imageData = generateShareCard(statsPayload);
         const link = document.createElement('a');
-        link.download = `TheAlgorithm_Wrapped.png`;
-        link.href = canvas.toDataURL('image/png');
+        link.download = 'my-algorithm-results.png';
+        link.href = imageData;
         link.click();
     } catch (err) {
         alert('Download failed.');
@@ -645,7 +643,6 @@ document.getElementById('shareLinkBtn')?.addEventListener('click', async () => {
 
         // Strip out any raw messages or content - ONLY anonymous stats
         const shareData = {
-            llmReport: window.llmReport || {},
             my_name: "Person A",
             partner_name: "Person B",
             stats: {
@@ -744,8 +741,7 @@ function generateShareCard(analysisData) {
   ctx.fillStyle = '#a855f7';
   ctx.font = 'bold 120px Inter, sans-serif';
   // We use score or 0 if not present
-  const score = analysisData.llmReport?.ai_insight?.health_score || '--';
-  ctx.fillText(`${score}`, 60, 260);
+  ctx.fillText(`${analysisData.health_score}`, 60, 260);
   ctx.fillStyle = '#ffffff80';
   ctx.font = '32px Inter, sans-serif';
   ctx.fillText('relationship health score', 60, 310);
@@ -753,8 +749,7 @@ function generateShareCard(analysisData) {
   // Top insight
   ctx.fillStyle = '#ffffff';
   ctx.font = '28px Inter, sans-serif';
-  const insight = analysisData.llmReport?.ai_insight?.brutal_verdict || "Your chat data has been decoded.";
-  wrapText(ctx, insight, 60, 400, 1080, 40);
+  wrapText(ctx, analysisData.top_insight, 60, 400, 1080, 40);
 
   // Footer
   ctx.fillStyle = '#ffffff40';
@@ -770,7 +765,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const shareImageBtn = document.getElementById('share-btn');
     if (shareImageBtn) {
         shareImageBtn.addEventListener('click', () => {
-            const imageData = generateShareCard(window.activeData);
+            // Provide a stats object based solely on anonymous statistics
+            const statsPayload = {
+                health_score: window.llmReport?.ai_insight?.health_score || '--',
+                top_insight: window.llmReport?.ai_insight?.brutal_verdict || "Your chat data has been decoded."
+            };
+            const imageData = generateShareCard(statsPayload);
             const link = document.createElement('a');
             link.download = 'my-algorithm-results.png';
             link.href = imageData;
