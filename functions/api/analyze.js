@@ -23,6 +23,66 @@ export async function onRequestPost(context) {
             await env.KV_RATELIMIT.put(globalCountKey, (parseInt(globalCount) + 1).toString());
         }
 
+        const makeFallbackReport = (reason = "Limited data for deep read") => ({
+            relationship_persona: "Vibe Explorer",
+            compatibility_score: 80,
+            overall_health_score: stats?.symmetry?.score || 75,
+            communication_style: {
+                dominant_pattern: stats?.symmetry?.label || "Balanced",
+                tone: "Data-led",
+                balance_score: stats?.symmetry?.score || 75
+            },
+            attachment_style: {
+                person_1: "secure",
+                person_2: "secure",
+                compatibility_note: stats?.attachment_style || "Not enough signal for a strong attachment read."
+            },
+            humor_dynamics: {
+                fun_person: ((stats?.laughter?.ME || 0) >= (stats?.laughter?.PARTNER || 0)) ? my_name : partner_name,
+                laughter_balance: `${stats?.laughter?.ME || 0} vs ${stats?.laughter?.PARTNER || 0} laughter signals`
+            },
+            silence_breaking: {
+                ice_breaker: ((stats?.silence_breakers?.ME || 0) >= (stats?.silence_breakers?.PARTNER || 0)) ? my_name : partner_name,
+                insight: "Long gaps are counted from local chat statistics only."
+            },
+            key_insights: [
+                `${stats?.total_messages || ((stats?.messages?.ME || 0) + (stats?.messages?.PARTNER || 0))} messages analysed.`,
+                `Conversation symmetry is ${stats?.symmetry?.label || 'balanced'}.`,
+                `Detected style: ${stats?.attachment_style || 'not clear yet'}.`
+            ],
+            strengths: ["The chat has enough signal to read participation and response patterns."],
+            growth_areas: [reason],
+            coaching_advice: "Use this as a pattern map, not a verdict. Pick one repeated behavior and talk about that concrete pattern.",
+            fun_fact: `Longest active streak: ${stats?.streaks?.longest || 0} days.`,
+            ai_insight: {
+                vibe_label: "VIBE STATUS",
+                health_score: stats?.symmetry?.score || 75,
+                dynamic_title: "Quick Read",
+                reality_check: `Analysis complete for ${partner_name}. The strongest local signal is ${stats?.symmetry?.label || 'balanced'} participation.`,
+                recent_shift: "Recent-shift analysis is based on the weekly timeline: volume, sentiment, and response patterns.",
+                red_flags: [reason],
+                green_flags: ["Active conversation patterns were detected"],
+                brutal_verdict: "The data gives you a useful mirror, not a courtroom verdict."
+            }
+        });
+
+        const normalizeReport = (candidate) => {
+            const fallback = makeFallbackReport("AI response was incomplete, so this report was normalized from local statistics.");
+            const report = { ...fallback, ...(candidate || {}) };
+            report.communication_style = { ...fallback.communication_style, ...(candidate?.communication_style || {}) };
+            report.attachment_style = { ...fallback.attachment_style, ...(candidate?.attachment_style || {}) };
+            report.humor_dynamics = { ...fallback.humor_dynamics, ...(candidate?.humor_dynamics || {}) };
+            report.silence_breaking = { ...fallback.silence_breaking, ...(candidate?.silence_breaking || {}) };
+            report.ai_insight = { ...fallback.ai_insight, ...(candidate?.ai_insight || {}) };
+            report.key_insights = Array.isArray(candidate?.key_insights) ? candidate.key_insights : fallback.key_insights;
+            report.strengths = Array.isArray(candidate?.strengths) ? candidate.strengths : fallback.strengths;
+            report.growth_areas = Array.isArray(candidate?.growth_areas) ? candidate.growth_areas : fallback.growth_areas;
+            report.compatibility_score = Number(report.compatibility_score) || fallback.compatibility_score;
+            report.overall_health_score = Number(report.overall_health_score) || Number(report.ai_insight.health_score) || fallback.overall_health_score;
+            report.ai_insight.health_score = Number(report.ai_insight.health_score) || report.overall_health_score;
+            return report;
+        };
+
         // 2. AI GENERATION
         let report = null;
 
@@ -115,7 +175,7 @@ CRITICAL RULES:
                         const parsed = JSON.parse(match[0]);
                         const isValid = requiredKeys.every(k => Object.hasOwn(parsed, k));
                         if (isValid || Object.hasOwn(parsed, 'compatibility_score')) {
-                            return parsed;
+                            return normalizeReport(parsed);
                         }
                     } catch (e) {
                         return null;
@@ -199,6 +259,8 @@ CRITICAL RULES:
                 };
             }
         }
+
+        report = normalizeReport(report);
 
         return new Response(JSON.stringify({ report }), { headers: { 'Content-Type': 'application/json' } });
 

@@ -6,8 +6,8 @@
 class ChatParser {
     constructor() {
         // Regex Patterns (Ported from parsers.py)
-        this.WA_MSG_PATTERN = /^\[?(?<date>\d{1,2}[/-]\d{1,2}[/-]\d{2,4})[,\s]+(?<time>\d{1,2}:\d{2}(?::\d{2})?(?:\s*[apAp][mM])?)\]?[\s-]+(?<sender>[^:]+):\s+(?<text>.*)$/;
-        this.WA_SYS_PATTERN = /^\[?(?<date>\d{1,2}[/-]\d{1,2}[/-]\d{2,4})[,\s]+(?<time>\d{1,2}:\d{2}(?::\d{2})?(?:\s*[apAp][mM])?)\]?[\s-]+(?<sys_msg>Messages and calls are end-to-end encrypted.*|.*changed their phone number|.*joined using an invite link|.*left|.*changed the subject to|.*changed the group description|.*You deleted this message.*)$/;
+        this.WA_MSG_PATTERN = /^\[?(?<date>\d{1,2}[/-]\d{1,2}[/-]\d{2,4})[,\s]+(?<time>\d{1,2}:\d{2}(?::\d{2})?(?:\s*[aApP]\.?[mM]\.?)?)(?:\]\s*|\s*[-–]\s+)(?<sender>[^:]+):\s*(?<text>.*)$/;
+        this.WA_SYS_PATTERN = /^\[?(?<date>\d{1,2}[/-]\d{1,2}[/-]\d{2,4})[,\s]+(?<time>\d{1,2}:\d{2}(?::\d{2})?(?:\s*[aApP]\.?[mM]\.?)?)(?:\]\s*|\s*[-–]\s+)(?<sys_msg>Messages and calls are end-to-end encrypted.*|.*changed their phone number|.*joined using an invite link|.*left|.*changed the subject to|.*changed the group description|.*You deleted this message.*)$/;
 
         this.TG_DATE_PATTERN = /class="pull_right date details" title="([^"]+)"/;
         this.TG_DATE_FALLBACK_PATTERN = /class="date" title="([^"]+)"/;
@@ -76,8 +76,10 @@ class ChatParser {
             if (match) {
                 if (messages.length >= 50000) break;
                 const { date, time, sender, text } = match.groups;
+                const timestamp = this.parseDateTime(`${date} ${time}`);
+                if (!timestamp) continue;
                 messages.push({
-                    timestamp: this.parseDateTime(`${date} ${time}`),
+                    timestamp,
                     sender: sender.trim(),
                     text: text.trim()
                 });
@@ -104,8 +106,10 @@ class ChatParser {
             if (match) {
                 if (messages.length >= 50000) break;
                 const { date, time, sender, text } = match.groups;
+                const timestamp = this.parseDateTime(`${date} ${time}`);
+                if (!timestamp) continue;
                 messages.push({
-                    timestamp: this.parseDateTime(`${date} ${time}`),
+                    timestamp,
                     sender: sender.trim(),
                     text: text.trim()
                 });
@@ -163,8 +167,10 @@ class ChatParser {
             }
 
             if (text) {
+                const timestamp = this.parseDateTime(dtStr);
+                if (!timestamp) continue;
                 messages.push({
-                    timestamp: this.parseDateTime(dtStr),
+                    timestamp,
                     sender: currentSender,
                     text: text
                 });
@@ -193,8 +199,10 @@ class ChatParser {
                 const tsMs = msg.timestamp_ms;
 
                 if (tsMs && text) {
+                    const timestamp = new Date(tsMs);
+                    if (isNaN(timestamp.getTime())) continue;
                     messages.push({
-                        timestamp: new Date(tsMs),
+                        timestamp,
                         sender: sender,
                         text: text
                     });
@@ -222,8 +230,10 @@ class ChatParser {
                 const ts = msg.timestamp;
 
                 if (ts && text) {
+                    const timestamp = new Date(ts);
+                    if (isNaN(timestamp.getTime())) continue;
                     messages.push({
-                        timestamp: new Date(ts),
+                        timestamp,
                         sender: sender,
                         text: text
                     });
@@ -275,9 +285,11 @@ class ChatParser {
         }
 
         // PHASE B: Logical Fallback
-        if (mapping.ME && !mapping.PARTNER && remainingTop.length === 1) {
+        const mappedRoles = () => new Set(Object.values(mapping));
+
+        if (mappedRoles().has('ME') && !mappedRoles().has('PARTNER') && remainingTop.length === 1) {
             mapping[remainingTop[0]] = 'PARTNER';
-        } else if (mapping.PARTNER && !mapping.ME && remainingTop.length === 1) {
+        } else if (mappedRoles().has('PARTNER') && !mappedRoles().has('ME') && remainingTop.length === 1) {
             mapping[remainingTop[0]] = 'ME';
         }
 
@@ -295,7 +307,8 @@ class ChatParser {
             .map(m => ({
                 ...m,
                 sender: mapping[m.sender]
-            }));
+            }))
+            .sort((a, b) => a.timestamp - b.timestamp);
     }
 
     /**
@@ -332,7 +345,7 @@ class ChatParser {
         }
 
         const d = new Date(cleaned);
-        return isNaN(d.getTime()) ? new Date() : d;
+        return isNaN(d.getTime()) ? null : d;
     }
 }
 

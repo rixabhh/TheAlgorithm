@@ -121,6 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const renderSocialDynamics = (stats) => {
         const traits = stats.behavioral_traits || { ME: {}, PARTNER: {} };
         const update = (suffix, data) => {
+            data = data || {};
             const scores = data.scores || {};
             ['curiosity', 'politeness', 'warmth', 'intimacy'].forEach(t => {
                 const val = scores[t] || 0;
@@ -149,10 +150,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const renderEngagement = (stats) => {
         const el = document.getElementById('engagement-list');
         if (!el) return;
-        const init = stats.initiator_ratio || { me_count: 0, partner_count: 0 };
+        const init = {
+            me_initiations: 0,
+            partner_initiations: 0,
+            me_latency_avg: 0,
+            partner_latency_avg: 0,
+            ...(stats.initiator_ratio || {})
+        };
+        const starter = init.me_initiations === init.partner_initiations
+            ? 'Balanced'
+            : (init.me_initiations > init.partner_initiations ? activeData.my_name : activeData.partner_name);
         el.innerHTML = `
-            <div class="flex justify-between"><span>Chat Starter</span><span class="pill-label pill-label--purple">${escapeHTML(init.me_initiations > init.partner_initiations ? activeData.my_name : activeData.partner_name)}</span></div>
+            <div class="flex justify-between"><span>Chat Starter</span><span class="pill-label pill-label--purple">${escapeHTML(starter)}</span></div>
+            <div class="flex justify-between"><span>Threads Started</span><span class="font-black">${init.me_initiations} / ${init.partner_initiations}</span></div>
             <div class="flex justify-between"><span>Mirroring</span><span class="font-black">${stats.mirroring || 0}%</span></div>
+            <div class="flex justify-between"><span>Symmetry</span><span class="font-black">${escapeHTML(stats.symmetry?.label || 'Unknown')} (${stats.symmetry?.score ?? '--'}%)</span></div>
             <div class="flex justify-between"><span>Max Inactivity</span><span class="font-black">${stats.max_inactivity || "N/A"} days</span></div>
             <div class="flex justify-between"><span>Avg Response (${escapeHTML(activeData.my_name)})</span><span class="font-black">${formatTime(init.me_latency_avg)}</span></div>
             <div class="flex justify-between"><span>Avg Response (${escapeHTML(activeData.partner_name)})</span><span class="font-black">${formatTime(init.partner_latency_avg)}</span></div>
@@ -208,7 +220,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const s = stats.streaks || { longest: 0, current: 0 };
         container.innerHTML = `
             <div class="card p-4 bg-cream text-center"><p class="text-xs uppercase op-50">Longest Streak</p><p class="text-xl font-black">${s.longest} days</p></div>
-            <div class="card p-4 bg-cream text-center"><p class="text-xs uppercase op-50">Current Streak</p><p class="text-xl font-black">${s.current} days</p></div>
+            <div class="card p-4 bg-cream text-center"><p class="text-xs uppercase op-50">Ending Streak</p><p class="text-xl font-black">${s.current} days</p></div>
+            <div class="card p-4 bg-cream text-center"><p class="text-xs uppercase op-50">Active Days</p><p class="text-xl font-black">${s.active_pct ?? 0}%</p></div>
         `;
     };
 
@@ -393,10 +406,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- AI INSIGHTS ---
     const renderAiReport = (report) => {
         window.llmReport = report || {};
+        document.getElementById('ai-insight-label').textContent = report?.ai_insight?.vibe_label || `HEALTH ${report?.ai_insight?.health_score || report?.overall_health_score || '--'}`;
         document.getElementById('ai-insight-title').textContent = report?.ai_insight?.dynamic_title || "Analysis Complete";
         document.getElementById('ai-insight-reality').textContent = report?.ai_insight?.reality_check || '';
         document.getElementById('ai-insight-shift').textContent = report?.ai_insight?.recent_shift || '';
         document.getElementById('ai-insight-verdict').textContent = report?.ai_insight?.brutal_verdict || '';
+        document.getElementById('ai-insight-timestamp').textContent = `Generated ${new Date().toLocaleString()}`;
         
         const red = document.getElementById('ai-insight-red-flags');
         const green = document.getElementById('ai-insight-green-flags');
@@ -419,17 +434,29 @@ document.addEventListener('DOMContentLoaded', () => {
         const permission = document.getElementById('ai-permission-container');
         const loading = document.getElementById('ai-loading-container');
         const results = document.getElementById('ai-results-container');
+        const progress = document.getElementById('ai-loading-progress');
         
         permission?.classList.add('hidden');
+        results?.classList.add('hidden');
         loading?.classList.remove('hidden');
 
         // U-05: Rotating status messages during AI loading
-        const statusMessages = ['Calculating dynamics...', 'Reading between the lines...', 'Running the algorithm...', 'Almost there...'];
+        const statusMessages = [
+            { text: 'Packaging anonymous stats...', pct: 24 },
+            { text: 'Reading participation balance...', pct: 42 },
+            { text: 'Checking timeline and response patterns...', pct: 61 },
+            { text: 'Writing the relationship read...', pct: 78 },
+            { text: 'Polishing the final verdict...', pct: 90 }
+        ];
         let statusIdx = 0;
         const statusEl = document.getElementById('ai-loading-status');
+        if (statusEl) statusEl.textContent = 'Packaging anonymous stats...';
+        if (progress) progress.style.width = '12%';
         const statusInterval = setInterval(() => {
-            if (statusEl) statusEl.textContent = statusMessages[statusIdx++ % statusMessages.length];
-        }, 3000);
+            const step = statusMessages[statusIdx++ % statusMessages.length];
+            if (statusEl) statusEl.textContent = step.text;
+            if (progress) progress.style.width = `${step.pct}%`;
+        }, 2500);
 
         try {
             const payload = {
@@ -454,6 +481,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!resp.ok) throw new Error(data.error || "Failed");
 
             const report = data.report;
+            if (progress) progress.style.width = '100%';
             renderAiReport(report);
 
             clearInterval(statusInterval);

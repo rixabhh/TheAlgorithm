@@ -575,6 +575,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     let progressInterval = null;
+    const setProgressText = (message) => {
+        const progressText = document.getElementById('progress-text');
+        if (progressText) progressText.textContent = message;
+    };
 
     // --- Form Submission ---
     if (uploadForm) {
@@ -642,7 +646,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (loadingOverlay) {
                 loadingOverlay.classList.remove('hidden');
                 if (progressText) {
-                    const steps = ['Parsing messages...', 'Calculating statistics...', 'Extracting insights...'];
+                    const steps = ['Reading export...', 'Parsing messages...', 'Mapping senders...', 'Calculating statistics...', 'Preparing dashboard...'];
                     let stepIndex = 0;
                     progressText.textContent = steps[stepIndex++];
                     progressInterval = setInterval(() => {
@@ -675,16 +679,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
 
+                setProgressText('Reading export...');
                 const content = await file.text();
                 
                 // C-03: Read platform from the hidden select (synced by custom dropdown)
                 let jsonPlat = document.getElementById('jsonPlatform') ? document.getElementById('jsonPlatform').value : 'Instagram';
 
                 // Detect platform
+                setProgressText('Detecting chat platform...');
                 let detectedPlatform = parser.detect(content, file.name);
                 if (detectedPlatform === 'JSON') detectedPlatform = jsonPlat;
 
                 let rawMessages;
+                setProgressText(`Parsing ${detectedPlatform} messages...`);
                 if (detectedPlatform === 'Telegram') {
                     rawMessages = parser.parseTelegram(content);
                 } else if (detectedPlatform === 'Discord') {
@@ -702,6 +709,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const myName = document.getElementById('myName').value;
                 const partnerName = document.getElementById('partnerName').value;
+                setProgressText('Mapping sender names...');
                 const filteredMessages = parser.standardizeEntities(rawMessages, myName, partnerName);
                 if (!filteredMessages.length) throw new Error("Sender names not mapped correctly.");
 
@@ -710,7 +718,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const userContext = document.getElementById('userContext') ? document.getElementById('userContext').value.trim() : '';
                 const analysisTone = document.getElementById('analysisTone') ? document.getElementById('analysisTone').value : 'balanced';
 
+                setProgressText('Calculating accurate stats...');
                 const analyticsResult = analytics.runPipeline(filteredMessages, connectionType);
+                if (!analyticsResult) throw new Error("No valid dated messages found after parsing.");
                 if (activeAbortController?.signal.aborted) throw new Error('Analysis cancelled.');
 
                 const dashboardData = {
@@ -728,6 +738,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 historyManager.save(dashboardData);
                 sessionStorage.setItem('dashboard_data', JSON.stringify(dashboardData));
+                setProgressText('Opening dashboard...');
                 
                 // M-01: Success toast/feedback before redirect
                 const loadingOverlay = document.getElementById('loading-overlay');
