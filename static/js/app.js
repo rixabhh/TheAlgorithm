@@ -1,4 +1,13 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const escapeHTML = (str) => {
+        if (str === null || str === undefined) return "";
+        return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    };
 
     // --- Element References ---
     const dropZone = document.getElementById('dropZone');
@@ -201,7 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (llmProviderEl) llmProviderEl.value = savedProvider;
             if (apiKeyEl) {
                 const storedToken = sessionStorage.getItem('_llm_token');
-                apiKeyEl.value = (storedToken && storedToken !== btoa('')) ? atob(storedToken) : '';
+                apiKeyEl.value = (storedToken && storedToken !== btoa('')) ? decodeURIComponent(escape(atob(storedToken))) : '';
             }
             if (hfUrlEl) hfUrlEl.value = localStorage.getItem('hf_url') || '';
             updateProviderHint(savedProvider);
@@ -511,7 +520,7 @@ document.addEventListener('DOMContentLoaded', () => {
         history.forEach(item => {
             const el = document.createElement('div');
             el.className = `picker-item ${ (compareSelection.a?.id === item.id || compareSelection.b?.id === item.id) ? 'selected' : '' }`;
-            el.innerHTML = `<div style="font-weight:900">${item.my_name} & ${item.partner_name}</div><div style="font-size:0.65rem">${item.date} • ${item.platform || 'Unknown'}</div>`;
+            el.innerHTML = `<div style="font-weight:900">${escapeHTML(item.my_name)} & ${escapeHTML(item.partner_name)}</div><div style="font-size:0.65rem">${escapeHTML(item.date)} • ${escapeHTML(item.platform || 'Unknown')}</div>`;
             el.addEventListener('click', () => {
                 if (compareSelection.activeSlot === 'a') { compareSelection.a = item; compareSelection.activeSlot = 'b'; }
                 else compareSelection.b = item;

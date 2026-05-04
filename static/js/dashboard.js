@@ -6,10 +6,27 @@
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const isCompareMode = urlParams.get('mode') === 'compare';
+    const parseSharedData = () => {
+        if (!window.location.hash || window.location.hash.length <= 10) return null;
+        try {
+            const hashData = window.location.hash.substring(1);
+            const decodedStr = decodeURIComponent(atob(hashData));
+            const sharedData = JSON.parse(decodedStr);
+            return {
+                ...sharedData,
+                platform: sharedData.platform || 'Shared Report',
+                connection_type: sharedData.connection_type || 'shared'
+            };
+        } catch (e) {
+            console.warn('Failed to parse shared report data', e);
+            return null;
+        }
+    };
     
     let dataA = null;
     let dataB = null;
     let activeData = null;
+    let isSharedMode = false;
 
     // 1. DATA LOADING
     if (isCompareMode) {
@@ -24,9 +41,18 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('insights-heading').textContent = "Comparative Analysis";
         document.getElementById('insights-sub').textContent = "Side-by-side comparison of your chat dynamics.";
     } else {
+        const sharedData = parseSharedData();
         const stored = sessionStorage.getItem('dashboard_data');
-        if (!stored) { window.location.href = '/'; return; }
-        activeData = JSON.parse(stored);
+        if (sharedData) {
+            activeData = sharedData;
+            window.llmReport = sharedData.llmReport || {};
+            isSharedMode = true;
+        } else if (stored) {
+            activeData = JSON.parse(stored);
+        } else {
+            window.location.href = '/';
+            return;
+        }
         window.activeData = activeData; // Added
     }
 
@@ -104,9 +130,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (bar) bar.style.width = val + '%';
             });
             const pills = document.getElementById(`traits-pills-${suffix}`);
-            if (pills) pills.innerHTML = (data.highlights || []).map(h => `<span class="pill-label pill-label--pink" style="font-size:0.6rem">${h.label}: ${h.count}</span>`).join('');
+            if (pills) pills.innerHTML = (data.highlights || []).map(h => `<span class="pill-label pill-label--pink" style="font-size:0.6rem">${escapeHTML(h.label)}: ${escapeHTML(String(h.count))}</span>`).join('');
             const summary = document.getElementById(`traits-summary-${suffix}`);
-            if (summary) summary.innerHTML = (data.summary || []).map(s => `<li>${s}</li>`).join('');
+            if (summary) summary.innerHTML = (data.summary || []).map(s => `<li>${escapeHTML(s)}</li>`).join('');
         };
         update('me', traits.ME);
         update('partner', traits.PARTNER);
@@ -125,11 +151,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!el) return;
         const init = stats.initiator_ratio || { me_count: 0, partner_count: 0 };
         el.innerHTML = `
-            <div class="flex justify-between"><span>Chat Starter</span><span class="pill-label pill-label--purple">${init.me_initiations > init.partner_initiations ? activeData.my_name : activeData.partner_name}</span></div>
+            <div class="flex justify-between"><span>Chat Starter</span><span class="pill-label pill-label--purple">${escapeHTML(init.me_initiations > init.partner_initiations ? activeData.my_name : activeData.partner_name)}</span></div>
             <div class="flex justify-between"><span>Mirroring</span><span class="font-black">${stats.mirroring || 0}%</span></div>
             <div class="flex justify-between"><span>Max Inactivity</span><span class="font-black">${stats.max_inactivity || "N/A"} days</span></div>
-            <div class="flex justify-between"><span>Avg Response (${activeData.my_name})</span><span class="font-black">${formatTime(init.me_latency_avg)}</span></div>
-            <div class="flex justify-between"><span>Avg Response (${activeData.partner_name})</span><span class="font-black">${formatTime(init.partner_latency_avg)}</span></div>
+            <div class="flex justify-between"><span>Avg Response (${escapeHTML(activeData.my_name)})</span><span class="font-black">${formatTime(init.me_latency_avg)}</span></div>
+            <div class="flex justify-between"><span>Avg Response (${escapeHTML(activeData.partner_name)})</span><span class="font-black">${formatTime(init.partner_latency_avg)}</span></div>
         `;
     };
 
@@ -142,7 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         const max = emojis[0].count;
-        container.innerHTML = emojis.map(e => `<div class="flex align-center gap-3"><span>${e.emoji}</span><div class="flex-1 h-2 bg-cream rounded-full overflow-hidden"><div class="h-full bg-pink" style="width:${(e.count / max * 100)}%"></div></div></div>`).join('');
+        container.innerHTML = emojis.map(e => `<div class="flex align-center gap-3"><span>${escapeHTML(e.emoji)}</span><div class="flex-1 h-2 bg-cream rounded-full overflow-hidden"><div class="h-full bg-pink" style="width:${(e.count / max * 100)}%"></div></div></div>`).join('');
     };
 
     const renderHumorAndEnergy = (stats) => {
@@ -192,7 +218,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const words = stats.top_words || [];
         if (!words.length) { container.innerHTML = '<p class="op-30">No data</p>'; return; }
         const max = words[0].count;
-        container.innerHTML = `<div class="flex flex-wrap justify-center p-4 gap-4">${words.slice(0, 20).map(w => `<span style="font-size:${0.8 + (w.count/max)*1.5}rem; font-weight:900; opacity:${0.4 + (w.count/max)*0.6}">${w.word}</span>`).join('')}</div>`;
+        container.innerHTML = `<div class="flex flex-wrap justify-center p-4 gap-4">${words.slice(0, 20).map(w => `<span style="font-size:${0.8 + (w.count/max)*1.5}rem; font-weight:900; opacity:${0.4 + (w.count/max)*0.6}">${escapeHTML(w.word)}</span>`).join('')}</div>`;
     };
 
     const renderLinks = (stats) => {
@@ -365,14 +391,37 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- AI INSIGHTS ---
-    const generateBtn = document.getElementById('generateAiBtn');
-    generateBtn?.addEventListener('click', async () => {
+    const renderAiReport = (report) => {
+        window.llmReport = report || {};
+        document.getElementById('ai-insight-title').textContent = report?.ai_insight?.dynamic_title || "Analysis Complete";
+        document.getElementById('ai-insight-reality').textContent = report?.ai_insight?.reality_check || '';
+        document.getElementById('ai-insight-shift').textContent = report?.ai_insight?.recent_shift || '';
+        document.getElementById('ai-insight-verdict').textContent = report?.ai_insight?.brutal_verdict || '';
+        
+        const red = document.getElementById('ai-insight-red-flags');
+        const green = document.getElementById('ai-insight-green-flags');
+        if (red) red.innerHTML = (report?.ai_insight?.red_flags || []).map(f => `<li>${escapeHTML(f)}</li>`).join('');
+        if (green) green.innerHTML = (report?.ai_insight?.green_flags || []).map(f => `<li>${escapeHTML(f)}</li>`).join('');
+    };
+
+    const resetCoachingChat = () => {
+        window.coachingChatHistory = [];
+        const chatHistoryEl = document.getElementById('coaching-chat-history');
+        if (chatHistoryEl) {
+            chatHistoryEl.innerHTML = `
+            <div class="chat-message ai text-sm" style="align-self: flex-start; background: var(--white); border: 2px solid var(--black); box-shadow: 2px 2px 0 0 var(--black); padding: 0.5rem 1rem; border-radius: 12px 12px 12px 0; max-width: 85%;">
+                <strong>Coach:</strong> Based on the data, what do you want me to expand on? I can break down response times, shift in vibe, or give advice.
+            </div>`;
+        }
+    };
+
+    const generateAiInsights = async () => {
         const permission = document.getElementById('ai-permission-container');
         const loading = document.getElementById('ai-loading-container');
         const results = document.getElementById('ai-results-container');
         
-        permission.classList.add('hidden');
-        loading.classList.remove('hidden');
+        permission?.classList.add('hidden');
+        loading?.classList.remove('hidden');
 
         // U-05: Rotating status messages during AI loading
         const statusMessages = ['Calculating dynamics...', 'Reading between the lines...', 'Running the algorithm...', 'Almost there...'];
@@ -393,7 +442,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 tone: activeData.tone || 'balanced',
                 compare_data: isCompareMode ? { a: dataA.stats, b: dataB.stats, nameA: dataA.partner_name, nameB: dataB.partner_name } : null,
                 provider: localStorage.getItem('llm_provider') || 'cloudflare',
-                api_key: sessionStorage.getItem('_llm_token') ? atob(sessionStorage.getItem('_llm_token')) : ''
+                api_key: sessionStorage.getItem('_llm_token') ? decodeURIComponent(escape(atob(sessionStorage.getItem('_llm_token')))) : ''
             };
 
             const resp = await fetch('/api/analyze', {
@@ -405,39 +454,23 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!resp.ok) throw new Error(data.error || "Failed");
 
             const report = data.report;
-            window.llmReport = report; // RESTORED: For Vibe Card
-            document.getElementById('ai-insight-title').textContent = report.ai_insight?.dynamic_title || "Analysis Complete";
-            document.getElementById('ai-insight-reality').textContent = report.ai_insight?.reality_check;
-            document.getElementById('ai-insight-shift').textContent = report.ai_insight?.recent_shift;
-            document.getElementById('ai-insight-verdict').textContent = report.ai_insight?.brutal_verdict;
-            
-            const red = document.getElementById('ai-insight-red-flags');
-            const green = document.getElementById('ai-insight-green-flags');
-            if (red) red.innerHTML = (report.ai_insight?.red_flags || []).map(f => `<li>${f}</li>`).join('');
-            if (green) green.innerHTML = (report.ai_insight?.green_flags || []).map(f => `<li>${f}</li>`).join('');
+            renderAiReport(report);
 
             clearInterval(statusInterval);
-            loading.classList.add('hidden');
-            results.classList.remove('hidden');
+            loading?.classList.add('hidden');
+            results?.classList.remove('hidden');
 
             // Reset Chat History on new generation
-            window.coachingChatHistory = [];
-            const chatHistoryEl = document.getElementById('coaching-chat-history');
-            if (chatHistoryEl) {
-                chatHistoryEl.innerHTML = `
-                <div class="chat-message ai text-sm" style="align-self: flex-start; background: var(--white); border: 2px solid var(--black); box-shadow: 2px 2px 0 0 var(--black); padding: 0.5rem 1rem; border-radius: 12px 12px 12px 0; max-width: 85%;">
-                    <strong>Coach:</strong> Based on the data, what do you want me to expand on? I can break down response times, shift in vibe, or give advice.
-                </div>`;
-            }
+            resetCoachingChat();
 
         } catch (e) {
             clearInterval(statusInterval);
-            loading.classList.add('hidden');
+            loading?.classList.add('hidden');
             // M-02: Inline error recovery instead of alert()
             const errorMsg = e.message && e.message.includes('Free tier limit')
                 ? 'Cloudflare free tier limit reached (2 requests per hour). Configure your own API key for unlimited access.'
                 : `Analysis failed: ${escapeHTML(e.message)}`;
-            permission.innerHTML = `
+            if (permission) permission.innerHTML = `
                 <div class="text-center p-8">
                     <div style="font-size:3rem;margin-bottom:1rem">⚠️</div>
                     <h3 style="font-size:1.5rem;margin-bottom:1rem;color:var(--red)">Something went wrong</h3>
@@ -448,7 +481,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>
             `;
-            permission.classList.remove('hidden');
+            permission?.classList.remove('hidden');
             document.getElementById('retryAiBtn')?.addEventListener('click', () => {
                 permission.innerHTML = `
                     <div class="text-center p-12" style="background:var(--white);border-width:4px">
@@ -457,20 +490,30 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div><button id="generateAiBtn" class="btn btn--pink btn--lg px-12">✨ GENERATE INSIGHTS</button></div>
                     </div>
                 `;
-                document.getElementById('generateAiBtn')?.click();
+                generateAiInsights();
             });
         }
-    });
+    };
+
+    const generateBtn = document.getElementById('generateAiBtn');
+    generateBtn?.addEventListener('click', generateAiInsights);
 
     // Wire regenerate button (C-03)
     document.getElementById('regenerateBtn')?.addEventListener('click', () => {
         document.getElementById('ai-results-container')?.classList.add('hidden');
         document.getElementById('ai-permission-container')?.classList.remove('hidden');
-        document.getElementById('generateAiBtn')?.click();
+        generateAiInsights();
     });
 
     // Auto-trigger AI — MUST be after generateBtn listener is wired (C-04)
-    autoTriggerAi();
+    if (isSharedMode && window.llmReport && Object.keys(window.llmReport).length > 0) {
+        renderAiReport(window.llmReport);
+        document.getElementById('ai-permission-container')?.classList.add('hidden');
+        document.getElementById('ai-results-container')?.classList.remove('hidden');
+        resetCoachingChat();
+    } else {
+        autoTriggerAi();
+    }
 
     // --- COACHING CHAT LOGIC ---
     const chatForm = document.getElementById('coaching-chat-form');
@@ -499,7 +542,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const userMsg = document.createElement('div');
         userMsg.className = 'chat-message user text-sm';
         userMsg.style.cssText = 'align-self: flex-end; background: var(--pink); border: 2px solid var(--black); box-shadow: 2px 2px 0 0 var(--black); padding: 0.5rem 1rem; border-radius: 12px 12px 0 12px; max-width: 85%; font-weight: 500;';
-        userMsg.innerHTML = `<strong>You:</strong> ${text}`;
+        userMsg.innerHTML = `<strong>You:</strong> ${escapeHTML(text)}`;
         historyEl.appendChild(userMsg);
         
         inputEl.value = '';
@@ -523,7 +566,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 chat_history: window.coachingChatHistory || [],
                 message: text,
                 provider: provider,
-                api_key: sessionStorage.getItem('_llm_token') ? atob(sessionStorage.getItem('_llm_token')) : ''
+                api_key: sessionStorage.getItem('_llm_token') ? decodeURIComponent(escape(atob(sessionStorage.getItem('_llm_token')))) : ''
             };
 
             const resp = await fetch('/api/chat', {
@@ -541,7 +584,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!resp.ok) throw new Error(data.error || "Failed context");
 
             // Format linebreaks correctly for HTML display
-            const formattedText = data.text.replace(/\n/g, '<br>');
+            const formattedText = escapeHTML(data.text).replace(/\n/g, '<br>');
 
             // Append Coach Message
             const coachMsg = document.createElement('div');
@@ -556,7 +599,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const errMsg = document.createElement('div');
             errMsg.className = 'chat-message error text-sm';
             errMsg.style.cssText = 'align-self: center; background: #ffcc00; border: 2px solid #000; padding: 0.5rem 1rem; font-weight: 700;';
-            errMsg.innerHTML = `Error: ${err.message}`;
+            errMsg.textContent = `Error: ${err.message}`;
             historyEl.appendChild(errMsg);
         } finally {
             inputEl.disabled = false;

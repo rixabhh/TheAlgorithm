@@ -60,7 +60,7 @@ def add_security_headers(response: Response) -> Response:
     response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
     response.headers['Content-Security-Policy'] = (
         "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline' cdn.tailwindcss.com; "
+        "script-src 'self' 'unsafe-inline' cdn.tailwindcss.com cdn.jsdelivr.net html2canvas.hertzen.com; "
         "style-src 'self' 'unsafe-inline' cdn.tailwindcss.com fonts.googleapis.com; "
         "font-src 'self' fonts.gstatic.com; "
         "img-src 'self' data:; "
