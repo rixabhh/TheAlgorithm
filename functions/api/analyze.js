@@ -45,6 +45,14 @@ export async function onRequestPost(context) {
                 ice_breaker: ((stats?.silence_breakers?.ME || 0) >= (stats?.silence_breakers?.PARTNER || 0)) ? my_name : partner_name,
                 insight: "Long gaps are counted from local chat statistics only."
             },
+            apology_dynamics: {
+                peacemaker: ((stats?.apologies?.ME || 0) >= (stats?.apologies?.PARTNER || 0)) ? my_name : partner_name,
+                insight: "Apology frequencies are derived from localized patterns."
+            },
+            double_texts: {
+                frequent_sender: ((stats?.double_texts?.ME || 0) >= (stats?.double_texts?.PARTNER || 0)) ? my_name : partner_name,
+                insight: "Based on local double text frequency calculations."
+            },
             key_insights: [
                 `${stats?.total_messages || ((stats?.messages?.ME || 0) + (stats?.messages?.PARTNER || 0))} messages analysed.`,
                 `Conversation symmetry is ${stats?.symmetry?.label || 'balanced'}.`,
@@ -73,6 +81,8 @@ export async function onRequestPost(context) {
             report.attachment_style = { ...fallback.attachment_style, ...(candidate?.attachment_style || {}) };
             report.humor_dynamics = { ...fallback.humor_dynamics, ...(candidate?.humor_dynamics || {}) };
             report.silence_breaking = { ...fallback.silence_breaking, ...(candidate?.silence_breaking || {}) };
+            report.apology_dynamics = { ...fallback.apology_dynamics, ...(candidate?.apology_dynamics || {}) };
+            report.double_texts = { ...fallback.double_texts, ...(candidate?.double_texts || {}) };
             report.ai_insight = { ...fallback.ai_insight, ...(candidate?.ai_insight || {}) };
             report.key_insights = Array.isArray(candidate?.key_insights) ? candidate.key_insights : fallback.key_insights;
             report.strengths = Array.isArray(candidate?.strengths) ? candidate.strengths : fallback.strengths;
@@ -87,7 +97,7 @@ export async function onRequestPost(context) {
         let report = null;
 
         // Define standard keys we need back
-        const requiredKeys = ["relationship_persona", "compatibility_score", "ai_insight", "overall_health_score", "communication_style", "attachment_style", "humor_dynamics", "silence_breaking", "key_insights", "strengths", "growth_areas", "coaching_advice", "fun_fact"];
+        const requiredKeys = ["relationship_persona", "compatibility_score", "ai_insight", "overall_health_score", "communication_style", "attachment_style", "humor_dynamics", "silence_breaking", "apology_dynamics", "double_texts", "key_insights", "strengths", "growth_areas", "coaching_advice", "fun_fact"];
 
         const baseSystemPrompt = `You are 'The Algorithm', an expert relationship analyst and communication coach. You act like a brilliant friend who happens to be a therapist - warm, insightful, empathetic, but brutally honest.
 CRITICAL RULES:
@@ -113,6 +123,14 @@ CRITICAL RULES:
   },
   "silence_breaking": {
     "ice_breaker": "string",
+    "insight": "string"
+  },
+  "apology_dynamics": {
+    "peacemaker": "string",
+    "insight": "string"
+  },
+  "double_texts": {
+    "frequent_sender": "string",
     "insight": "string"
   },
   "key_insights": ["string", "string", "string"],

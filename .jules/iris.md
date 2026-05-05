@@ -2,3 +2,8 @@
 **Discovery:** Expanding analytics to detect patterns such as laughter bursts, extended silences followed by re-engagement (silence breakers), and capitalized enthusiasm significantly increases the emotional resonance of the generated AI insights.
 **Impact:** Deepens the "Wow" factor. Users can physically see the energy balance (through laughter/caps lock metrics) and the effort to keep the relationship alive (through silence breakers). It makes the insights feel genuinely perceptive.
 **Action:** Continuously audit raw data to identify other subtle emotional cues (e.g., apology frequency, conversational pivots) that can be algorithmically quantified and passed to the LLM.
+
+## 2026-05-18 — Unveiling Hidden Conversation Dynamics: Apologies & Double Texts
+**Discovery:** Adding metrics for apology frequencies (Peacemaker) and consecutive messages sent before a reply (Double Texts) provides significant insights into conflict resolution and relationship attachment styles.
+**Impact:** Deepens the behavioral analysis and gives users tangible data points on who apologizes more frequently and who might be more anxious/eager in communication. This highly correlates with the user's emotional experience when reviewing their chat histories.
+**Action:** Expose these newly computed insights natively on the dashboard and ensure the LLM incorporates them when calculating overall health scores and writing relationship reads.

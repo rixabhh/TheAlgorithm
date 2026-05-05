@@ -69,6 +69,7 @@ class AnalyticsEngine {
         const lexicalDiversity = this.calculateLexicalDiversity(processed);
         const links = this.extractLinks(processed);
         const symmetry = this.calculateSymmetryScore(initiatorInfo, powerInfo);
+        const apologies = this.calculateApologies(processed);
         
         // --- MSG DISTRIBUTION FOR CHARTS ---
         const msgDist = { ME: 0, PARTNER: 0 };
@@ -107,6 +108,7 @@ class AnalyticsEngine {
             lexical_diversity: lexicalDiversity,
             links: links,
             symmetry: symmetry,
+            apologies: apologies,
             sentiment_summary: {
                 partner_mean: sentimentInfo.partnerMean,
                 me_mean: sentimentInfo.meMean,
@@ -277,6 +279,17 @@ class AnalyticsEngine {
             }
         }
         return caps;
+    }
+
+    calculateApologies(messages) {
+        const apologies = { ME: 0, PARTNER: 0 };
+        const APOLOGY_RE = /sorry|apologize|my bad|maaf|galti|pardon/i;
+        for (const m of messages) {
+            if (APOLOGY_RE.test(m.text || '')) {
+                apologies[m.sender]++;
+            }
+        }
+        return apologies;
     }
 
     calculateLexicalDiversity(messages) {

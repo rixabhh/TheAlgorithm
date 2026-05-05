@@ -109,6 +109,8 @@ document.addEventListener('DOMContentLoaded', () => {
         renderEmoji(stats);
         renderHumorAndEnergy(stats);
         renderSilenceBreakers(stats);
+        renderDoubleTexts(stats);
+        renderApologies(stats);
         renderLinks(stats);
 
         if (window.Chart) {
@@ -211,6 +213,34 @@ document.addEventListener('DOMContentLoaded', () => {
         container.innerHTML = `
             <div class="flex justify-between"><span>Ice Broken by ${myName}</span><span class="font-black">${escapeHTML(String(breakers.ME))} times</span></div>
             <div class="flex justify-between"><span>Ice Broken by ${partnerName}</span><span class="font-black">${escapeHTML(String(breakers.PARTNER))} times</span></div>
+        `;
+    };
+
+    const renderDoubleTexts = (stats) => {
+        const container = document.getElementById('double-texts-container');
+        if (!container) return;
+        const doubleTexts = stats.double_texts || { ME: 0, PARTNER: 0 };
+
+        const myName = escapeHTML(activeData.my_name);
+        const partnerName = escapeHTML(activeData.partner_name);
+
+        container.innerHTML = `
+            <div class="flex justify-between"><span>${myName}</span><span class="font-black">${escapeHTML(String(doubleTexts.ME))} times</span></div>
+            <div class="flex justify-between"><span>${partnerName}</span><span class="font-black">${escapeHTML(String(doubleTexts.PARTNER))} times</span></div>
+        `;
+    };
+
+    const renderApologies = (stats) => {
+        const container = document.getElementById('apologies-container');
+        if (!container) return;
+        const apologies = stats.apologies || { ME: 0, PARTNER: 0 };
+
+        const myName = escapeHTML(activeData.my_name);
+        const partnerName = escapeHTML(activeData.partner_name);
+
+        container.innerHTML = `
+            <div class="flex justify-between"><span>Apologies from ${myName}</span><span class="font-black">${escapeHTML(String(apologies.ME))}</span></div>
+            <div class="flex justify-between"><span>Apologies from ${partnerName}</span><span class="font-black">${escapeHTML(String(apologies.PARTNER))}</span></div>
         `;
     };
 

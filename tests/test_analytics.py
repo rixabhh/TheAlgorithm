@@ -28,6 +28,14 @@ def test_analytics_engine_edge_cases() -> None:
     ];
     const res3 = engine.runPipeline(messages3, 'romantic');
 
+    // Test case 4: Apologies
+    const messages4 = [
+        { sender: 'ME', text: 'I am so sorry about that', timestamp: 1000, words: ['i', 'am', 'so', 'sorry', 'about', 'that'], chars: 24 },
+        { sender: 'PARTNER', text: 'it is okay', timestamp: 2000, words: ['it', 'is', 'okay'], chars: 10 },
+        { sender: 'PARTNER', text: 'my bad too', timestamp: 3000, words: ['my', 'bad', 'too'], chars: 10 }
+    ];
+    const res4 = engine.runPipeline(messages4, 'romantic');
+
     console.log(JSON.stringify({
         res1: {
             laughter: res1.laughter
@@ -37,6 +45,9 @@ def test_analytics_engine_edge_cases() -> None:
         },
         res3: {
             caps_lock: res3.caps_lock
+        },
+        res4: {
+            apologies: res4.apologies
         }
     }));
     """
@@ -59,6 +70,10 @@ def test_analytics_engine_edge_cases() -> None:
         # Verify Caps Lock
         assert data['res3']['caps_lock']['ME'] == 1, "Expected 1 caps lock from ME"
         assert data['res3']['caps_lock']['PARTNER'] == 0, "Expected 0 caps lock from PARTNER"
+
+        # Verify Apologies
+        assert data['res4']['apologies']['ME'] == 1, "Expected 1 apology from ME"
+        assert data['res4']['apologies']['PARTNER'] == 1, "Expected 1 apology from PARTNER"
 
     finally:
         if os.path.exists('test_temp.js'):
