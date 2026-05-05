@@ -6,11 +6,11 @@ frontend:
 
 backend:
   - changed-files:
-    - any-glob-to-any-file: ['functions/**/*', 'app.py']
+    - any-glob-to-any-file: ['functions/**/*']
 
 infra:
   - changed-files:
-    - any-glob-to-any-file: ['Dockerfile', '.github/**/*', 'requirements.txt', 'pyproject.toml', 'Makefile']
+    - any-glob-to-any-file: ['.github/**/*', 'Makefile', 'package.json', 'wrangler.toml', '_redirects']
 
 docs:
   - changed-files:

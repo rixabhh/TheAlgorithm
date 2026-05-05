@@ -95,7 +95,7 @@ export async function makeChatLLMCall(provider, api_key, systemPrompt, chat_hist
         if (provider === 'openai') { url = 'https://api.openai.com/v1/chat/completions'; model = 'gpt-4o-mini'; }
         else if (provider === 'groq') { url = 'https://api.groq.com/openai/v1/chat/completions'; model = 'llama-3.1-70b-versatile'; }
         else if (provider === 'grok') { url = 'https://api.x.ai/v1/chat/completions'; model = 'grok-2-latest'; }
-        else if (provider === 'openrouter') { url = 'https://openrouter.ai/api/v1/chat/completions'; model = 'openai/gpt-4o'; }
+        else if (provider === 'openrouter') { url = 'https://openrouter.ai/api/v1/chat/completions'; model = 'openai/gpt-4o-mini'; }
         else if (provider === 'mistral') { url = 'https://api.mistral.ai/v1/chat/completions'; model = 'mistral-large-latest'; }
 
         if (!url) return null;
@@ -106,7 +106,7 @@ export async function makeChatLLMCall(provider, api_key, systemPrompt, chat_hist
 
         const resp = await fetch(url, {
             method: 'POST',
-            headers: { 'Authorization': `Bearer ${api_key}`, 'Content-Type': 'application/json' },
+            headers: makeOpenAICompatibleHeaders(provider, api_key, env),
             body: JSON.stringify({ model, messages, max_tokens: 500 }),
             signal: signal
         });
@@ -186,7 +186,7 @@ export async function makeLLMCall(provider, api_key, systemPrompt, userPrompt, e
         if (provider === 'openai') { url = 'https://api.openai.com/v1/chat/completions'; model = 'gpt-4o-mini'; }
         else if (provider === 'groq') { url = 'https://api.groq.com/openai/v1/chat/completions'; model = 'llama-3.1-70b-versatile'; }
         else if (provider === 'grok') { url = 'https://api.x.ai/v1/chat/completions'; model = 'grok-2-latest'; }
-        else if (provider === 'openrouter') { url = 'https://openrouter.ai/api/v1/chat/completions'; model = 'openai/gpt-4o'; }
+        else if (provider === 'openrouter') { url = 'https://openrouter.ai/api/v1/chat/completions'; model = 'openai/gpt-4o-mini'; }
         else if (provider === 'mistral') { url = 'https://api.mistral.ai/v1/chat/completions'; model = 'mistral-large-latest'; }
 
         if (!url) return null;
@@ -196,13 +196,13 @@ export async function makeLLMCall(provider, api_key, systemPrompt, userPrompt, e
             messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }]
         };
 
-        if (provider === 'openai' || provider === 'mistral') {
+        if (provider === 'openai' || provider === 'mistral' || provider === 'openrouter') {
             reqBody.response_format = { type: "json_object" };
         }
 
         const resp = await fetch(url, {
             method: 'POST',
-            headers: { 'Authorization': `Bearer ${api_key}`, 'Content-Type': 'application/json' },
+            headers: makeOpenAICompatibleHeaders(provider, api_key, env),
             body: JSON.stringify(reqBody),
             signal: signal
         });
@@ -211,4 +211,18 @@ export async function makeLLMCall(provider, api_key, systemPrompt, userPrompt, e
         const resData = await resp.json();
         return resData.choices[0].message.content;
     }
+}
+
+function makeOpenAICompatibleHeaders(provider, apiKey, env) {
+    const headers = {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+    };
+
+    if (provider === 'openrouter') {
+        headers['HTTP-Referer'] = env?.PUBLIC_SITE_URL || env?.CF_PAGES_URL || 'https://thealgorithm.pages.dev';
+        headers['X-OpenRouter-Title'] = 'The Algorithm';
+    }
+
+    return headers;
 }

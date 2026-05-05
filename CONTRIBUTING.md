@@ -1,79 +1,44 @@
 # Contributing to The Algorithm
 
-Welcome to **The Algorithm**! We're thrilled you want to contribute to our privacy-first relationship analyzer.
+The Algorithm is a static Cloudflare Pages app with client-side analytics and Pages Functions for optional AI features.
 
 ## Developer Setup
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/rixabhh/TheAlgorithm.git
-   cd TheAlgorithm
-   ```
+```bash
+git clone https://github.com/rixabhh/TheAlgorithm.git
+cd TheAlgorithm
+npm install
+npm run dev
+```
 
-2. **Environment Configuration:**
-   Copy the example environment file:
-   ```bash
-   cp .env.example .env
-   ```
-   Add your API keys to `.env` if needed.
+Wrangler prints the local URL for the Pages preview.
 
-3. **Install Dependencies & Run:**
-   Using the `Makefile` is the easiest way to work with the project:
-   ```bash
-   # Create a virtual environment first (recommended)
-   python -m venv venv
-   source venv/bin/activate
-   pip install -r requirements.txt
-   pip install pytest pytest-cov ruff
+## Checks
 
-   # Start the development server
-   make dev
-   ```
+```bash
+npm test
+```
 
-4. **Testing and Linting:**
-   ```bash
-   make test
-   make lint
-   make format
-   ```
+This validates the syntax of the Cloudflare Pages Functions under `functions/api/`.
 
-5. **Docker:**
-   ```bash
-   make docker-build
-   make docker-run
-   ```
+## Project Shape
 
-## Adding a New Parser
+- Root `*.html` files are the public pages served by Cloudflare Pages.
+- `static/js/` contains browser-only parsing, analytics, dashboard, and UI logic.
+- `static/css/` contains the visual system.
+- `functions/api/` contains serverless API endpoints.
+- `_redirects` contains Cloudflare Pages route aliases.
 
-The core of the analysis relies on correctly parsing chat exports. If you want to add support for a new platform (e.g., Signal, iMessage), follow these steps:
+## Adding a Parser
 
-1.  **Locate the Parsers:**
-    Open `static/js/parser.js`. This is where all client-side parsing happens in volatile memory.
+1. Update `static/js/parser.js`.
+2. Add or extend platform detection.
+3. Return the normalized message shape expected by `static/js/analytics_engine.js`.
+4. Verify the upload flow and dashboard in `npm run dev`.
 
-2.  **Create the Parser Logic:**
-    Add a new parser object (e.g., `parseSignal(text)`) or extend the existing `parseChat` logic to recognize the new format.
+## Privacy Rules
 
-3.  **Implement `detect()`:**
-    Every parser must include a detection method to automatically identify the chat format based on the first few lines of the file.
-    ```javascript
-    // Example
-    if (firstLines.includes("Signal Export")) {
-        return parseSignal(fileContent);
-    }
-    ```
-
-4.  **Extract Standard Metadata:**
-    Ensure your parser returns the standardized statistics object expected by the analytics engine:
-    *   Total Messages
-    *   Participant names
-    *   Message timestamps (for response time/time-of-day stats)
-    *   Word counts, emoji usage, etc.
-    *   *Crucially:* **Do not include raw chat text in the final output object.**
-
-5.  **Test the Parser:**
-    Load a sample export from the new platform in the browser and verify the dashboard visualizes the data correctly.
-
-## Privacy Golden Rules
-- **No data hits the disk:** Do not write anything to the server's filesystem.
-- **No PII to the LLM:** Ensure personal data (names, numbers, raw text) is completely redacted or dropped before the payload is sent to any LLM API.
-- **Only stats:** The LLM should only ever receive numerical or abstracted metadata.
+- Do not send raw chat text to API functions or LLM providers.
+- Keep chat parsing and local statistics in the browser.
+- Persist reports only in browser storage unless a user explicitly exports them.
+- API functions should receive aggregated statistics only.

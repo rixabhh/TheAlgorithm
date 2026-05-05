@@ -626,6 +626,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else if (provider === 'gemini' && rawKey.length !== 39) {
                     isKeyValid = false;
                     keyError = 'Gemini keys must be exactly 39 characters';
+                } else if (provider === 'openrouter' && rawKey.length < 20) {
+                    isKeyValid = false;
+                    keyError = 'OpenRouter keys look too short';
                 }
 
                 if (!isKeyValid) {

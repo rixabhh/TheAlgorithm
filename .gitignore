@@ -1,10 +1,5 @@
-uploads/
-__pycache__/
-*.pyc
 .env
-.pytest_cache/
 CHATS/
-.venv/
 models/
 docs/
 stitch.md
@@ -14,27 +9,6 @@ test_chat.txt
 node_modules/
 .aider*
 doc/
-
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-env/
-venv/
-.env
-.venv
-*.egg-info/
-
-# Testing
-.pytest_cache/
-.coverage
-coverage.xml
-htmlcov/
-
-# Ruff
-.ruff_cache/
 
 # Ignore Roadmap
 TheAlgorithm_ProductionRoadmap.md

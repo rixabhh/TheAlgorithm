@@ -9,26 +9,18 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    name: Test & Security Scan
+    name: Static App Checks
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          python-version: '3.11'
-          cache: 'pip'
-      - name: Install Python dependencies
-        run: |
-          pip install -r requirements.txt
-          pip install pytest pytest-cov ruff pip-audit mypy types-Flask
-      - name: Security Scan
-        run: pip-audit -r requirements.txt
-      - name: Lint with Ruff
-        run: ruff check .
-      - name: Run Mypy
-        run: mypy app.py tests/
-      - name: Run Pytest
-        run: python -m pytest tests/ --cov=. --cov-report=xml
+          node-version: 20
+          cache: npm
+      - name: Install dependencies
+        run: npm install
+      - name: Check Cloudflare Functions syntax
+        run: npm test
 
   deploy:
     runs-on: ubuntu-latest
@@ -57,7 +49,7 @@ jobs:
       - name: Deployment Summary
         if: success()
         run: |
-          echo "### 🚀 Deployment Successful!" >> $GITHUB_STEP_SUMMARY
+          echo "### Deployment Successful" >> $GITHUB_STEP_SUMMARY
           echo "The latest version of **The Algorithm** has been deployed." >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "> [!TIP]" >> $GITHUB_STEP_SUMMARY

@@ -3,12 +3,6 @@
 .github/
 .jules/
 doc/
-tests/
-Makefile
-Dockerfile
-app.py
-requirements.txt
-pyproject.toml
 issue-contributor.md
 issue-infra.md
 .env.example
@@ -16,9 +10,5 @@ issue-infra.md
 README.md
 CONTRIBUTING.md
 jobs.json
-*.py
-__pycache__/
-.pytest_cache/
-.ruff_cache/
 node_modules/
 .wrangler/

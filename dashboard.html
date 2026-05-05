@@ -101,9 +101,9 @@
                 <li><a href="#section-ratios" class="active"><span class="icon">📊</span> Data Ratios</a></li>
                 <li><a href="#section-mood"><span class="icon">🌊</span> Mood Timeline</a></li>
                 <li><a href="#section-social"><span class="icon">👥</span> Social Dynamics</a></li>
-                <li><a href="#section-activity"><span class="icon">📈</span> Activity</a></li>
-                <li><a href="#section-vibe"><span class="icon">💡</span> Vibe Insights</a></li>
                 <li><a href="#section-quick-stats"><span class="icon">⚡</span> Quick Stats</a></li>
+
+                <li><a href="#section-vibe"><span class="icon">AI</span> Vibe Insights</a></li>
             </ul>
         </div>
 
@@ -120,10 +120,19 @@
 
                 <button id="shareLinkBtn" class="btn btn--yellow" style="padding:0.5rem 1rem;font-size:0.8rem">🔗 Share Report</button>
                 <button id="share-btn" class="btn btn--pink" style="padding:0.5rem 1rem;font-size:0.8rem">📸 Save Vibe Card</button>
+                <button id="settingsBtn" class="btn btn--white" style="padding:0.5rem 1rem;font-size:0.8rem">AI Settings</button>
 
 
             </div>
         </header>
+
+        <section id="section-overview" class="dashboard-stat-strip mb-8">
+            <div class="stat-card is-loading"><div id="stat-total-messages" class="stat-card__value">0</div><div class="stat-card__label">Messages</div></div>
+            <div class="stat-card is-loading"><div id="stat-duration" class="stat-card__value">--</div><div class="stat-card__label">Duration</div></div>
+            <div class="stat-card is-loading"><div id="stat-reply-speed" class="stat-card__value">--</div><div class="stat-card__label">Median Reply</div></div>
+            <div class="stat-card is-loading"><div id="stat-symmetry" class="stat-card__value">--</div><div class="stat-card__label">Balance</div></div>
+        </section>
+
 
         <!-- Primary Data Visuals -->
         <section id="section-ratios" class="mb-16">
@@ -405,6 +414,38 @@
         </section>
 
     </main>
+</div>
+<div id="settingsModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+    <div class="modal-content">
+        <button id="closeSettings" class="modal-close" aria-label="Close">&times;</button>
+        <div class="text-center mb-6" style="border-bottom:3px solid var(--black);padding-bottom:1rem">
+            <h2 id="settingsTitle" style="font-size:1.5rem">AI Settings</h2>
+            <p style="font-size:.8rem;color:var(--gray-500);font-weight:500;margin:0">Choose a provider for insight generation and coach chat.</p>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:1rem">
+            <div>
+                <label for="llmProvider" style="display:block;font-weight:700;font-size:.8rem;text-transform:uppercase;margin-bottom:.35rem">Provider</label>
+                <select id="llmProvider" class="field-input">
+                    <option value="cloudflare">Cloudflare AI (Free - 2/hr)</option>
+                    <option value="openrouter">OpenRouter</option>
+                    <option value="openai">OpenAI</option>
+                    <option value="anthropic">Anthropic</option>
+                    <option value="gemini">Google Gemini</option>
+                    <option value="grok">xAI Grok</option>
+                    <option value="groq">Groq</option>
+                    <option value="mistral">Mistral AI</option>
+                    <option value="cohere">Cohere</option>
+                </select>
+            </div>
+            <div id="apiKeyContainer">
+                <label for="apiKey" style="display:block;font-weight:700;font-size:.8rem;text-transform:uppercase;margin-bottom:.35rem">API Key</label>
+                <input type="password" id="apiKey" class="field-input" autocomplete="off" placeholder="Paste provider API key" maxlength="512">
+                <p id="providerHint" style="font-size:.7rem;font-weight:600;color:var(--gray-500);margin-top:.35rem;min-height:1rem"></p>
+            </div>
+            <button id="saveSettingsBtn" class="btn btn--purple btn--full">Save Settings</button>
+            <p style="font-size:.7rem;color:var(--gray-500);font-weight:600;text-align:center;margin:0">Keys stay in this tab's session storage and are sent only when you generate AI output.</p>
+        </div>
+    </div>
 </div>
 
 <!-- ═══ SHAREABLE CAPTURE CARD (Vertical Layout) ═══ -->

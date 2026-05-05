@@ -27,6 +27,23 @@ document.addEventListener('DOMContentLoaded', () => {
     let dataB = null;
     let activeData = null;
     let isSharedMode = false;
+    const providerHints = {
+        cloudflare: 'Uses the configured Cloudflare Workers AI binding when available.',
+        openrouter: 'Use an OpenRouter key. Recommended model is openai/gpt-4o-mini.',
+        openai: 'OpenAI keys usually start with sk-.',
+        anthropic: 'Anthropic keys usually start with sk-ant-.',
+        gemini: 'Paste a Google AI Studio API key.',
+        grok: 'Paste an xAI API key.',
+        groq: 'Paste a Groq API key.',
+        mistral: 'Paste a Mistral API key.',
+        cohere: 'Paste a Cohere API key.'
+    };
+    const number = (value, fallback = 0) => Number.isFinite(Number(value)) ? Number(value) : fallback;
+    const totalMessages = (stats) => number(stats.messages?.ME) + number(stats.messages?.PARTNER);
+    const setText = (id, value) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = value;
+    };
 
     // 1. DATA LOADING
     if (isCompareMode) {
@@ -60,14 +77,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const setupNavigation = () => {
         const navLinks = document.querySelectorAll('.sidebar-nav a');
         const sections = document.querySelectorAll('main section');
-        window.addEventListener('scroll', () => {
+        const updateActiveLink = () => {
             let current = '';
-            sections.forEach(s => { if (pageYOffset >= s.offsetTop - 150) current = s.getAttribute('id'); });
+            sections.forEach(s => { if (window.scrollY >= s.offsetTop - 170) current = s.getAttribute('id'); });
             navLinks.forEach(l => {
                 l.classList.remove('active');
                 if (l.getAttribute('href').substring(1) === current) l.classList.add('active');
             });
-        });
+        };
+        window.addEventListener('scroll', updateActiveLink, { passive: true });
+        updateActiveLink();
 
         // Progressive Loading
         const observer = new IntersectionObserver((entries) => {
@@ -95,12 +114,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const meName = activeData.my_name || "You";
         const partnerName = activeData.partner_name || "Partner";
 
-        document.getElementById('profile-name').textContent = `${meName} & ${partnerName}`;
-        document.getElementById('traits-name-me').textContent = meName;
-        document.getElementById('traits-name-partner').textContent = partnerName;
-        document.getElementById('report-headline').textContent = isCompareMode ? 'Comparative Analysis' : `${meName} & ${partnerName}`;
+        setText('profile-name', `${meName} & ${partnerName}`);
+        setText('traits-name-me', meName);
+        setText('traits-name-partner', partnerName);
+        setText('report-headline', isCompareMode ? 'Comparative Analysis' : `${meName} & ${partnerName}`);
         const pulse = document.getElementById('report-pulse');
-        if (pulse) pulse.textContent = `${((stats.messages?.ME || 0) + (stats.messages?.PARTNER || 0)).toLocaleString()} messages · ${stats.duration || '--'} · ${activeData.platform || 'Unknown'}`;
+        if (pulse) pulse.textContent = `${totalMessages(stats).toLocaleString()} messages - ${stats.duration || '--'} - ${activeData.platform || 'Unknown'}`;
+        const historyCount = (() => {
+            try { return JSON.parse(localStorage.getItem('algo_history') || '[]').length; } catch (_) { return 0; }
+        })();
+        setText('stats-chats-count', String(historyCount || 1));
+        renderOverviewStats(stats);
 
         renderSocialDynamics(stats);
         renderEngagement(stats);
@@ -116,6 +140,17 @@ document.addEventListener('DOMContentLoaded', () => {
             initActivityChart(stats.weekly_data || []);
             initMoodChart(stats.weekly_data || []);
         }
+        document.querySelectorAll('.is-loading').forEach(el => el.classList.remove('is-loading'));
+    };
+
+    const renderOverviewStats = (stats) => {
+        const init = stats.initiator_ratio || {};
+        const replyValues = [number(init.me_latency_avg, -1), number(init.partner_latency_avg, -1)].filter(v => v >= 0);
+        const avgReply = replyValues.length ? replyValues.reduce((a, b) => a + b, 0) / replyValues.length : 0;
+        setText('stat-total-messages', totalMessages(stats).toLocaleString());
+        setText('stat-duration', stats.duration || '--');
+        setText('stat-reply-speed', avgReply ? formatTime(avgReply) : '--');
+        setText('stat-symmetry', stats.symmetry?.score !== undefined ? `${stats.symmetry.score}%` : '--');
     };
 
     const renderSocialDynamics = (stats) => {
@@ -260,13 +295,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const initRatioChart = (stats) => {
         const ctx = document.getElementById('ratioChart')?.getContext('2d');
         if (!ctx) return;
+        const values = [stats.messages?.ME || 0, stats.messages?.PARTNER || 0];
+        if (!values[0] && !values[1]) {
+            document.getElementById('ratio-chart-container').innerHTML = '<div class="chart-empty">No ratio data available.</div>';
+            return;
+        }
         if (ratioChart) ratioChart.destroy();
         ratioChart = new Chart(ctx, {
             type: 'doughnut',
             data: {
                 labels: [activeData.my_name, activeData.partner_name],
                 datasets: [{
-                    data: [stats.messages?.ME || 0, stats.messages?.PARTNER || 0],
+                    data: values,
                     backgroundColor: ['#000', '#FF4081'],
                     borderWidth: 0
                 }]
@@ -278,6 +318,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const initActivityChart = (weeks) => {
         const ctx = document.getElementById('activityChart')?.getContext('2d');
         if (!ctx) return;
+        if (!weeks.length) {
+            document.getElementById('activity-chart-container').innerHTML = '<div class="chart-empty">No weekly activity data available.</div>';
+            return;
+        }
         if (activityChart) activityChart.destroy();
         activityChart = new Chart(ctx, {
             type: 'bar',
@@ -296,6 +340,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const initMoodChart = (weeks) => {
         const ctx = document.getElementById('moodChart')?.getContext('2d');
         if (!ctx) return;
+        if (!weeks.length) {
+            document.getElementById('mood-chart-container').innerHTML = '<div class="chart-empty">No mood timeline data available.</div>';
+            return;
+        }
         if (moodChart) moodChart.destroy();
         
         const labels = weeks.map(w => w.week_start);
@@ -373,6 +421,45 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    const setupProviderSettings = () => {
+        const settingsBtn = document.getElementById('settingsBtn');
+        const modal = document.getElementById('settingsModal');
+        const closeBtn = document.getElementById('closeSettings');
+        const saveBtn = document.getElementById('saveSettingsBtn');
+        const providerEl = document.getElementById('llmProvider');
+        const apiKeyEl = document.getElementById('apiKey');
+        const hintEl = document.getElementById('providerHint');
+        const apiKeyContainer = document.getElementById('apiKeyContainer');
+        if (!settingsBtn || !modal || !providerEl || !apiKeyEl) return;
+
+        const refreshHint = () => {
+            const provider = providerEl.value || 'cloudflare';
+            if (hintEl) hintEl.textContent = providerHints[provider] || '';
+            apiKeyContainer?.classList.toggle('hidden', provider === 'cloudflare');
+        };
+        const showModal = () => {
+            providerEl.value = localStorage.getItem('llm_provider') || 'cloudflare';
+            const storedToken = sessionStorage.getItem('_llm_token');
+            apiKeyEl.value = (storedToken && storedToken !== btoa('')) ? decodeURIComponent(escape(atob(storedToken))) : '';
+            refreshHint();
+            modal.classList.add('active');
+        };
+        const hideModal = () => modal.classList.remove('active');
+
+        settingsBtn.addEventListener('click', showModal);
+        closeBtn?.addEventListener('click', hideModal);
+        modal.addEventListener('click', (e) => { if (e.target === modal) hideModal(); });
+        providerEl.addEventListener('change', refreshHint);
+        saveBtn?.addEventListener('click', () => {
+            const provider = providerEl.value || 'cloudflare';
+            const key = apiKeyEl.value.trim();
+            localStorage.setItem('llm_provider', provider);
+            sessionStorage.setItem('_llm_token', btoa(unescape(encodeURIComponent(key))));
+            hideModal();
+        });
+    };
+    setupProviderSettings();
+
     // --- COMPARISON SLOTS ---
     if (isCompareMode) {
         const slotA = document.getElementById('comp-slot-a');
@@ -406,12 +493,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- AI INSIGHTS ---
     const renderAiReport = (report) => {
         window.llmReport = report || {};
-        document.getElementById('ai-insight-label').textContent = report?.ai_insight?.vibe_label || `HEALTH ${report?.ai_insight?.health_score || report?.overall_health_score || '--'}`;
-        document.getElementById('ai-insight-title').textContent = report?.ai_insight?.dynamic_title || "Analysis Complete";
-        document.getElementById('ai-insight-reality').textContent = report?.ai_insight?.reality_check || '';
-        document.getElementById('ai-insight-shift').textContent = report?.ai_insight?.recent_shift || '';
-        document.getElementById('ai-insight-verdict').textContent = report?.ai_insight?.brutal_verdict || '';
-        document.getElementById('ai-insight-timestamp').textContent = `Generated ${new Date().toLocaleString()}`;
+        setText('ai-insight-label', report?.ai_insight?.vibe_label || `HEALTH ${report?.ai_insight?.health_score || report?.overall_health_score || '--'}`);
+        setText('ai-insight-title', report?.ai_insight?.dynamic_title || "Analysis Complete");
+        setText('ai-insight-reality', report?.ai_insight?.reality_check || '');
+        setText('ai-insight-shift', report?.ai_insight?.recent_shift || '');
+        setText('ai-insight-verdict', report?.ai_insight?.brutal_verdict || '');
+        setText('ai-insight-timestamp', `Generated ${new Date().toLocaleString()}`);
         
         const red = document.getElementById('ai-insight-red-flags');
         const green = document.getElementById('ai-insight-green-flags');
@@ -792,42 +879,123 @@ function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
 
 function generateShareCard(analysisData) {
   const canvas = document.createElement('canvas');
-  canvas.width = 1200;
-  canvas.height = 630; // OG image dimensions
+  canvas.width = 1080;
+  canvas.height = 1920;
   const ctx = canvas.getContext('2d');
+  const active = window.activeData || {};
+  const stats = active.stats || {};
+  const report = window.llmReport || {};
+  const ai = report.ai_insight || {};
+  const messages = stats.messages || {};
+  const meTotal = messages.ME || 0;
+  const partnerTotal = messages.PARTNER || 0;
+  const total = meTotal + partnerTotal;
+  const mePct = total ? Math.round(meTotal / total * 100) : 50;
+  const partnerPct = 100 - mePct;
+  const init = stats.initiator_ratio || {};
+  const avgReply = [init.me_latency_avg, init.partner_latency_avg]
+    .filter(v => Number.isFinite(Number(v)) && Number(v) >= 0)
+    .reduce((acc, v, _, arr) => acc + Number(v) / arr.length, 0);
+  const replyText = avgReply ? formatShareTime(avgReply) : '--';
+  const redFlag = ai.red_flags?.[0] || report.growth_areas?.[0] || 'No major red flag detected.';
+  const greenFlag = ai.green_flags?.[0] || report.strengths?.[0] || 'There is enough signal to read the vibe.';
+  const title = ai.dynamic_title || report.relationship_persona || 'Vibe Check';
+  const finalWord = ai.brutal_verdict || analysisData.top_insight || 'The chat has spoken.';
 
-  // Dark gradient background
-  const gradient = ctx.createLinearGradient(0, 0, 1200, 630);
-  gradient.addColorStop(0, '#1a0a2e');
-  gradient.addColorStop(1, '#0f0a1e');
+  const gradient = ctx.createLinearGradient(0, 0, 1080, 1920);
+  gradient.addColorStop(0, '#fff4d8');
+  gradient.addColorStop(0.52, '#ff4d8d');
+  gradient.addColorStop(1, '#1a0a00');
   ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, 1200, 630);
+  ctx.fillRect(0, 0, 1080, 1920);
 
-  // Logo / branding
-  ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 48px Inter, sans-serif';
-  ctx.fillText('The Algorithm', 60, 100);
+  ctx.fillStyle = '#1a0a00';
+  ctx.fillRect(54, 54, 972, 1812);
+  ctx.fillStyle = '#fff8f0';
+  ctx.fillRect(72, 72, 936, 1776);
 
-  // Health score
-  ctx.fillStyle = '#a855f7';
-  ctx.font = 'bold 120px Inter, sans-serif';
-  // We use score or 0 if not present
-  ctx.fillText(`${analysisData.health_score}`, 60, 260);
-  ctx.fillStyle = '#ffffff80';
-  ctx.font = '32px Inter, sans-serif';
-  ctx.fillText('relationship health score', 60, 310);
+  drawPill(ctx, 'THE ALGORITHM', 112, 120, '#1a0a00', '#ffd600', 32);
+  drawPill(ctx, ai.vibe_label || 'VIBE CHECK', 112, 205, '#ff4d8d', '#fff', 28);
 
-  // Top insight
-  ctx.fillStyle = '#ffffff';
-  ctx.font = '28px Inter, sans-serif';
-  wrapText(ctx, analysisData.top_insight, 60, 400, 1080, 40);
+  ctx.fillStyle = '#1a0a00';
+  ctx.font = '900 96px Inter, Arial, sans-serif';
+  wrapText(ctx, title.toUpperCase(), 112, 345, 830, 104);
 
-  // Footer
-  ctx.fillStyle = '#ffffff40';
-  ctx.font = '24px Inter, sans-serif';
-  ctx.fillText('thealgorithm.rixabh.workers.dev', 60, 590);
+  ctx.fillStyle = '#7b2fbe';
+  ctx.font = '900 188px Inter, Arial, sans-serif';
+  ctx.fillText(`${ai.health_score || report.overall_health_score || analysisData.health_score || '--'}`, 112, 690);
+  ctx.fillStyle = '#1a0a00';
+  ctx.font = '900 34px Inter, Arial, sans-serif';
+  ctx.fillText('/100 relationship energy', 435, 665);
+
+  drawMetric(ctx, 'Messages', total.toLocaleString(), 112, 785);
+  drawMetric(ctx, 'Duration', stats.duration || '--', 560, 785);
+  drawMetric(ctx, 'Reply speed', replyText, 112, 980);
+  drawMetric(ctx, 'Balance', stats.symmetry?.label || `${mePct}/${partnerPct}`, 560, 980);
+
+  ctx.fillStyle = '#1a0a00';
+  ctx.font = '900 30px Inter, Arial, sans-serif';
+  ctx.fillText(`${active.my_name || 'You'} ${mePct}%`, 112, 1215);
+  ctx.fillText(`${active.partner_name || 'Them'} ${partnerPct}%`, 112, 1260);
+  ctx.fillStyle = '#e9ddc8';
+  ctx.fillRect(112, 1288, 856, 44);
+  ctx.fillStyle = '#1a0a00';
+  ctx.fillRect(112, 1288, 856 * mePct / 100, 44);
+  ctx.fillStyle = '#ff4d8d';
+  ctx.fillRect(112 + 856 * mePct / 100, 1288, 856 * partnerPct / 100, 44);
+
+  drawInsightBox(ctx, 'RED FLAG', redFlag, 112, 1395, '#ffe1e6');
+  drawInsightBox(ctx, 'GREEN FLAG', greenFlag, 112, 1545, '#e6ffe9');
+
+  ctx.fillStyle = '#1a0a00';
+  ctx.font = '900 30px Inter, Arial, sans-serif';
+  ctx.fillText('FINAL WORD', 112, 1728);
+  ctx.font = '800 38px Inter, Arial, sans-serif';
+  wrapText(ctx, finalWord, 112, 1790, 856, 48);
 
   return canvas.toDataURL('image/png');
+}
+
+function drawPill(ctx, text, x, y, bg, fg, size) {
+    ctx.fillStyle = bg;
+    ctx.fillRect(x, y, Math.min(856, 34 + text.length * size * 0.62), size + 28);
+    ctx.fillStyle = fg;
+    ctx.font = `900 ${size}px Inter, Arial, sans-serif`;
+    ctx.fillText(text, x + 18, y + size + 9);
+}
+
+function drawMetric(ctx, label, value, x, y) {
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(x, y, 390, 140);
+    ctx.strokeStyle = '#1a0a00';
+    ctx.lineWidth = 5;
+    ctx.strokeRect(x, y, 390, 140);
+    ctx.fillStyle = '#78716c';
+    ctx.font = '900 24px Inter, Arial, sans-serif';
+    ctx.fillText(label.toUpperCase(), x + 28, y + 42);
+    ctx.fillStyle = '#1a0a00';
+    ctx.font = '900 46px Inter, Arial, sans-serif';
+    wrapText(ctx, String(value), x + 28, y + 102, 330, 48);
+}
+
+function drawInsightBox(ctx, label, text, x, y, bg) {
+    ctx.fillStyle = bg;
+    ctx.fillRect(x, y, 856, 118);
+    ctx.strokeStyle = '#1a0a00';
+    ctx.lineWidth = 5;
+    ctx.strokeRect(x, y, 856, 118);
+    ctx.fillStyle = '#1a0a00';
+    ctx.font = '900 24px Inter, Arial, sans-serif';
+    ctx.fillText(label, x + 26, y + 38);
+    ctx.font = '800 30px Inter, Arial, sans-serif';
+    wrapText(ctx, text, x + 26, y + 82, 800, 36);
+}
+
+function formatShareTime(seconds) {
+    if (!seconds || seconds < 0) return '--';
+    if (seconds < 60) return `${Math.round(seconds)}s`;
+    if (seconds < 3600) return `${Math.round(seconds / 60)}m`;
+    return `${Math.round(seconds / 3600)}h`;
 }
 
 // Add download image button logic (if requested by UI, assuming standard layout from prompt)

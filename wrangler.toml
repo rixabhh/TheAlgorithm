@@ -5,9 +5,6 @@ compatibility_date = "2025-09-01"
 [vars]
 LLM_PROVIDER = "openai"
 
-[ai]
-binding = "AI"
-
 # KV Namespaces for rate limiting
 [[kv_namespaces]]
 binding = "KV_RATELIMIT"

@@ -1,22 +1,13 @@
-.PHONY: dev test lint format typecheck docker-build docker-run
+.PHONY: dev preview test deploy
 
 dev:
-	python app.py
+	npm run dev
+
+preview:
+	npm run preview
 
 test:
-	python -m pytest tests/ -v
+	npm test
 
-lint:
-	ruff check .
-
-format:
-	ruff format .
-
-typecheck:
-	mypy app.py tests/
-
-docker-build:
-	docker build -t the-algorithm .
-
-docker-run:
-	docker run -p 7860:7860 the-algorithm
+deploy:
+	npm run deploy
