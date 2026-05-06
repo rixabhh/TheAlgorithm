@@ -19,7 +19,23 @@ Wrangler prints the local URL for the Pages preview.
 npm test
 ```
 
-This validates the syntax of the Cloudflare Pages Functions under `functions/api/`.
+This validates the syntax of the Cloudflare Pages Functions under `functions/api/` and frontend JS under `static/js/`.
+
+## Formatting and Linting
+
+This project uses Prettier for code formatting.
+
+```bash
+make format
+```
+
+To format all supported files (`.js`, `.css`, `.html`, `.json`, `.md`).
+
+```bash
+make lint
+```
+
+To check formatting without writing changes.
 
 ## Project Shape
 

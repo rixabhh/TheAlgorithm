@@ -7,7 +7,9 @@
     "dev": "wrangler pages dev .",
     "preview": "wrangler pages dev .",
     "deploy": "wrangler pages deploy .",
-    "test": "node --check functions/api/analyze.js && node --check functions/api/chat.js && node --check functions/api/llm_helper.js && node --check functions/api/stats.js"
+    "test": "node --check functions/api/analyze.js && node --check functions/api/chat.js && node --check functions/api/llm_helper.js && node --check functions/api/stats.js && node --check static/js/app.js && node --check static/js/dashboard.js && node --check static/js/dashboard_utils.js && node --check static/js/analytics_engine.js && node --check static/js/parser.js",
+    "format": "prettier --write \"**/*.{js,css,html,json,md}\"",
+    "lint": "prettier --check \"**/*.{js,css,html,json,md}\""
   },
   "keywords": [
     "privacy",
@@ -18,6 +20,7 @@
   "author": "rixabhh",
   "license": "MIT",
   "devDependencies": {
+    "prettier": "^3.8.3",
     "wrangler": "^4.87.0"
   }
 }
