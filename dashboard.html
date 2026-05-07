@@ -69,10 +69,13 @@
 <!-- ═══ DASHBOARD WRAPPER ═══ -->
 <div class="dashboard-wrapper">
     <!-- ═══ SIDEBAR ═══ -->
-    <aside class="sidebar">
-        <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.5rem;padding:0.5rem">
-            <img src="static/favicon.png" alt="Logo" style="width:32px;height:32px;border-radius:6px;border:2px solid var(--black)">
-            <span style="font-family:var(--font-heading);font-weight:900;font-size:1.25rem;letter-spacing:-0.03em">The Algorithm</span>
+    <aside class="sidebar sidebar--collapsed" id="dashboard-sidebar">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;padding:0.5rem">
+            <div style="display:flex;align-items:center;gap:0.75rem">
+                <img src="static/favicon.png" alt="Logo" style="width:32px;height:32px;border-radius:6px;border:2px solid var(--black)">
+                <span style="font-family:var(--font-heading);font-weight:900;font-size:1.25rem;letter-spacing:-0.03em">The Algorithm</span>
+            </div>
+            <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle menu">☰ Menu</button>
         </div>
 
         <!-- Comparison Sticky Nav (Visible in Compare Mode) -->
@@ -86,7 +89,6 @@
                 <div id="comp-name-b" style="font-size: 0.85rem; font-weight: 900">--</div>
             </div>
         </div>
-
 
         <a href="/" class="btn btn--dark btn--full mb-8" style="padding:0.6rem;font-size:0.8rem">← START NEW</a>
         
@@ -102,8 +104,10 @@
                 <li><a href="#section-mood"><span class="icon">🌊</span> Mood Timeline</a></li>
                 <li><a href="#section-social"><span class="icon">👥</span> Social Dynamics</a></li>
                 <li><a href="#section-quick-stats"><span class="icon">⚡</span> Quick Stats</a></li>
-
+                <li><a href="#section-pattern-signals"><span class="icon">SIG</span> Signals</a></li>
+                <li><a href="#section-receipts"><span class="icon">REC</span> Receipts</a></li>
                 <li><a href="#section-vibe"><span class="icon">AI</span> Vibe Insights</a></li>
+                <li><a href="#section-predictive"><span class="icon">🔮</span> Predictive</a></li>
             </ul>
         </div>
 
@@ -131,6 +135,22 @@
             <div class="stat-card is-loading"><div id="stat-duration" class="stat-card__value">--</div><div class="stat-card__label">Duration</div></div>
             <div class="stat-card is-loading"><div id="stat-reply-speed" class="stat-card__value">--</div><div class="stat-card__label">Median Reply</div></div>
             <div class="stat-card is-loading"><div id="stat-symmetry" class="stat-card__value">--</div><div class="stat-card__label">Balance</div></div>
+        </section>
+
+        <section id="section-source-quality" class="mb-8">
+            <div class="card p-4" style="background:var(--cream);border-width:3px">
+                <div class="flex flex-wrap justify-between gap-4 align-center">
+                    <div>
+                        <span class="pill-label pill-label--purple" style="font-size:.6rem">source quality</span>
+                        <h3 id="source-quality-title" style="font-size:1.2rem;margin:.45rem 0 .2rem">--</h3>
+                        <p id="source-quality-warnings" class="text-sm color-gray-500" style="margin:0"></p>
+                    </div>
+                    <div class="text-center">
+                        <div id="source-quality-score" style="font-family:var(--font-heading);font-size:2.4rem;font-weight:900;color:var(--purple);line-height:1">--</div>
+                        <div class="text-xs uppercase font-bold color-gray-500">confidence</div>
+                    </div>
+                </div>
+            </div>
         </section>
 
 
@@ -222,7 +242,7 @@
         </section>
 
         <!-- Pro Feature: Advanced Emotional Metrics (Locked) -->
-        <section class="mb-16">
+        <section class="mb-16 hidden" aria-hidden="true">
             <h2 class="mb-6 text-gray-400">Advanced Emotional Metrics</h2>
             <div class="relative group card p-6">
                 <!-- Lock Overlay -->
@@ -253,6 +273,12 @@
                     </div>
                 </div>
             </div>
+        </section>
+
+        <section id="section-pattern-signals" class="mb-16">
+            <h2 class="mb-2">Pattern Signals</h2>
+            <p class="mb-6 color-gray-500">Local evidence extraction before any AI interpretation.</p>
+            <div id="pattern-signal-container" class="grid gap-4" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))"></div>
         </section>
 
         <!-- Quick Stats Grid -->
@@ -352,42 +378,162 @@
             </div>
 
             <div id="ai-results-container" class="hidden ai-insight-box">
-                <div class="text-center mb-10">
+                <section id="section-verdict-summary" class="mb-8">
+                    <div class="card p-6" style="border-width:4px;background:var(--yellow)">
+                        <span class="pill-label pill-label--black mb-3 inline-block" style="background:var(--black);color:var(--white)">verdict</span>
+                        <h2 id="verdict-headline" style="font-size:clamp(1.8rem,4vw,3rem);margin:.25rem 0">--</h2>
+                        <div class="grid grid-3 gap-4 mt-4">
+                            <div class="prediction-metric"><span class="text-xs uppercase font-bold color-gray-500">Risk</span><strong id="verdict-risk">--</strong></div>
+                            <div class="prediction-metric"><span class="text-xs uppercase font-bold color-gray-500">Confidence</span><strong id="verdict-confidence">--</strong></div>
+                            <div class="prediction-metric"><span class="text-xs uppercase font-bold color-gray-500">Next Move</span><p id="verdict-next-move" class="text-sm font-bold" style="margin:.25rem 0 0"></p></div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="section-receipts" class="mb-8">
+                    <h2 class="mb-2">Receipts</h2>
+                    <p class="mb-6 color-gray-500">Evidence-backed claims from local patterns. Raw snippets are used only when you opted in.</p>
+                    <div id="receipt-cards" class="grid gap-4" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))"></div>
+                </section>
+
+                <!-- Hero: Persona + Health Score -->
+                <div class="card p-6 mb-8 text-center" style="border-width:3px;background:linear-gradient(135deg, var(--white) 0%, var(--cream) 100%)">
                     <span id="ai-insight-label" class="pill-label pill-label--pink mb-3 inline-block" style="border-radius:4px;padding:4px 12px;background:white;border:2px solid black;font-weight:900">VIBE STATUS</span>
-                    <h1 id="ai-insight-title" style="font-size:3.5rem;font-weight:900;letter-spacing:-0.02em;margin-top:0.5rem">--</h1>
+                    <h1 id="ai-insight-title" style="font-size:clamp(2rem, 5vw, 3.5rem);font-weight:900;letter-spacing:-0.02em;margin-top:0.5rem">--</h1>
+                    <p id="ai-persona" class="text-sm color-gray-500 mt-2" style="font-style:italic"></p>
+                    <div class="health-score-display mt-4">
+                        <div class="health-score-ring" id="health-ring" style="--score: 0">
+                            <span class="health-score-number" id="health-score-num">--</span>
+                        </div>
+                        <div class="text-left">
+                            <div class="text-xs uppercase font-bold color-gray-500 mb-1">Compatibility</div>
+                            <div id="compatibility-score" style="font-family:var(--font-heading);font-size:2.5rem;font-weight:900;color:var(--green);line-height:1">--</div>
+                            <div class="text-xs color-gray-500">/100</div>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- Reality Check + Recent Shift -->
                 <div class="grid grid-2 gap-6 mb-8">
                     <div class="card p-6 bg-white">
-                        <h4 class="mb-3 font-bold text-xs uppercase letter-spacing-05 flex align-center gap-2"><span class="text-xl">🔍</span> THE REALITY CHECK</h4>
+                        <h4 class="insight-section-header insight-section-header--pink">🔍 The Reality Check</h4>
                         <p id="ai-insight-reality" class="text-sm line-height-16"></p>
                     </div>
                     <div class="card p-6 bg-white">
-                        <h4 class="mb-3 font-bold text-xs uppercase letter-spacing-05 flex align-center gap-2"><span class="text-xl">📈</span> THE RECENT SHIFT</h4>
+                        <h4 class="insight-section-header insight-section-header--purple">📈 The Recent Shift</h4>
                         <p id="ai-insight-shift" class="text-sm line-height-16"></p>
                     </div>
                 </div>
-                <div class="grid grid-2 gap-6">
+
+                <!-- Communication + Attachment Style -->
+                <div class="grid grid-2 gap-6 mb-8">
+                    <div class="card p-6 bg-white">
+                        <h4 class="insight-section-header insight-section-header--orange">🗣️ Communication Style</h4>
+                        <div id="ai-comm-pattern" class="pill-label pill-label--orange mb-3 inline-block"></div>
+                        <p id="ai-comm-tone" class="text-sm mb-2"></p>
+                        <div class="flex justify-between text-xs font-bold mb-1"><span>Balance</span><span id="ai-comm-balance">--</span></div>
+                        <div class="h-1.5 bg-cream rounded-full border overflow-hidden"><div id="ai-comm-bar" class="h-full bg-orange" style="width:0%;transition:width 0.8s ease"></div></div>
+                    </div>
+                    <div class="card p-6 bg-white">
+                        <h4 class="insight-section-header insight-section-header--purple">💫 Attachment Styles</h4>
+                        <div class="flex gap-3 mb-3">
+                            <div class="flex-1 text-center p-3 rounded border" style="background:var(--cream)">
+                                <div class="text-xs uppercase font-bold color-gray-500 mb-1" id="attach-name-1">You</div>
+                                <div id="ai-attach-1" class="font-black text-lg" style="text-transform:capitalize">--</div>
+                            </div>
+                            <div class="flex-1 text-center p-3 rounded border" style="background:var(--cream)">
+                                <div class="text-xs uppercase font-bold color-gray-500 mb-1" id="attach-name-2">Partner</div>
+                                <div id="ai-attach-2" class="font-black text-lg" style="text-transform:capitalize">--</div>
+                            </div>
+                        </div>
+                        <p id="ai-attach-note" class="text-xs color-gray-500 line-height-16"></p>
+                    </div>
+                </div>
+
+                <!-- Key Insights -->
+                <div class="card p-6 bg-white mb-8">
+                    <h4 class="insight-section-header insight-section-header--green">💡 Key Insights</h4>
+                    <div id="ai-key-insights" class="space-y-2"></div>
+                </div>
+
+                <!-- Red + Green Flags -->
+                <div class="grid grid-2 gap-6 mb-8">
                     <div class="flag-box flag-box--red">
                         <h4 class="mb-4 font-black">🚩 RED FLAGS</h4>
                         <ul id="ai-insight-red-flags" class="text-sm"></ul>
                     </div>
                     <div class="flag-box flag-box--green">
-                        <h4 class="mb-4 font-black">🚩 GREEN FLAGS</h4>
+                        <h4 class="mb-4 font-black">✅ GREEN FLAGS</h4>
                         <ul id="ai-insight-green-flags" class="text-sm"></ul>
                     </div>
                 </div>
+
+                <!-- Strengths + Growth Areas -->
+                <div class="grid grid-2 gap-6 mb-8">
+                    <div class="card p-6 bg-white" style="border-left:4px solid var(--green)">
+                        <h4 class="insight-section-header insight-section-header--green">💪 Strengths</h4>
+                        <ul id="ai-strengths" class="text-sm space-y-2"></ul>
+                    </div>
+                    <div class="card p-6 bg-white" style="border-left:4px solid var(--orange)">
+                        <h4 class="insight-section-header insight-section-header--orange">🎯 Growth Areas</h4>
+                        <ul id="ai-growth-areas" class="text-sm space-y-2"></ul>
+                    </div>
+                </div>
+
+                <!-- Coaching Advice -->
+                <div class="card p-6 mb-8" style="background:linear-gradient(135deg, var(--purple), #5a1d99);color:var(--white);border:3px solid var(--black)">
+                    <h4 class="text-xs font-bold uppercase letter-spacing-05 mb-3" style="color:var(--yellow)">🎯 Action Plan</h4>
+                    <p id="ai-coaching-advice" class="text-sm line-height-16" style="color:rgba(255,255,255,0.9)"></p>
+                </div>
+
+                <!-- Fun Fact -->
+                <div class="card p-4 mb-8 rotate-left" style="background:var(--yellow);border:3px solid var(--black)">
+                    <div class="flex align-center gap-3">
+                        <span style="font-size:1.5rem">🤓</span>
+                        <p id="ai-fun-fact" class="text-sm font-bold"></p>
+                    </div>
+                </div>
+
+                <!-- Brutal Verdict -->
                 <div class="brutal-verdict-box">
                     <h4 class="mb-4 text-xs font-bold uppercase letter-spacing-2 color-yellow">⚖️ THE FINAL WORD</h4>
                     <blockquote id="ai-insight-verdict">"..."</blockquote>
                 </div>
 
+                <!-- Predictive Analytics Section -->
+                <section id="section-predictive" class="mt-8">
+                    <h2 class="mb-6">🔮 Predictive Outlook</h2>
+                    <div class="grid grid-2 gap-6 mb-8">
+                        <div class="card p-6 bg-white text-center">
+                            <div class="text-xs uppercase font-bold color-gray-500 mb-2">Trend Direction</div>
+                            <div id="trend-arrow" class="trend-arrow trend-arrow--stable">→</div>
+                            <div id="trend-label" class="text-sm font-bold mt-2">Analyzing...</div>
+                        </div>
+                        <div class="card p-6 bg-white">
+                            <div class="text-xs uppercase font-bold color-gray-500 mb-2">Forecast</div>
+                            <p id="ai-forecast" class="text-sm line-height-16">Generate insights to see your predictive outlook.</p>
+                        </div>
+                    </div>
+                    <div class="card p-6 bg-white mb-8">
+                        <h4 class="insight-section-header insight-section-header--purple">Prediction Metrics</h4>
+                        <div id="predictive-metrics" class="predictive-grid"></div>
+                    </div>
+                    <div id="ai-action-items" class="space-y-4 mb-8"></div>
+                </section>
+
                 <!-- AI Coaching Chat Mode -->
-                <div id="coaching-chat-container" class="mt-8 pt-8 border-t border-black border-dashed text-left">
+                <div id="coaching-chat-container" class="coaching-chat-container text-left">
                     <h4 class="mb-4 text-xs font-bold uppercase letter-spacing-2 flex align-center gap-2" style="color:var(--black)"><span class="text-xl">💬</span> ASK THE COACH</h4>
-                    <div id="coaching-chat-history" class="bg-cream rounded p-4 mb-4" style="height:250px; overflow-y:auto; border:var(--border); display:flex; flex-direction:column; gap:1rem;">
-                        <div class="chat-message ai text-sm" style="align-self: flex-start; background: var(--white); border: 2px solid var(--black); box-shadow: 2px 2px 0 0 var(--black); padding: 0.5rem 1rem; border-radius: 12px 12px 12px 0; max-width: 85%;">
+                    <div id="coaching-chat-history" class="coaching-chat-history mb-4">
+                        <div class="chat-message ai">
                             <strong>Coach:</strong> Based on the data, what do you want me to expand on? I can break down response times, shift in vibe, or give advice.
                         </div>
+                    </div>
+                    <div class="chat-suggestions mb-3">
+                        <button class="chat-suggestion-chip" data-q="Why do they reply slower lately?">Why slower replies?</button>
+                        <button class="chat-suggestion-chip" data-q="Am I too available in this conversation?">Am I too available?</button>
+                        <button class="chat-suggestion-chip" data-q="Break down the red flags in detail">Red flag breakdown</button>
+                        <button class="chat-suggestion-chip" data-q="What should I actually do differently?">What should I do?</button>
                     </div>
                     <form id="coaching-chat-form" class="flex gap-2">
                         <input type="text" id="coaching-chat-input" class="field-input" placeholder="e.g., Why do they reply slower on weekends?" style="flex:1" autocomplete="off" required>
@@ -441,6 +587,15 @@
                 <label for="apiKey" style="display:block;font-weight:700;font-size:.8rem;text-transform:uppercase;margin-bottom:.35rem">API Key</label>
                 <input type="password" id="apiKey" class="field-input" autocomplete="off" placeholder="Paste provider API key" maxlength="512">
                 <p id="providerHint" style="font-size:.7rem;font-weight:600;color:var(--gray-500);margin-top:.35rem;min-height:1rem"></p>
+            </div>
+            <div class="raw-consent-box">
+                <label style="display:flex;gap:.65rem;align-items:flex-start;cursor:pointer">
+                    <input type="checkbox" id="dashboardRawConsent" style="margin-top:.2rem;accent-color:var(--pink)">
+                    <span>
+                        <strong>Deep AI with raw evidence</strong>
+                        <small>Optional. Sends short scrubbed excerpts for this report only when available.</small>
+                    </span>
+                </label>
             </div>
             <button id="saveSettingsBtn" class="btn btn--purple btn--full">Save Settings</button>
             <p style="font-size:.7rem;color:var(--gray-500);font-weight:600;text-align:center;margin:0">Keys stay in this tab's session storage and are sent only when you generate AI output.</p>
@@ -510,6 +665,43 @@
         document.getElementById('flashback-modal')?.classList.remove('active');
         document.getElementById('flashback-modal')?.classList.add('hidden');
     }
+    // Sidebar toggle for mobile
+    (function() {
+        const toggle = document.getElementById('sidebar-toggle');
+        const sidebar = document.getElementById('dashboard-sidebar');
+        if (!toggle || !sidebar) return;
+        let overlay = null;
+        toggle.addEventListener('click', () => {
+            const isExpanded = sidebar.classList.contains('sidebar--expanded');
+            if (isExpanded) {
+                sidebar.classList.remove('sidebar--expanded');
+                sidebar.classList.add('sidebar--collapsed');
+                toggle.textContent = '☰ Menu';
+                if (overlay) { overlay.remove(); overlay = null; }
+            } else {
+                sidebar.classList.remove('sidebar--collapsed');
+                sidebar.classList.add('sidebar--expanded');
+                toggle.textContent = '✕ Close';
+                overlay = document.createElement('div');
+                overlay.className = 'sidebar-overlay';
+                overlay.addEventListener('click', () => toggle.click());
+                document.body.appendChild(overlay);
+            }
+        });
+        // Close sidebar when nav link clicked on mobile
+        sidebar.querySelectorAll('.sidebar-nav a').forEach(a => {
+            a.addEventListener('click', () => {
+                if (sidebar.classList.contains('sidebar--expanded')) toggle.click();
+            });
+        });
+    })();
+    // Chat suggestion chips
+    document.querySelectorAll('.chat-suggestion-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+            const input = document.getElementById('coaching-chat-input');
+            if (input) { input.value = chip.dataset.q; input.focus(); }
+        });
+    });
 </script>
 </body>
 </html>

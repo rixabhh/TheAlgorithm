@@ -22,6 +22,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const trustCenterModal = document.getElementById('trustCenterModal');
     const closeTrustCenter = document.getElementById('closeTrustCenter');
     const understoodBtn = document.getElementById('understoodBtn');
+    const intelligence = new ConversationIntelligence();
+    const inputModeEl = document.getElementById('inputMode');
+    const pasteChatText = document.getElementById('pasteChatText');
+    const screenshotFiles = document.getElementById('screenshotFiles');
+    const screenshotText = document.getElementById('screenshotText');
+    const transcriptFile = document.getElementById('transcriptFile');
+    const transcriptText = document.getElementById('transcriptText');
+    const rawAiConsent = document.getElementById('rawAiConsent');
+    let latestOcrMeta = { confidence: null, warnings: [] };
+
+    const getInputMode = () => inputModeEl?.value || 'export';
+    const hasSourceInput = () => {
+        const mode = getInputMode();
+        if (mode === 'export') return !!(fileInput && fileInput.files.length > 0);
+        if (mode === 'paste') return (pasteChatText?.value.trim().length || 0) >= 20;
+        if (mode === 'screenshots') return (screenshotText?.value.trim().length || 0) >= 20 || !!(screenshotFiles && screenshotFiles.files.length > 0);
+        if (mode === 'transcript') return (transcriptText?.value.trim().length || 0) >= 20 || !!(transcriptFile && transcriptFile.files.length > 0);
+        return false;
+    };
 
     // --- Tone Selector ---
     const toneDescriptions = {
@@ -95,20 +114,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const updateSubmitState = () => {
         if (!analyzeBtn) return;
-        const hasFile = fileInput && fileInput.files.length > 0;
+        const hasInput = hasSourceInput();
         const hasNames = document.getElementById('myName')?.value.trim() &&
                          document.getElementById('partnerName')?.value.trim();
         const provider = localStorage.getItem('llm_provider') || 'cloudflare';
         const keyRaw = sessionStorage.getItem('_llm_token');
         const hasValidKey = (provider === 'cloudflare') || (keyRaw && keyRaw.trim() !== '' && keyRaw !== btoa(''));
         
-        analyzeBtn.disabled = !(hasFile && hasNames && hasValidKey);
+        analyzeBtn.disabled = !(hasInput && hasNames && hasValidKey);
         
         if (!hasValidKey) {
             analyzeBtn.textContent = 'Configure API Key First →';
             analyzeBtn.style.opacity = '0.5';
-        } else if (!hasFile) {
-            analyzeBtn.textContent = 'Upload File to Decode →';
+        } else if (!hasInput) {
+            analyzeBtn.textContent = 'Add Conversation Source ->';
             analyzeBtn.style.opacity = '0.5';
         } else if (!hasNames) {
             analyzeBtn.textContent = 'Enter Both Names →';
@@ -122,6 +141,26 @@ document.addEventListener('DOMContentLoaded', () => {
     // U-03: Re-evaluate submit state when name fields change
     document.getElementById('myName')?.addEventListener('input', updateSubmitState);
     document.getElementById('partnerName')?.addEventListener('input', updateSubmitState);
+    [pasteChatText, screenshotText, transcriptText].forEach(el => el?.addEventListener('input', updateSubmitState));
+
+    document.querySelectorAll('.input-mode-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const mode = btn.dataset.mode || 'export';
+            if (inputModeEl) inputModeEl.value = mode;
+            document.querySelectorAll('.input-mode-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.input-mode-panel').forEach(panel => {
+                panel.classList.add('hidden');
+                panel.classList.remove('active');
+            });
+            btn.classList.add('active');
+            const panel = document.getElementById(`panel-${mode}`);
+            panel?.classList.remove('hidden');
+            panel?.classList.add('active');
+            const jsonSelector = document.getElementById('jsonPlatformSelector');
+            if (jsonSelector) jsonSelector.classList.toggle('hidden', mode !== 'export' || !(fileInput?.files?.[0]?.name || '').toLowerCase().endsWith('.json'));
+            updateSubmitState();
+        });
+    });
 
     // --- API Key Status ---
     const updateApiKeyUI = () => {
@@ -346,6 +385,53 @@ document.addEventListener('DOMContentLoaded', () => {
         await handleFileSelection();
     });
 
+    screenshotFiles?.addEventListener('change', async () => {
+        const status = document.getElementById('ocrStatus');
+        latestOcrMeta = { confidence: null, warnings: [] };
+        if (!screenshotFiles.files.length) {
+            updateSubmitState();
+            return;
+        }
+        try {
+            if (status) {
+                status.classList.remove('hidden');
+                status.textContent = 'Loading local OCR engine...';
+            }
+            const result = await intelligence.readScreenshots(screenshotFiles.files, (message, pct) => {
+                if (status) status.textContent = `${message} ${pct || 0}%`;
+            });
+            latestOcrMeta = { confidence: result.confidence, warnings: result.warnings || [] };
+            if (screenshotText) screenshotText.value = result.text;
+            if (status) {
+                status.innerHTML = `<strong>OCR confidence: ${result.confidence || 0}%</strong><br>${escapeHTML((result.warnings || ['Review the text before analysing.']).join(' '))}`;
+            }
+        } catch (err) {
+            latestOcrMeta = { confidence: 0, warnings: [err.message] };
+            if (status) {
+                status.classList.remove('hidden');
+                status.textContent = `${err.message} You can still paste corrected screenshot text below.`;
+            }
+        } finally {
+            updateSubmitState();
+        }
+    });
+
+    transcriptFile?.addEventListener('change', async () => {
+        if (!transcriptFile.files.length) {
+            updateSubmitState();
+            return;
+        }
+        const file = transcriptFile.files[0];
+        if (file.size > 10 * 1024 * 1024) {
+            showError('Transcript too large. Max 10MB for transcript mode.');
+            transcriptFile.value = '';
+            updateSubmitState();
+            return;
+        }
+        if (transcriptText) transcriptText.value = await file.text();
+        updateSubmitState();
+    });
+
     function updateFileList() {
         // Kept for backward compatibility if needed by other parts,
         // but main logic moved to async event listener above
@@ -399,6 +485,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 timestamp: Date.now(),
                 platform: data.platform || 'WhatsApp',
                 stats: data.stats,
+                input_mode: data.input_mode || 'export',
+                privacy_mode: data.privacy_mode || 'stats_only',
+                source_quality: data.source_quality,
+                evidence_pack: data.evidence_pack,
                 highlights: data.highlights,
                 flashbacks: data.flashbacks,
                 connection_type: data.connection_type
@@ -586,9 +676,9 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             hideError();
             
-            // C-02: Validate file BEFORE showing loading overlay
-            if (!fileInput || !fileInput.files.length) {
-                showError('Please upload a chat export first.');
+            const inputMode = getInputMode();
+            if (!hasSourceInput()) {
+                showError('Please add a conversation source first.');
                 return;
             }
             
@@ -649,7 +739,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (loadingOverlay) {
                 loadingOverlay.classList.remove('hidden');
                 if (progressText) {
-                    const steps = ['Reading export...', 'Parsing messages...', 'Mapping senders...', 'Calculating statistics...', 'Preparing dashboard...'];
+                    const steps = ['Reading source...', 'Normalizing messages...', 'Extracting evidence...', 'Calculating statistics...', 'Preparing dashboard...'];
                     let stepIndex = 0;
                     progressText.textContent = steps[stepIndex++];
                     progressInterval = setInterval(() => {
@@ -673,58 +763,73 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Check if aborted
                 if (activeAbortController?.signal.aborted) throw new Error('Analysis cancelled.');
                 
-                const file = fileInput.files[0];
-
-                // P-02: Client-side file size check before parsing
-                if (file.size > 20 * 1024 * 1024) {
-                    showError('File too large. Max 20MB. Try exporting a shorter date range.');
-                    resetFormState();
-                    return;
-                }
-
-                setProgressText('Reading export...');
-                const content = await file.text();
-                
-                // C-03: Read platform from the hidden select (synced by custom dropdown)
-                let jsonPlat = document.getElementById('jsonPlatform') ? document.getElementById('jsonPlatform').value : 'Instagram';
-
-                // Detect platform
-                setProgressText('Detecting chat platform...');
-                let detectedPlatform = parser.detect(content, file.name);
-                if (detectedPlatform === 'JSON') detectedPlatform = jsonPlat;
-
-                let rawMessages;
-                setProgressText(`Parsing ${detectedPlatform} messages...`);
-                if (detectedPlatform === 'Telegram') {
-                    rawMessages = parser.parseTelegram(content);
-                } else if (detectedPlatform === 'Discord') {
-                    rawMessages = parser.parseDiscord(content);
-                } else if (detectedPlatform === 'Instagram') {
-                    rawMessages = parser.parseInstagram(content);
-                } else if (detectedPlatform === 'Signal') {
-                    rawMessages = parser.parseSignal(content);
-                } else {
-                    rawMessages = parser.parseWhatsApp(content);
-                }
-                
-                if (!rawMessages || !rawMessages.length) throw new Error("No readable messages found in the file.");
-                if (activeAbortController?.signal.aborted) throw new Error('Analysis cancelled.');
-
                 const myName = document.getElementById('myName').value;
                 const partnerName = document.getElementById('partnerName').value;
-                setProgressText('Mapping sender names...');
-                const filteredMessages = parser.standardizeEntities(rawMessages, myName, partnerName);
-                if (!filteredMessages.length) throw new Error("Sender names not mapped correctly.");
-
                 const connectionType = document.getElementById('connectionType').value;
                 const outputLanguage = document.getElementById('outputLanguage') ? document.getElementById('outputLanguage').value : 'english';
                 const userContext = document.getElementById('userContext') ? document.getElementById('userContext').value.trim() : '';
                 const analysisTone = document.getElementById('analysisTone') ? document.getElementById('analysisTone').value : 'balanced';
+                const privacyMode = rawAiConsent?.checked ? 'opt_in_raw' : 'stats_only';
+
+                let rawMessages = [];
+                let detectedPlatform = intelligence.getInputModeLabel(inputMode);
+                let sourceExtra = {};
+
+                if (inputMode === 'export') {
+                    const file = fileInput.files[0];
+                    if (file.size > 20 * 1024 * 1024) {
+                        showError('File too large. Max 20MB. Try exporting a shorter date range.');
+                        resetFormState();
+                        return;
+                    }
+                    setProgressText('Reading export...');
+                    const content = await file.text();
+                    const jsonPlat = document.getElementById('jsonPlatform') ? document.getElementById('jsonPlatform').value : 'Instagram';
+                    setProgressText('Detecting chat platform...');
+                    detectedPlatform = parser.detect(content, file.name);
+                    if (detectedPlatform === 'JSON') detectedPlatform = jsonPlat;
+                    setProgressText(`Parsing ${detectedPlatform} messages...`);
+                    if (detectedPlatform === 'Telegram') rawMessages = parser.parseTelegram(content);
+                    else if (detectedPlatform === 'Discord') rawMessages = parser.parseDiscord(content);
+                    else if (detectedPlatform === 'Instagram') rawMessages = parser.parseInstagram(content);
+                    else if (detectedPlatform === 'Signal') rawMessages = parser.parseSignal(content);
+                    else rawMessages = parser.parseWhatsApp(content);
+                    sourceExtra = { warnings: [] };
+                } else if (inputMode === 'paste') {
+                    setProgressText('Parsing pasted conversation...');
+                    detectedPlatform = document.getElementById('pastePlatformHint')?.value || 'Pasted Chat';
+                    rawMessages = intelligence.parsePaste(pasteChatText.value, detectedPlatform);
+                    sourceExtra = { warnings: [] };
+                } else if (inputMode === 'screenshots') {
+                    setProgressText('Parsing OCR text...');
+                    detectedPlatform = 'Screenshots';
+                    rawMessages = intelligence.parsePaste(screenshotText.value, 'Screenshots');
+                    sourceExtra = { warnings: latestOcrMeta.warnings || [], ocr_confidence: latestOcrMeta.confidence };
+                } else if (inputMode === 'transcript') {
+                    setProgressText('Parsing transcript...');
+                    detectedPlatform = 'Transcript';
+                    rawMessages = intelligence.parseTranscript(transcriptText.value);
+                    sourceExtra = { warnings: [] };
+                }
+
+                if (!rawMessages || !rawMessages.length) throw new Error("No readable messages found in this source.");
+                if (activeAbortController?.signal.aborted) throw new Error('Analysis cancelled.');
+
+                setProgressText('Normalizing sender names...');
+                const filteredMessages = intelligence.standardize(rawMessages, myName, partnerName, inputMode, detectedPlatform);
+                if (!filteredMessages.length) throw new Error("Sender names not mapped correctly. Check the names or correct the source text.");
 
                 setProgressText('Calculating accurate stats...');
                 const analyticsResult = analytics.runPipeline(filteredMessages, connectionType);
                 if (!analyticsResult) throw new Error("No valid dated messages found after parsing.");
                 if (activeAbortController?.signal.aborted) throw new Error('Analysis cancelled.');
+
+                setProgressText('Extracting receipts and predictions...');
+                const sourceQuality = intelligence.assessSourceQuality(filteredMessages, inputMode, sourceExtra);
+                const evidencePack = intelligence.buildEvidencePack(filteredMessages, analyticsResult, sourceQuality);
+                const rawExcerptPack = privacyMode === 'opt_in_raw'
+                    ? intelligence.buildRawExcerptPack(filteredMessages, evidencePack.receipts)
+                    : null;
 
                 const dashboardData = {
                     stats: analyticsResult,
@@ -736,8 +841,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     context: userContext,
                     tone: analysisTone,
                     msg_count: filteredMessages.length,
-                    platform: detectedPlatform
+                    platform: detectedPlatform,
+                    input_mode: inputMode,
+                    privacy_mode: privacyMode,
+                    source_quality: sourceQuality,
+                    evidence_pack: evidencePack
                 };
+                if (rawExcerptPack) dashboardData.raw_excerpt_pack = rawExcerptPack;
 
                 historyManager.save(dashboardData);
                 sessionStorage.setItem('dashboard_data', JSON.stringify(dashboardData));

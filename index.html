@@ -44,10 +44,27 @@
 <section class="hero-main" style="background:var(--cream); position:relative; padding:8rem 0 12rem; z-index:10; overflow:hidden">
     <div class="container text-center relative" style="z-index:5">
         <h1 style="line-height:1.1; margin-bottom:2.2rem; letter-spacing:-0.03em">Who's been carrying <br><span style="color:var(--pink); font-style:italic">this whole time?</span></h1>
-        <p style="color:var(--gray-600); max-width:600px; margin:0 auto 3.5rem; font-weight:500; line-height:1.6">Upload your chat. Get a brutally honest breakdown of who texts first, who replies faster, and who actually gives a damn.</p>
+        <p style="color:var(--gray-600); max-width:660px; margin:0 auto 3.5rem; font-weight:500; line-height:1.6">Upload exports, paste chats, scan screenshots, or drop transcripts. Get receipts, predictive risk, and a clear next move from the relationship data.</p>
         <div class="flex justify-center gap-8">
             <button class="btn btn--pink btn--lg" style="font-size:1rem; padding:0.9rem 2.6rem" onclick="document.getElementById('upload').scrollIntoView()">Start Now</button>
             <a href="history.html" class="btn btn--white btn--lg" style="font-size:1rem; padding:0.9rem 2.6rem">View History</a>
+        </div>
+        <div class="grid gap-4 mt-12" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));max-width:960px;margin-left:auto;margin-right:auto;text-align:left">
+            <div class="card rotate-left" style="padding:1rem;border-width:3px">
+                <span class="pill-label pill-label--pink" style="font-size:.6rem">verdict</span>
+                <h3 style="font-size:1.15rem;margin:.65rem 0 .35rem">Mixed Signals Loop</h3>
+                <p style="font-size:.78rem;color:var(--gray-600);margin:0">Warmth spikes after distance, not before it. That is a pattern, not a random mood.</p>
+            </div>
+            <div class="card" style="padding:1rem;border-width:3px">
+                <span class="pill-label pill-label--yellow" style="font-size:.6rem">receipt</span>
+                <h3 style="font-size:1.15rem;margin:.65rem 0 .35rem">3 Questions Dodged</h3>
+                <p style="font-size:.78rem;color:var(--gray-600);margin:0">The report shows where the topic got switched and what to ask next.</p>
+            </div>
+            <div class="card rotate-right" style="padding:1rem;border-width:3px">
+                <span class="pill-label pill-label--purple" style="font-size:.6rem">prediction</span>
+                <h3 style="font-size:1.15rem;margin:.65rem 0 .35rem">Drop-off Risk: 64%</h3>
+                <p style="font-size:.78rem;color:var(--gray-600);margin:0">Confidence changes based on source quality, recency, and reply trends.</p>
+            </div>
         </div>
     </div>
     
@@ -59,6 +76,20 @@
 
 <!-- ═══ HOW IT WORKS ═══ -->
 <section style="background:var(--purple); position:relative; padding:5rem 0">
+
+    <div class="container source-matrix">
+        <div>
+            <span class="pill-label pill-label--yellow" style="font-size:.62rem">source-agnostic</span>
+            <h2 style="color:var(--white);text-shadow:3px 3px 0 var(--black);margin:.75rem 0 .5rem">One report. Every conversation source.</h2>
+            <p style="color:rgba(255,255,255,.82);max-width:560px;margin:0">Brutal verdict energy, but with deeper inputs: exports, screenshots, pasted chats, and transcripts all flow into the same evidence engine.</p>
+        </div>
+        <div class="source-matrix__grid">
+            <div><strong>Exports</strong><span>WhatsApp, Instagram, Telegram, Signal, Discord</span></div>
+            <div><strong>Screenshots</strong><span>OCR plus manual correction before analysis</span></div>
+            <div><strong>Paste</strong><span>Fast read for copied chats and rough receipts</span></div>
+            <div><strong>Transcripts</strong><span>Calls, voice notes, VTT/SRT, speaker lines</span></div>
+        </div>
+    </div>
 
     <div class="container text-center mb-12">
         <h2 style="color:var(--yellow);text-shadow:3px 3px 0 var(--black)">3 Steps to Clarity</h2>
@@ -247,18 +278,72 @@
 
                 <!-- ── RIGHT: Upload + Process ── -->
                 <div style="display:flex;flex-direction:column;gap:1.25rem">
-                    <h3 style="border-bottom:2px solid var(--black);padding-bottom:.35rem;display:inline-block;align-self:flex-start;font-size:1rem">2. Chat Export</h3>
-
-                    <div id="dropZone" class="dropzone" style="flex-grow:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:130px;padding:1.25rem" role="button" tabindex="0" aria-label="Upload chat file">
-                        <svg style="width:32px;height:32px;margin-bottom:.4rem;opacity:0.6" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
-                        <p style="font-weight:700;margin-bottom:.5rem;font-size:.9rem">Drop your chats here</p>
-                        <label for="chatFile" class="btn btn--purple" style="font-size:.65rem;padding:.3rem .85rem;cursor:pointer;margin:0">Browse Files</label>
-                        <input type="file" id="chatFile" class="sr-only" accept=".txt,.html,.json" required>
+                    <h3 style="border-bottom:2px solid var(--black);padding-bottom:.35rem;display:inline-block;align-self:flex-start;font-size:1rem">2. Conversation Source</h3>
+                    <input type="hidden" id="inputMode" value="export">
+                    <div class="input-mode-tabs" role="tablist" aria-label="Conversation source">
+                        <button type="button" class="input-mode-btn active" data-mode="export">Export</button>
+                        <button type="button" class="input-mode-btn" data-mode="paste">Paste</button>
+                        <button type="button" class="input-mode-btn" data-mode="screenshots">Screenshots</button>
+                        <button type="button" class="input-mode-btn" data-mode="transcript">Transcript</button>
                     </div>
+
+                    <div class="input-mode-panel active" id="panel-export">
+                        <div id="dropZone" class="dropzone" style="flex-grow:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:130px;padding:1.25rem" role="button" tabindex="0" aria-label="Upload chat file">
+                            <svg style="width:32px;height:32px;margin-bottom:.4rem;opacity:0.6" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+                            <p style="font-weight:700;margin-bottom:.5rem;font-size:.9rem">Drop your export here</p>
+                            <label for="chatFile" class="btn btn--purple" style="font-size:.65rem;padding:.3rem .85rem;cursor:pointer;margin:0">Browse Files</label>
+                            <input type="file" id="chatFile" class="sr-only" accept=".txt,.html,.json">
+                        </div>
+                    </div>
+
+                    <div class="input-mode-panel hidden" id="panel-paste">
+                        <label for="pasteChatText" style="display:block;font-weight:700;font-size:.7rem;text-transform:uppercase;margin-bottom:.25rem">Paste conversation</label>
+                        <textarea id="pasteChatText" class="field-input" rows="8" maxlength="60000" placeholder="Paste chat lines like: Name: message"></textarea>
+                        <label for="pastePlatformHint" style="display:block;font-weight:700;font-size:.7rem;text-transform:uppercase;margin:.75rem 0 .25rem">Source hint</label>
+                        <select id="pastePlatformHint" class="field-input">
+                            <option value="WhatsApp">WhatsApp-like</option>
+                            <option value="Instagram">Instagram DM</option>
+                            <option value="iMessage">iMessage</option>
+                            <option value="Generic">Generic chat</option>
+                        </select>
+                    </div>
+
+                    <div class="input-mode-panel hidden" id="panel-screenshots">
+                        <div class="dropzone" style="min-height:110px;padding:1rem;text-align:center">
+                            <p style="font-weight:800;margin-bottom:.5rem">Upload screenshots</p>
+                            <label for="screenshotFiles" class="btn btn--purple" style="font-size:.65rem;padding:.3rem .85rem;cursor:pointer;margin:0">Browse Images</label>
+                            <input type="file" id="screenshotFiles" class="sr-only" accept="image/*" multiple>
+                        </div>
+                        <div id="ocrStatus" class="source-quality-card hidden" style="margin-top:.75rem"></div>
+                        <label for="screenshotText" style="display:block;font-weight:700;font-size:.7rem;text-transform:uppercase;margin:.75rem 0 .25rem">OCR text / corrections</label>
+                        <textarea id="screenshotText" class="field-input" rows="7" maxlength="60000" placeholder="OCR output appears here. Correct names or messages before analysing."></textarea>
+                    </div>
+
+                    <div class="input-mode-panel hidden" id="panel-transcript">
+                        <div class="dropzone" style="min-height:100px;padding:1rem;text-align:center">
+                            <p style="font-weight:800;margin-bottom:.5rem">Upload .txt, .vtt, or .srt transcript</p>
+                            <label for="transcriptFile" class="btn btn--purple" style="font-size:.65rem;padding:.3rem .85rem;cursor:pointer;margin:0">Browse Transcript</label>
+                            <input type="file" id="transcriptFile" class="sr-only" accept=".txt,.vtt,.srt">
+                        </div>
+                        <label for="transcriptText" style="display:block;font-weight:700;font-size:.7rem;text-transform:uppercase;margin:.75rem 0 .25rem">Transcript text</label>
+                        <textarea id="transcriptText" class="field-input" rows="7" maxlength="60000" placeholder="Speaker A: I felt ignored&#10;Speaker B: I was busy"></textarea>
+                    </div>
+
                     <div id="fileList" class="hidden" style="font-size:.85rem;font-weight:700;padding:.75rem 1rem;background:var(--green);color:var(--white);border:var(--border);border-radius:var(--r-sm);box-shadow:2px 2px 0 0 var(--black)"></div>
                     <div id="detectionCard" class="hidden mt-2"></div>
+                    <div id="sourceQualityPreview" class="source-quality-card hidden"></div>
                     <div id="filename-display" class="hidden"></div>
-                    
+
+                    <div id="rawConsentBox" class="raw-consent-box">
+                        <label style="display:flex;gap:.65rem;align-items:flex-start;cursor:pointer">
+                            <input type="checkbox" id="rawAiConsent" style="margin-top:.2rem;accent-color:var(--pink)">
+                            <span>
+                                <strong>Deep AI with raw evidence</strong>
+                                <small>Optional. Sends short scrubbed excerpts/transcript snippets to your selected AI provider for this report only. Off by default.</small>
+                            </span>
+                        </label>
+                    </div>
+
                     <div id="jsonPlatformSelector" class="hidden" style="padding:1rem;border:var(--border);border-radius:var(--r-sm);background:var(--blue);box-shadow:2px 2px 0 0 var(--black)">
                         <label for="jsonPlatform" style="display:block;font-family:var(--font-heading);font-weight:900;color:var(--white);margin-bottom:.5rem;font-size:.85rem;letter-spacing:.02em">Confirm JSON Platform Output</label>
                         <select id="jsonPlatform" class="sr-only" aria-hidden="true">
@@ -332,7 +417,7 @@
         <div id="faqList">
             <div class="faq-item">
                 <button class="faq-question" type="button">Is my data safe? <span class="faq-icon">+</span></button>
-                <div class="faq-answer">Yes. The entire analysis payload is calculated locally. Your chat export never leaves your device's browser. Only completely anonymous numerical statistics (like total message counts or response times) are forwarded to our backend for the AI to interpret. We process these raw numbers in temporary RAM without writing to any database, destroying them instantly.</div>
+                <div class="faq-answer">Yes. Parsing runs locally for exports, pasted chats, screenshots, and transcripts. By default, AI receives statistics and anonymized evidence only. If you enable Deep AI with raw evidence, short scrubbed excerpts are sent to your selected provider for that report.</div>
             </div>
             <div class="faq-item">
                 <button class="faq-question" type="button">Do you store my API key? <span class="faq-icon">+</span></button>
@@ -344,11 +429,11 @@
             </div>
             <div class="faq-item">
                 <button class="faq-question" type="button">How long does analysis take? <span class="faq-icon">+</span></button>
-                <div class="faq-answer">The analytics engine runs in under 1 second. The AI narrative generation takes 10–20 seconds depending on your LLM provider and chat length.</div>
+                <div class="faq-answer">Export, paste, and transcript analysis usually starts in seconds. Screenshot OCR takes longer because text is extracted locally in your browser before stats and AI run.</div>
             </div>
             <div class="faq-item">
                 <button class="faq-question" type="button">What file formats are supported? <span class="faq-icon">+</span></button>
-                <div class="faq-answer">WhatsApp (.txt export), Telegram (.html export), Instagram (.json export), and Discord (.json export). We're working on iMessage support.</div>
+                <div class="faq-answer">WhatsApp, Telegram, Instagram, Signal, and Discord exports are supported, plus pasted chats, screenshots, and .txt/.vtt/.srt transcripts.</div>
             </div>
         </div>
     </div>
@@ -358,7 +443,7 @@
 <section style="background:var(--green);padding:1.5rem 0;border-top:var(--border-thick);border-bottom:var(--border-thick)">
     <div class="container flex flex-wrap justify-center gap-6 text-center" style="font-weight:900;font-family:var(--font-heading);color:var(--black);font-size:.95rem;text-transform:uppercase;letter-spacing:.03em">
         <span>• Never stored on disk</span>
-        <span>• Anonymized before LLM</span>
+        <span>• Raw AI is opt-in</span>
         <span>• Deleted after analysis</span>
         <span>• Open source</span>
     </div>
@@ -494,7 +579,7 @@
                 <span style="width:20px;height:20px;background:var(--purple);border-radius:50%;display:inline-block;flex-shrink:0;margin-top:4px"></span>
                 <div>
                     <strong style="font-family:var(--font-heading);color:var(--purple);display:block;margin-bottom:2px">Safe LLM Mode</strong>
-                    <span style="font-size:.85rem;font-weight:500;color:var(--gray-600);line-height:1.5">AI models receive statistics, not your raw conversations. Never used for training.</span>
+                    <span style="font-size:.85rem;font-weight:500;color:var(--gray-600);line-height:1.5">AI models receive statistics and anonymized evidence by default. Raw excerpts are sent only when you explicitly enable Deep AI.</span>
                 </div>
             </div>
         </div>
@@ -558,6 +643,7 @@
 
 <script src="static/js/parser.js?v=1.0"></script>
 <script src="static/js/analytics_engine.js?v=1.0"></script>
+<script src="static/js/conversation_intelligence.js?v=1.0"></script>
 <script src="static/js/app.js?v=5.1"></script>
 <script>
     document.addEventListener('DOMContentLoaded', () => {

@@ -4,9 +4,9 @@ A privacy-first, social-native chat relationship analyzer built as a static Clou
 
 ## Overview
 
-The Algorithm analyzes exported WhatsApp, Telegram, Instagram, Signal, and Discord chats in the browser. It turns local chat statistics into dashboard insights, AI vibe reads, and shareable story-style cards.
+The Algorithm analyzes exported chats, pasted conversations, screenshots, and transcripts in the browser. It turns local conversation statistics into dashboard insights, evidence-backed receipts, predictive outlooks, AI vibe reads, and shareable story-style cards.
 
-Raw chat files are parsed client-side. Optional AI features send aggregated statistics only, not raw message text.
+Raw conversation content is parsed client-side by default. Optional AI features send aggregated statistics and anonymized evidence. Users can explicitly enable Deep AI with raw evidence for a report, which sends short scrubbed excerpts to their selected AI provider.
 
 ## Current Stack
 
@@ -18,17 +18,19 @@ Raw chat files are parsed client-side. Optional AI features send aggregated stat
 
 ## Features
 
-- Browser-local chat parsing and analytics.
+- Browser-local parsing for chat exports, pasted chats, screenshots with OCR, and transcripts.
+- Source-quality scoring and warnings for low-confidence OCR, small samples, and synthetic timestamps.
+- Local evidence extraction for repeated patterns, receipts, and predictive signals.
 - Mobile-optimized dashboard with sticky horizontal section navigation.
 - Overview stats for total messages, duration, reply speed, and balance.
 - Charts for message share, activity, and mood timeline.
 - Deep dashboard sections for social dynamics, streaks, engagement, links, humor, silence breakers, and word cloud.
 - Progressive loading and skeleton states for dashboard stats and AI generation.
-- AI insight generation with a punchy, Gen Z, social-friendly tone.
+- AI insight generation with a punchy, Gen Z, social-friendly tone, verdict summary, receipts, and predictive outlook.
 - Dashboard AI settings modal, so provider/API-key changes can be made from the report page.
 - BYOK support for OpenRouter, OpenAI, Anthropic, Gemini, xAI Grok, Groq, Mistral, and Cohere.
 - Cloudflare AI free-tier support when a Workers AI binding is configured.
-- Story-friendly shareable vibe card with score, verdict, message split, response-speed signal, red flag, green flag, and final AI insight.
+- Story-friendly shareable vibe card with score, verdict, message split, response-speed signal, top receipt, predictive signal, and final AI insight.
 - Local history and compare flows stored in browser storage.
 
 ## Local Setup
@@ -95,8 +97,8 @@ The frontend pages and `static/` assets can be hosted by any static host. AI end
 1. Chat files are read in the browser.
 2. Sender mapping and analytics run locally.
 3. Reports are stored in `localStorage` / `sessionStorage` on the user's device.
-4. Optional AI calls send statistical payloads only.
-5. Raw message text is not sent to API functions or LLM providers.
+4. Optional AI calls send statistical payloads and anonymized evidence by default.
+5. Raw excerpts are sent only when the user enables Deep AI with raw evidence for that report.
 
 ## Verification Status
 

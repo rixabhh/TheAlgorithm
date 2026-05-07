@@ -125,6 +125,8 @@ document.addEventListener('DOMContentLoaded', () => {
         })();
         setText('stats-chats-count', String(historyCount || 1));
         renderOverviewStats(stats);
+        renderSourceQuality(activeData.source_quality, activeData.input_mode);
+        renderPatternSignals(activeData.evidence_pack);
 
         renderSocialDynamics(stats);
         renderEngagement(stats);
@@ -151,6 +153,42 @@ document.addEventListener('DOMContentLoaded', () => {
         setText('stat-duration', stats.duration || '--');
         setText('stat-reply-speed', avgReply ? formatTime(avgReply) : '--');
         setText('stat-symmetry', stats.symmetry?.score !== undefined ? `${stats.symmetry.score}%` : '--');
+    };
+
+    const renderSourceQuality = (quality = {}, inputMode = 'export') => {
+        const label = {
+            export: 'Export File',
+            paste: 'Pasted Chat',
+            screenshots: 'Screenshots',
+            transcript: 'Transcript'
+        }[inputMode] || activeData.platform || 'Conversation';
+        setText('source-quality-title', `${label} - ${quality.parsed_count || totalMessages(activeData.stats || {})} parsed messages`);
+        setText('source-quality-score', quality.score !== undefined ? `${quality.score}%` : '--');
+        const warnings = quality.warnings || [];
+        const privacy = activeData.privacy_mode === 'opt_in_raw'
+            ? 'Deep AI raw evidence was enabled for this report.'
+            : 'Stats-only AI mode: raw content stays local.';
+        setText('source-quality-warnings', [privacy, ...warnings].filter(Boolean).join(' '));
+    };
+
+    const renderPatternSignals = (evidencePack = {}) => {
+        const container = document.getElementById('pattern-signal-container');
+        if (!container) return;
+        const counts = evidencePack.pattern_counts || {};
+        const items = [
+            ['Unanswered Questions', counts.unanswered_questions || 0, 'Questions that got short answers, deflections, or topic switches.'],
+            ['Conflict Delays', counts.delayed_after_conflict || 0, 'Tense messages followed by long silence or delayed replies.'],
+            ['Pressure Language', counts.boundary_pressure || 0, 'Blame, pressure, or always/never framing.'],
+            ['Repair Attempts', counts.repair_attempts || 0, 'Apology, repair, or reconnection language.']
+        ];
+        container.innerHTML = items.map(([label, value, desc], index) => `
+            <div class="card p-4" style="background:${index % 2 ? 'var(--white)' : 'var(--cream)'};border-width:3px">
+                <span class="pill-label ${value > 3 ? 'pill-label--pink' : 'pill-label--purple'}" style="font-size:.58rem">${value > 3 ? 'watch' : 'signal'}</span>
+                <div style="font-family:var(--font-heading);font-size:2.4rem;font-weight:900;line-height:1;margin:.65rem 0;color:var(--purple)">${escapeHTML(String(value))}</div>
+                <h3 style="font-size:1rem;margin:0 0 .35rem">${escapeHTML(label)}</h3>
+                <p class="text-xs color-gray-500" style="margin:0">${escapeHTML(desc)}</p>
+            </div>
+        `).join('');
     };
 
     const renderSocialDynamics = (stats) => {
@@ -430,6 +468,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const apiKeyEl = document.getElementById('apiKey');
         const hintEl = document.getElementById('providerHint');
         const apiKeyContainer = document.getElementById('apiKeyContainer');
+        const rawConsentEl = document.getElementById('dashboardRawConsent');
         if (!settingsBtn || !modal || !providerEl || !apiKeyEl) return;
 
         const refreshHint = () => {
@@ -441,6 +480,7 @@ document.addEventListener('DOMContentLoaded', () => {
             providerEl.value = localStorage.getItem('llm_provider') || 'cloudflare';
             const storedToken = sessionStorage.getItem('_llm_token');
             apiKeyEl.value = (storedToken && storedToken !== btoa('')) ? decodeURIComponent(escape(atob(storedToken))) : '';
+            if (rawConsentEl) rawConsentEl.checked = activeData.privacy_mode === 'opt_in_raw';
             refreshHint();
             modal.classList.add('active');
         };
@@ -455,6 +495,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const key = apiKeyEl.value.trim();
             localStorage.setItem('llm_provider', provider);
             sessionStorage.setItem('_llm_token', btoa(unescape(encodeURIComponent(key))));
+            if (rawConsentEl) {
+                activeData.privacy_mode = rawConsentEl.checked ? 'opt_in_raw' : 'stats_only';
+                window.activeData = activeData;
+                sessionStorage.setItem('dashboard_data', JSON.stringify(activeData));
+                renderSourceQuality(activeData.source_quality, activeData.input_mode);
+            }
             hideModal();
         });
     };
@@ -485,7 +531,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelector('main')?.insertAdjacentHTML('afterbegin',
             `<div class="card p-6 mb-8" style="background:var(--red);color:var(--white)">
                 <strong>Render error:</strong> ${escapeHTML(err.message)}.
-                <a href="/" style="color:white;text-decoration:underline">Start over →</a>
+                <a href="/" style="color:white;text-decoration:underline">Start over â†’</a>
              </div>`
         );
     }
@@ -493,17 +539,172 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- AI INSIGHTS ---
     const renderAiReport = (report) => {
         window.llmReport = report || {};
-        setText('ai-insight-label', report?.ai_insight?.vibe_label || `HEALTH ${report?.ai_insight?.health_score || report?.overall_health_score || '--'}`);
-        setText('ai-insight-title', report?.ai_insight?.dynamic_title || "Analysis Complete");
-        setText('ai-insight-reality', report?.ai_insight?.reality_check || '');
-        setText('ai-insight-shift', report?.ai_insight?.recent_shift || '');
-        setText('ai-insight-verdict', report?.ai_insight?.brutal_verdict || '');
+        const ai = report?.ai_insight || {};
+        const healthScore = Number(ai.health_score) || Number(report?.overall_health_score) || 0;
+        const compatScore = Number(report?.compatibility_score) || 0;
+        const verdict = report?.verdict_summary || {};
+        const predictive = report?.predictive_outlook || activeData.evidence_pack?.predictive_outlook || {};
+        const receipts = Array.isArray(report?.receipts) && report.receipts.length
+            ? report.receipts
+            : (activeData.evidence_pack?.receipts || []);
+
+        setText('verdict-headline', verdict.headline || ai.dynamic_title || 'Pattern read complete');
+        setText('verdict-risk', verdict.risk_level || (Number(predictive.drop_off_risk) >= 65 ? 'High' : Number(predictive.drop_off_risk) >= 40 ? 'Medium' : 'Low'));
+        setText('verdict-confidence', verdict.confidence || (predictive.confidence ? `${predictive.confidence}%` : `${activeData.source_quality?.score || 60}%`));
+        setText('verdict-next-move', verdict.best_next_move || predictive.next_action || report?.coaching_advice || '');
+
+        const receiptEl = document.getElementById('receipt-cards');
+        if (receiptEl) {
+            receiptEl.innerHTML = receipts.slice(0, 6).map((r, index) => `
+                <article class="receipt-card">
+                    <span class="pill-label ${r.confidence === 'high' ? 'pill-label--pink' : r.confidence === 'medium' ? 'pill-label--yellow' : 'pill-label--purple'}" style="font-size:.58rem">${escapeHTML(r.confidence || 'signal')}</span>
+                    <h3 class="receipt-card__claim">${escapeHTML(r.claim || `Receipt ${index + 1}`)}</h3>
+                    <p class="text-sm color-gray-600">${escapeHTML(r.evidence || '')}</p>
+                    <p class="text-xs font-bold uppercase color-gray-500">${escapeHTML(r.pattern || 'pattern')}</p>
+                    <p class="text-sm font-bold" style="margin-bottom:0">${escapeHTML(r.action || '')}</p>
+                </article>
+            `).join('');
+        }
+
+        // Hero section
+        setText('ai-insight-label', ai.vibe_label || `HEALTH ${healthScore}`);
+        setText('ai-insight-title', ai.dynamic_title || "Analysis Complete");
+        setText('ai-persona', report?.relationship_persona ? `"${report.relationship_persona}"` : '');
+
+        // Health Score Ring (animated)
+        const ring = document.getElementById('health-ring');
+        const scoreNum = document.getElementById('health-score-num');
+        if (ring) {
+            setTimeout(() => { ring.style.setProperty('--score', String(healthScore)); }, 100);
+        }
+        if (scoreNum) scoreNum.textContent = healthScore || '--';
+
+        // Compatibility Score
+        setText('compatibility-score', compatScore || '--');
+
+        // Reality Check + Recent Shift
+        setText('ai-insight-reality', ai.reality_check || '');
+        setText('ai-insight-shift', ai.recent_shift || '');
+        setText('ai-insight-verdict', ai.brutal_verdict || '');
         setText('ai-insight-timestamp', `Generated ${new Date().toLocaleString()}`);
-        
+
+        // Communication Style
+        const comm = report?.communication_style || {};
+        setText('ai-comm-pattern', comm.dominant_pattern || '--');
+        setText('ai-comm-tone', comm.tone ? `Tone: ${comm.tone}` : '');
+        const commBalance = Number(comm.balance_score) || 0;
+        setText('ai-comm-balance', commBalance ? `${commBalance}%` : '--');
+        const commBar = document.getElementById('ai-comm-bar');
+        if (commBar) setTimeout(() => { commBar.style.width = `${commBalance}%`; }, 200);
+
+        // Attachment Styles
+        const attach = report?.attachment_style || {};
+        setText('ai-attach-1', attach.person_1 || '--');
+        setText('ai-attach-2', attach.person_2 || '--');
+        setText('ai-attach-note', attach.compatibility_note || '');
+        setText('attach-name-1', activeData.my_name || 'You');
+        setText('attach-name-2', activeData.partner_name || 'Partner');
+
+        // Key Insights
+        const insightsEl = document.getElementById('ai-key-insights');
+        if (insightsEl) {
+            const insights = report?.key_insights || [];
+            insightsEl.innerHTML = insights.map((item, i) => `
+                <div class="flex gap-3 align-center p-3 rounded" style="background:var(--cream);border:1px solid var(--gray-200);margin-bottom:0.5rem">
+                    <span style="font-family:var(--font-heading);font-weight:900;font-size:1.1rem;color:var(--purple);flex-shrink:0">${i + 1}</span>
+                    <span class="text-sm">${escapeHTML(item)}</span>
+                </div>
+            `).join('');
+        }
+
+        // Red/Green Flags
         const red = document.getElementById('ai-insight-red-flags');
         const green = document.getElementById('ai-insight-green-flags');
-        if (red) red.innerHTML = (report?.ai_insight?.red_flags || []).map(f => `<li>${escapeHTML(f)}</li>`).join('');
-        if (green) green.innerHTML = (report?.ai_insight?.green_flags || []).map(f => `<li>${escapeHTML(f)}</li>`).join('');
+        if (red) red.innerHTML = (ai.red_flags || []).map(f => `<li>${escapeHTML(f)}</li>`).join('');
+        if (green) green.innerHTML = (ai.green_flags || []).map(f => `<li>${escapeHTML(f)}</li>`).join('');
+
+        // Strengths + Growth Areas
+        const strengthsEl = document.getElementById('ai-strengths');
+        const growthEl = document.getElementById('ai-growth-areas');
+        if (strengthsEl) strengthsEl.innerHTML = (report?.strengths || []).map(s => `<li style="padding-left:1.25rem;position:relative"><span style="position:absolute;left:0">âœ…</span>${escapeHTML(s)}</li>`).join('');
+        if (growthEl) growthEl.innerHTML = (report?.growth_areas || []).map(g => `<li style="padding-left:1.25rem;position:relative"><span style="position:absolute;left:0">ðŸŽ¯</span>${escapeHTML(g)}</li>`).join('');
+
+        // Coaching Advice
+        setText('ai-coaching-advice', report?.coaching_advice || '');
+
+        // Fun Fact
+        setText('ai-fun-fact', report?.fun_fact || '');
+
+        // Predictive Outlook (derive from available data)
+        const weeks = activeData.stats?.weekly_data || [];
+        if (weeks.length >= 2) {
+            const recentSentiments = weeks.slice(-3).map(w => w.mean_sentiment || 0);
+            const earlierSentiments = weeks.slice(0, Math.max(1, weeks.length - 3)).map(w => w.mean_sentiment || 0);
+            const recentAvg = recentSentiments.reduce((a, b) => a + b, 0) / recentSentiments.length;
+            const earlierAvg = earlierSentiments.reduce((a, b) => a + b, 0) / earlierSentiments.length;
+            const diff = recentAvg - earlierAvg;
+
+            const trendArrow = document.getElementById('trend-arrow');
+            const trendLabel = document.getElementById('trend-label');
+            if (trendArrow && trendLabel) {
+                if (diff > 0.1) {
+                    trendArrow.className = 'trend-arrow trend-arrow--up';
+                    trendArrow.textContent = 'â†—';
+                    trendLabel.textContent = 'Improving';
+                } else if (diff < -0.1) {
+                    trendArrow.className = 'trend-arrow trend-arrow--down';
+                    trendArrow.textContent = 'â†˜';
+                    trendLabel.textContent = 'Needs Attention';
+                } else {
+                    trendArrow.className = 'trend-arrow trend-arrow--stable';
+                    trendArrow.textContent = 'â†’';
+                    trendLabel.textContent = 'Stable';
+                }
+            }
+
+            const forecastEl = document.getElementById('ai-forecast');
+            if (forecastEl) {
+                forecastEl.textContent = ai.recent_shift || `Based on ${weeks.length} weeks of data, the emotional trajectory is ${diff > 0.1 ? 'trending positively' : diff < -0.1 ? 'showing signs of decline' : 'holding steady'}.`;
+            }
+        }
+
+        const predictiveMetrics = document.getElementById('predictive-metrics');
+        if (predictiveMetrics) {
+            const metric = (label, value) => `
+                <div class="prediction-metric">
+                    <span class="text-xs uppercase font-bold color-gray-500">${escapeHTML(label)}</span>
+                    <strong>${escapeHTML(value || '--')}</strong>
+                </div>`;
+            predictiveMetrics.innerHTML = [
+                metric('Stability', predictive.stability !== undefined ? `${predictive.stability}%` : '--'),
+                metric('Drop-off risk', predictive.drop_off_risk !== undefined ? `${predictive.drop_off_risk}%` : '--'),
+                metric('Repair likelihood', predictive.repair_likelihood || '--'),
+                metric('Conflict risk', predictive.conflict_recurrence_risk || '--'),
+                metric('Reciprocity', predictive.reciprocity_trend || '--'),
+                metric('Confidence', predictive.confidence !== undefined ? `${predictive.confidence}%` : '--')
+            ].join('');
+        }
+
+        const forecastEl = document.getElementById('ai-forecast');
+        if (forecastEl && predictive.next_action) {
+            forecastEl.textContent = `${ai.recent_shift || ''} ${predictive.next_action}`.trim();
+        }
+
+        // Action Items
+        const actionItemsEl = document.getElementById('ai-action-items');
+        if (actionItemsEl) {
+            const actions = [];
+            if (predictive.next_action) actions.push({ action: predictive.next_action, impact: Number(predictive.drop_off_risk || 0) >= 65 ? 'high' : 'medium' });
+            receipts.slice(0, 2).forEach(r => actions.push({ action: r.action, impact: r.confidence === 'high' ? 'high' : 'medium' }));
+            if (report?.coaching_advice) actions.push({ action: report.coaching_advice, impact: 'high' });
+            (report?.growth_areas || []).forEach(g => actions.push({ action: g, impact: 'medium' }));
+            actionItemsEl.innerHTML = actions.slice(0, 3).map(item => `
+                <div class="action-item-card">
+                    <span class="impact-badge impact-badge--${item.impact}">${item.impact}</span>
+                    <span class="text-sm">${escapeHTML(item.action)}</span>
+                </div>
+            `).join('');
+        }
     };
 
     const resetCoachingChat = () => {
@@ -511,7 +712,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const chatHistoryEl = document.getElementById('coaching-chat-history');
         if (chatHistoryEl) {
             chatHistoryEl.innerHTML = `
-            <div class="chat-message ai text-sm" style="align-self: flex-start; background: var(--white); border: 2px solid var(--black); box-shadow: 2px 2px 0 0 var(--black); padding: 0.5rem 1rem; border-radius: 12px 12px 12px 0; max-width: 85%;">
+            <div class="chat-message ai">
                 <strong>Coach:</strong> Based on the data, what do you want me to expand on? I can break down response times, shift in vibe, or give advice.
             </div>`;
         }
@@ -554,6 +755,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 language: activeData.language || 'english',
                 context: activeData.context || '',
                 tone: activeData.tone || 'balanced',
+                privacy_mode: activeData.privacy_mode || 'stats_only',
+                source_quality: activeData.source_quality || null,
+                evidence_pack: activeData.evidence_pack || null,
+                raw_excerpt_pack: activeData.privacy_mode === 'opt_in_raw' ? (activeData.raw_excerpt_pack || null) : null,
                 compare_data: isCompareMode ? { a: dataA.stats, b: dataB.stats, nameA: dataA.partner_name, nameB: dataB.partner_name } : null,
                 provider: localStorage.getItem('llm_provider') || 'cloudflare',
                 api_key: sessionStorage.getItem('_llm_token') ? decodeURIComponent(escape(atob(sessionStorage.getItem('_llm_token')))) : ''
@@ -587,12 +792,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 : `Analysis failed: ${escapeHTML(e.message)}`;
             if (permission) permission.innerHTML = `
                 <div class="text-center p-8">
-                    <div style="font-size:3rem;margin-bottom:1rem">⚠️</div>
+                    <div style="font-size:3rem;margin-bottom:1rem">âš ï¸</div>
                     <h3 style="font-size:1.5rem;margin-bottom:1rem;color:var(--red)">Something went wrong</h3>
                     <p style="max-width:500px;margin:0 auto 2rem;color:var(--gray-600);line-height:1.6">${errorMsg}</p>
                     <div class="flex justify-center gap-3">
-                        <button id="retryAiBtn" class="btn btn--pink">✨ Try Again</button>
-                        <button onclick="document.getElementById('settingsBtn')?.click()" class="btn btn--white">⚙ Settings</button>
+                        <button id="retryAiBtn" class="btn btn--pink">âœ¨ Try Again</button>
+                        <button onclick="document.getElementById('settingsBtn')?.click()" class="btn btn--white">âš™ Settings</button>
                     </div>
                 </div>
             `;
@@ -600,9 +805,9 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('retryAiBtn')?.addEventListener('click', () => {
                 permission.innerHTML = `
                     <div class="text-center p-12" style="background:var(--white);border-width:4px">
-                        <div style="font-size:3rem;margin-bottom:1rem">🧠</div>
+                        <div style="font-size:3rem;margin-bottom:1rem">ðŸ§ </div>
                         <h3 style="font-size:1.75rem;margin-bottom:1rem">Unlock AI-Powered Vibe Analytics</h3>
-                        <div><button id="generateAiBtn" class="btn btn--pink btn--lg px-12">✨ GENERATE INSIGHTS</button></div>
+                        <div><button id="generateAiBtn" class="btn btn--pink btn--lg px-12">âœ¨ GENERATE INSIGHTS</button></div>
                     </div>
                 `;
                 generateAiInsights();
@@ -620,7 +825,7 @@ document.addEventListener('DOMContentLoaded', () => {
         generateAiInsights();
     });
 
-    // Auto-trigger AI — MUST be after generateBtn listener is wired (C-04)
+    // Auto-trigger AI â€” MUST be after generateBtn listener is wired (C-04)
     if (isSharedMode && window.llmReport && Object.keys(window.llmReport).length > 0) {
         renderAiReport(window.llmReport);
         document.getElementById('ai-permission-container')?.classList.add('hidden');
@@ -645,8 +850,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const chatCount = parseInt(sessionStorage.getItem('_chat_count') || '0', 10);
         if (chatCount >= 50) {
             const errMsg = document.createElement('div');
-            errMsg.className = 'chat-message error text-sm';
-            errMsg.style.cssText = 'align-self: center; background: #ffcc00; border: 2px solid #000; padding: 0.5rem 1rem; font-weight: 700;';
+            errMsg.className = 'chat-message error';
             errMsg.textContent = 'Session limit reached (50 messages). Refresh the page to continue.';
             historyEl.appendChild(errMsg);
             return;
@@ -655,8 +859,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Append User Message
         const userMsg = document.createElement('div');
-        userMsg.className = 'chat-message user text-sm';
-        userMsg.style.cssText = 'align-self: flex-end; background: var(--pink); border: 2px solid var(--black); box-shadow: 2px 2px 0 0 var(--black); padding: 0.5rem 1rem; border-radius: 12px 12px 0 12px; max-width: 85%; font-weight: 500;';
+        userMsg.className = 'chat-message user';
         userMsg.innerHTML = `<strong>You:</strong> ${escapeHTML(text)}`;
         historyEl.appendChild(userMsg);
         
@@ -667,8 +870,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Append Loading
         const loadMsg = document.createElement('div');
-        loadMsg.className = 'chat-message ai text-sm loading-msg';
-        loadMsg.style.cssText = 'align-self: flex-start; background: var(--white); border: 2px solid var(--black); padding: 0.5rem 1rem; border-radius: 12px 12px 12px 0; max-width: 85%; opacity: 0.6;';
+        loadMsg.className = 'chat-message ai';
+        loadMsg.style.opacity = '0.6';
         loadMsg.innerHTML = `<em>Coach is typing...</em>`;
         historyEl.appendChild(loadMsg);
         historyEl.scrollTop = historyEl.scrollHeight;
@@ -712,8 +915,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) {
             loadMsg.remove();
             const errMsg = document.createElement('div');
-            errMsg.className = 'chat-message error text-sm';
-            errMsg.style.cssText = 'align-self: center; background: #ffcc00; border: 2px solid #000; padding: 0.5rem 1rem; font-weight: 700;';
+            errMsg.className = 'chat-message error';
             errMsg.textContent = `Error: ${err.message}`;
             historyEl.appendChild(errMsg);
         } finally {
@@ -794,7 +996,7 @@ async function downloadWrappedCard() {
 document.getElementById('shareLinkBtn')?.addEventListener('click', async () => {
     const btn = document.getElementById('shareLinkBtn');
     const originalText = btn.textContent;
-    btn.textContent = "⏳ Generating...";
+    btn.textContent = "â³ Generating...";
 
     try {
         if (!window.activeData) throw new Error("No data to share");
@@ -810,21 +1012,27 @@ document.getElementById('shareLinkBtn')?.addEventListener('click', async () => {
                 symmetry: window.activeData.stats?.symmetry,
                 attachment_style: window.activeData.stats?.attachment_style,
                 streaks: window.activeData.stats?.streaks,
-            }
+            },
+            evidence_pack: {
+                receipts: (window.activeData.evidence_pack?.receipts || []).slice(0, 3),
+                predictive_outlook: window.activeData.evidence_pack?.predictive_outlook || null
+            },
+            source_quality: window.activeData.source_quality || null
         };
 
         // Ensure no raw chat content accidentally slips through
         delete shareData.stats.raw_messages;
+        delete shareData.raw_excerpt_pack;
 
         const base64Data = btoa(encodeURIComponent(JSON.stringify(shareData)));
         const shareUrl = `${window.location.origin}/share#${base64Data}`;
 
         await navigator.clipboard.writeText(shareUrl);
 
-        btn.textContent = "✅ Link Copied!";
+        btn.textContent = "âœ… Link Copied!";
         setTimeout(() => { btn.textContent = originalText; }, 2000);
     } catch (err) {
-        btn.textContent = "❌ Failed";
+        btn.textContent = "âŒ Failed";
         setTimeout(() => { btn.textContent = originalText; }, 2000);
     }
 });
@@ -898,7 +1106,9 @@ function generateShareCard(analysisData) {
     .reduce((acc, v, _, arr) => acc + Number(v) / arr.length, 0);
   const replyText = avgReply ? formatShareTime(avgReply) : '--';
   const redFlag = ai.red_flags?.[0] || report.growth_areas?.[0] || 'No major red flag detected.';
-  const greenFlag = ai.green_flags?.[0] || report.strengths?.[0] || 'There is enough signal to read the vibe.';
+  const topReceipt = report.receipts?.[0] || active.evidence_pack?.receipts?.[0];
+  const predictive = report.predictive_outlook || active.evidence_pack?.predictive_outlook || {};
+  const greenFlag = topReceipt?.claim || ai.green_flags?.[0] || report.strengths?.[0] || 'There is enough signal to read the vibe.';
   const title = ai.dynamic_title || report.relationship_persona || 'Vibe Check';
   const finalWord = ai.brutal_verdict || analysisData.top_insight || 'The chat has spoken.';
 
@@ -945,11 +1155,11 @@ function generateShareCard(analysisData) {
   ctx.fillRect(112 + 856 * mePct / 100, 1288, 856 * partnerPct / 100, 44);
 
   drawInsightBox(ctx, 'RED FLAG', redFlag, 112, 1395, '#ffe1e6');
-  drawInsightBox(ctx, 'GREEN FLAG', greenFlag, 112, 1545, '#e6ffe9');
+  drawInsightBox(ctx, 'TOP RECEIPT', greenFlag, 112, 1545, '#e6ffe9');
 
   ctx.fillStyle = '#1a0a00';
   ctx.font = '900 30px Inter, Arial, sans-serif';
-  ctx.fillText('FINAL WORD', 112, 1728);
+  ctx.fillText(`PREDICTION: ${predictive.drop_off_risk !== undefined ? predictive.drop_off_risk + '% DROP-OFF RISK' : 'WATCH THE TREND'}`, 112, 1728);
   ctx.font = '800 38px Inter, Arial, sans-serif';
   wrapText(ctx, finalWord, 112, 1790, 856, 48);
 
