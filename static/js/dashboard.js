@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 connection_type: sharedData.connection_type || 'shared'
             };
         } catch (e) {
-            console.warn('Failed to parse shared report data', e);
+            // Error silently on failed parse to prevent leakage
             return null;
         }
     };
@@ -481,7 +481,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
         refreshAll();
     } catch (err) {
-        console.error('Dashboard render failed:', err);
+        // Prevent detailed stack traces from leaking to console
         document.querySelector('main')?.insertAdjacentHTML('afterbegin',
             `<div class="card p-6 mb-8" style="background:var(--red);color:var(--white)">
                 <strong>Render error:</strong> ${escapeHTML(err.message)}.

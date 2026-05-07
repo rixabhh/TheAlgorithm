@@ -676,8 +676,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 const file = fileInput.files[0];
 
                 // P-02: Client-side file size check before parsing
-                if (file.size > 20 * 1024 * 1024) {
-                    showError('File too large. Max 20MB. Try exporting a shorter date range.');
+                if (file.size > 10 * 1024 * 1024) {
+                    showError('File too large. Max 10MB. Try exporting a shorter date range.');
+                    resetFormState();
+                    return;
+                }
+
+                // Security: Extension validation
+                const ext = file.name.split('.').pop().toLowerCase();
+                const ALLOWED_EXTENSIONS = ['txt', 'html', 'json'];
+                if (!ALLOWED_EXTENSIONS.includes(ext)) {
+                    showError('File type not supported. Please upload a .txt, .html, or .json file.');
                     resetFormState();
                     return;
                 }
@@ -764,6 +773,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (analyzeBtn) {
                     analyzeBtn.removeAttribute('aria-busy');
                 }
+
+                // Privacy: Explicitly free message arrays to ensure data doesn't persist
+                if (typeof rawMessages !== 'undefined' && Array.isArray(rawMessages)) rawMessages.length = 0;
+                if (typeof filteredMessages !== 'undefined' && Array.isArray(filteredMessages)) filteredMessages.length = 0;
             }
         });
     }

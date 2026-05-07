@@ -1,0 +1,5 @@
+The client-side parser currently handles standard names well but could be missing more complex PII patterns that might leak sensitive data into the computed statistics.
+
+Proposed solution: Enhance `parser.js` to detect and securely scrub passport numbers, bank account patterns, or social security numbers before any data aggregation occurs.
+
+Priority level: High - Necessary to maintain the strictest privacy promises.

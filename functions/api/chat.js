@@ -8,13 +8,21 @@ export async function onRequestPost(context) {
         const data = await request.json();
         const { stats, llmReport, chat_history = [], message, provider = 'cloudflare', api_key = '' } = data;
 
-        // 1. RATE LIMITING (KV-based, Cloudflare only)
-        if (provider === 'cloudflare' && env.KV_RATELIMIT) {
-            const limitKey = `ratelimit_chat_${ip}`;
+        // 1. RATE LIMITING (KV-based)
+        if (env.KV_RATELIMIT) {
+            const limitKey = `ratelimit_chat_${ip}_${provider}`;
             const current = await env.KV_RATELIMIT.get(limitKey);
             const count = current ? parseInt(current) : 0;
+
             // Slightly higher limit for chatting compared to full generation
-            if (count >= 10) return new Response(JSON.stringify({ error: "Free tier limit reached (10 chats/hr). Wait or configure your own API key to continue coaching." }), { status: 429 });
+            const maxRequests = provider === 'cloudflare' ? 10 : 50;
+
+            if (count >= maxRequests) {
+                const errMsg = provider === 'cloudflare'
+                    ? "Free tier limit reached (10 chats/hr). Wait or configure your own API key to continue coaching."
+                    : "Rate limit reached (50 chats/hr). Please try again later.";
+                return new Response(JSON.stringify({ error: errMsg }), { status: 429 });
+            }
             await env.KV_RATELIMIT.put(limitKey, (count + 1).toString(), { expirationTtl: 3600 });
         }
 

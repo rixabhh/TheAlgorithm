@@ -9,3 +9,17 @@
 **Description:** Users love deep-dives into emotional patterns, but we only show a few stats right now. We need an engaging "Toxic Trait Mapping" section that's fully blurred out, acting as a teaser for a premium tier.
 **Why it matters:** Showing users what they're missing drives waitlist sign-ups and creates demand for the paid tier. It establishes a strong monetization hook by playing on curiosity about their negative relationship patterns.
 **Implementation:** Create a new HTML `<section>` in `dashboard.html` that uses the established `backdrop-blur-sm` locked UI pattern. Inside, add fake progress bars and "Danger Zone" mockups for traits like "Gaslighting" or "Love Bombing".
+
+## Add Server-Side File Content Validation
+A malicious user could bypass our client-side file size and extension checks by calling the API directly. We should implement a server-side secondary validation that reads a small chunk of the uploaded file on the backend to verify it matches expected chat log patterns.
+
+Proposed solution: Add a lightweight signature/content-type check to the upload handler in our API functions.
+
+Priority level: Medium - Good defense-in-depth practice.
+
+## Strengthen Client-Side PII Scrubbing
+The client-side parser currently handles standard names well but could be missing more complex PII patterns that might leak sensitive data into the computed statistics.
+
+Proposed solution: Enhance `parser.js` to detect and securely scrub passport numbers, bank account patterns, or social security numbers before any data aggregation occurs.
+
+Priority level: High - Necessary to maintain the strictest privacy promises.

@@ -9,18 +9,30 @@ export async function onRequestPost(context) {
         const { stats, my_name, partner_name, connection_type, language, context, compare_data, provider = 'cloudflare', api_key = '' } = data;
         const tone = data.tone || 'balanced';
 
-        // 1. RATE LIMITING & GLOBAL STATS (KV-based, Cloudflare only)
-        if (provider === 'cloudflare' && env.KV_RATELIMIT) {
-            const limitKey = `ratelimit_${ip}`;
+        // 1. RATE LIMITING & GLOBAL STATS (KV-based)
+        if (env.KV_RATELIMIT) {
+            const limitKey = `ratelimit_${ip}_${provider}`;
             const current = await env.KV_RATELIMIT.get(limitKey);
             const count = current ? parseInt(current) : 0;
-            if (count >= 2) return new Response(JSON.stringify({ error: "Free tier limit reached (2/hr). Wait or use BYOK." }), { status: 429 });
+
+            // Limit based on provider type to prevent abuse
+            const maxRequests = provider === 'cloudflare' ? 2 : 20;
+
+            if (count >= maxRequests) {
+                const errMsg = provider === 'cloudflare'
+                    ? "Free tier limit reached (2/hr). Wait or use BYOK."
+                    : "Rate limit reached (20/hr). Please try again later.";
+                return new Response(JSON.stringify({ error: errMsg }), { status: 429 });
+            }
+
             await env.KV_RATELIMIT.put(limitKey, (count + 1).toString(), { expirationTtl: 3600 });
             
-            // Increment global stats counter
-            const globalCountKey = 'global_stats_chats_count';
-            const globalCount = await env.KV_RATELIMIT.get(globalCountKey) || '0';
-            await env.KV_RATELIMIT.put(globalCountKey, (parseInt(globalCount) + 1).toString());
+            if (provider === 'cloudflare') {
+                // Increment global stats counter only for cloudflare to keep it consistent
+                const globalCountKey = 'global_stats_chats_count';
+                const globalCount = await env.KV_RATELIMIT.get(globalCountKey) || '0';
+                await env.KV_RATELIMIT.put(globalCountKey, (parseInt(globalCount) + 1).toString());
+            }
         }
 
         const makeFallbackReport = (reason = "Limited data for deep read") => ({
@@ -200,7 +212,7 @@ CRITICAL RULES:
                         const retryResponseText = await makeLLMCall(provider, api_key, systemPrompt, stricterUserPrompt, env, retryController.signal);
                         report = parseResponse(retryResponseText);
                     } catch (retryErr) {
-                        console.error("Retry failed:", retryErr);
+                        // Fail silently during retry to avoid leaking internals
                     } finally {
                         clearTimeout(retryTimeoutId);
                     }

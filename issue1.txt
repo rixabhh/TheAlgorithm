@@ -1,0 +1,5 @@
+A malicious user could bypass our client-side file size and extension checks by calling the API directly. We should implement a server-side secondary validation that reads a small chunk of the uploaded file on the backend to verify it matches expected chat log patterns.
+
+Proposed solution: Add a lightweight signature/content-type check to the upload handler in our API functions.
+
+Priority level: Medium - Good defense-in-depth practice.
