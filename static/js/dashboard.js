@@ -40,9 +40,28 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     const number = (value, fallback = 0) => Number.isFinite(Number(value)) ? Number(value) : fallback;
     const totalMessages = (stats) => number(stats.messages?.ME) + number(stats.messages?.PARTNER);
+    const scoreText = (value, options = {}) => formatHeuristicScore(value, options);
+    const scoreValue = (value, min = 5, max = 95) => clampHeuristicScore(value, min, max);
+    const barWidth = (value) => `${clampVisualPercent(value)}%`;
     const setText = (id, value) => {
         const el = document.getElementById(id);
         if (el) el.textContent = value;
+    };
+    const persistActiveReport = () => {
+        if (!activeData?.id) return;
+        try {
+            const key = 'algo_history';
+            const history = JSON.parse(localStorage.getItem(key) || '[]');
+            const next = history.map(item => item.id === activeData.id ? {
+                ...item,
+                ...activeData,
+                llmReport: window.llmReport || item.llmReport || null,
+                raw_excerpt_pack: undefined
+            } : item);
+            localStorage.setItem(key, JSON.stringify(next));
+        } catch (err) {
+            console.warn('Could not update report history', err);
+        }
     };
 
     // 1. DATA LOADING
@@ -66,6 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
             isSharedMode = true;
         } else if (stored) {
             activeData = JSON.parse(stored);
+            if (activeData.llmReport) window.llmReport = activeData.llmReport;
         } else {
             window.location.href = '/';
             return;
@@ -142,6 +162,13 @@ document.addEventListener('DOMContentLoaded', () => {
             initActivityChart(stats.weekly_data || []);
             initMoodChart(stats.weekly_data || []);
         }
+        const hasAiReport = Boolean(window.llmReport);
+        const reportForSlots = window.llmReport || makeLocalEvidenceReport();
+        renderAiReport(reportForSlots, { localOnly: !hasAiReport });
+        document.getElementById('ai-permission-container')?.classList.add('hidden');
+        document.getElementById('ai-loading-container')?.classList.add('hidden');
+        document.getElementById('ai-results-container')?.classList.remove('hidden');
+        if (hasAiReport) persistActiveReport();
         document.querySelectorAll('.is-loading').forEach(el => el.classList.remove('is-loading'));
     };
 
@@ -152,7 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setText('stat-total-messages', totalMessages(stats).toLocaleString());
         setText('stat-duration', stats.duration || '--');
         setText('stat-reply-speed', avgReply ? formatTime(avgReply) : '--');
-        setText('stat-symmetry', stats.symmetry?.score !== undefined ? `${stats.symmetry.score}%` : '--');
+        setText('stat-symmetry', stats.symmetry?.score !== undefined ? scoreText(stats.symmetry.score) : '--');
     };
 
     const renderSourceQuality = (quality = {}, inputMode = 'export') => {
@@ -163,7 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
             transcript: 'Transcript'
         }[inputMode] || activeData.platform || 'Conversation';
         setText('source-quality-title', `${label} - ${quality.parsed_count || totalMessages(activeData.stats || {})} parsed messages`);
-        setText('source-quality-score', quality.score !== undefined ? `${quality.score}%` : '--');
+        setText('source-quality-score', quality.score !== undefined ? scoreText(quality.score) : '--');
         const warnings = quality.warnings || [];
         const privacy = activeData.privacy_mode === 'opt_in_raw'
             ? 'Deep AI raw evidence was enabled for this report.'
@@ -197,11 +224,11 @@ document.addEventListener('DOMContentLoaded', () => {
             data = data || {};
             const scores = data.scores || {};
             ['curiosity', 'politeness', 'warmth', 'intimacy'].forEach(t => {
-                const val = scores[t] || 0;
+                const val = scoreValue(scores[t] || 0);
                 const el = document.getElementById(`trait-val-${t}-${suffix}`);
-                if (el) el.textContent = val;
+                if (el) el.textContent = scoreText(val);
                 const bar = document.getElementById(`trait-bar-${t}-${suffix}`);
-                if (bar) bar.style.width = val + '%';
+                if (bar) bar.style.width = barWidth(val);
             });
             const pills = document.getElementById(`traits-pills-${suffix}`);
             if (pills) pills.innerHTML = (data.highlights || []).map(h => `<span class="pill-label pill-label--pink" style="font-size:0.6rem">${escapeHTML(h.label)}: ${escapeHTML(String(h.count))}</span>`).join('');
@@ -236,8 +263,8 @@ document.addEventListener('DOMContentLoaded', () => {
         el.innerHTML = `
             <div class="flex justify-between"><span>Chat Starter</span><span class="pill-label pill-label--purple">${escapeHTML(starter)}</span></div>
             <div class="flex justify-between"><span>Threads Started</span><span class="font-black">${init.me_initiations} / ${init.partner_initiations}</span></div>
-            <div class="flex justify-between"><span>Mirroring</span><span class="font-black">${stats.mirroring || 0}%</span></div>
-            <div class="flex justify-between"><span>Symmetry</span><span class="font-black">${escapeHTML(stats.symmetry?.label || 'Unknown')} (${stats.symmetry?.score ?? '--'}%)</span></div>
+            <div class="flex justify-between"><span>Mirroring</span><span class="font-black">${scoreText(stats.mirroring || 0)}</span></div>
+            <div class="flex justify-between"><span>Symmetry</span><span class="font-black">${escapeHTML(stats.symmetry?.label || 'Unknown')} (${stats.symmetry?.score !== undefined ? scoreText(stats.symmetry.score) : '--'})</span></div>
             <div class="flex justify-between"><span>Max Inactivity</span><span class="font-black">${stats.max_inactivity || "N/A"} days</span></div>
             <div class="flex justify-between"><span>Avg Response (${escapeHTML(activeData.my_name)})</span><span class="font-black">${formatTime(init.me_latency_avg)}</span></div>
             <div class="flex justify-between"><span>Avg Response (${escapeHTML(activeData.partner_name)})</span><span class="font-black">${formatTime(init.partner_latency_avg)}</span></div>
@@ -253,7 +280,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         const max = emojis[0].count;
-        container.innerHTML = emojis.map(e => `<div class="flex align-center gap-3"><span>${escapeHTML(e.emoji)}</span><div class="flex-1 h-2 bg-cream rounded-full overflow-hidden"><div class="h-full bg-pink" style="width:${(e.count / max * 100)}%"></div></div></div>`).join('');
+        container.innerHTML = emojis.map(e => `<div class="flex align-center gap-3"><span>${escapeHTML(e.emoji)}</span><div class="flex-1 h-2 bg-cream rounded-full overflow-hidden"><div class="h-full bg-pink" style="width:${barWidth(e.count / max * 100)}"></div></div></div>`).join('');
     };
 
     const renderHumorAndEnergy = (stats) => {
@@ -294,7 +321,7 @@ document.addEventListener('DOMContentLoaded', () => {
         container.innerHTML = `
             <div class="card p-4 bg-cream text-center"><p class="text-xs uppercase op-50">Longest Streak</p><p class="text-xl font-black">${s.longest} days</p></div>
             <div class="card p-4 bg-cream text-center"><p class="text-xs uppercase op-50">Ending Streak</p><p class="text-xl font-black">${s.current} days</p></div>
-            <div class="card p-4 bg-cream text-center"><p class="text-xs uppercase op-50">Active Days</p><p class="text-xl font-black">${s.active_pct ?? 0}%</p></div>
+            <div class="card p-4 bg-cream text-center"><p class="text-xs uppercase op-50">Active Days</p><p class="text-xl font-black">${formatDeterministicShare(s.active_pct ?? 0, s.days_active || 0)}</p></div>
         `;
     };
 
@@ -537,11 +564,82 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- AI INSIGHTS ---
-    const renderAiReport = (report) => {
-        window.llmReport = report || {};
+    function makeLocalEvidenceReport() {
+        const stats = activeData?.stats || {};
+        const evidence = activeData?.evidence_pack || {};
+        const source = activeData?.source_quality || {};
+        const predictive = evidence.predictive_outlook || {};
+        const receipts = Array.isArray(evidence.receipts) && evidence.receipts.length ? evidence.receipts : [];
+        const topReceipt = receipts[0] || {};
+        const total = totalMessages(stats);
+        const symmetry = stats.symmetry || {};
+        const risk = Number(predictive.drop_off_risk || (100 - Number(symmetry.score || 70)));
+        const headline = topReceipt.claim || (symmetry.label ? `${symmetry.label} effort pattern` : 'Conversation pattern ready');
+        const nextMove = predictive.next_action || topReceipt.action || 'Pick the strongest repeated pattern and ask for one clear change.';
+        return {
+            relationship_persona: topReceipt.pattern ? `${String(topReceipt.pattern).replace(/_/g, ' ')} pattern` : 'Pattern read',
+            compatibility_score: source.score || symmetry.score || 70,
+            overall_health_score: symmetry.score || source.score || 70,
+            communication_style: {
+                dominant_pattern: symmetry.label || 'Pattern detected',
+                tone: 'Based on local chat signals',
+                balance_score: symmetry.score || source.score || 70
+            },
+            attachment_style: {
+                person_1: 'not enough signal',
+                person_2: 'not enough signal',
+                compatibility_note: 'Attachment labels need AI context. Local evidence is focused on effort, timing, and repeated patterns.'
+            },
+            key_insights: [
+                `${total.toLocaleString()} messages were analysed from ${activeData.input_mode || 'chat'} input.`,
+                topReceipt.evidence || `Balance reads as ${symmetry.label || 'unclear'} from message and word-share patterns.`,
+                source.warnings?.[0] || 'Confidence depends on message count, timestamps, and source quality.'
+            ].filter(Boolean),
+            strengths: receipts.filter(r => r.pattern === 'repair_attempts').map(r => r.claim).slice(0, 2),
+            growth_areas: receipts.filter(r => r.pattern !== 'repair_attempts').map(r => r.claim).slice(0, 3),
+            coaching_advice: nextMove,
+            fun_fact: stats.streaks?.longest ? `Longest active streak: ${stats.streaks.longest} days.` : 'The clearest read comes from repeated behavior, not one dramatic message.',
+            verdict_summary: {
+                headline,
+                risk_level: risk >= 65 ? 'high' : risk >= 40 ? 'medium' : 'low',
+                confidence: source.score !== undefined ? scoreText(source.score) : scoreText(predictive.confidence || 60),
+                best_next_move: nextMove
+            },
+            receipts: receipts.length ? receipts : [{
+                claim: 'Local pattern map is ready',
+                evidence: 'The report has enough aggregate chat data to show balance, timing, and source quality.',
+                pattern: 'local_stats',
+                confidence: 'medium',
+                action: nextMove
+            }],
+            predictive_outlook: {
+                stability: predictive.stability ?? (symmetry.score || 65),
+                reciprocity_trend: predictive.reciprocity_trend || symmetry.label || 'unclear',
+                repair_likelihood: predictive.repair_likelihood || 'unclear',
+                drop_off_risk: predictive.drop_off_risk ?? Math.max(5, Math.min(95, risk)),
+                conflict_recurrence_risk: predictive.conflict_recurrence_risk || 'needs AI context',
+                confidence: predictive.confidence || source.score || 60,
+                next_action: nextMove
+            },
+            ai_insight: {
+                vibe_label: 'LOCAL READ',
+                health_score: symmetry.score || source.score || 70,
+                dynamic_title: headline.split(' ').slice(0, 4).join(' '),
+                reality_check: topReceipt.evidence || 'This is the local evidence read. Generate AI for a deeper emotional interpretation.',
+                recent_shift: predictive.trend ? `Recent trend appears ${predictive.trend}.` : 'Recent shift uses weekly volume, sentiment, and reply timing when timestamps are available.',
+                red_flags: receipts.filter(r => r.confidence === 'high' && r.pattern !== 'repair_attempts').map(r => r.claim).slice(0, 3),
+                green_flags: receipts.filter(r => r.pattern === 'repair_attempts').map(r => r.claim).slice(0, 3),
+                brutal_verdict: nextMove
+            }
+        };
+    }
+
+    function renderAiReport(report, options = {}) {
+        if (options.localOnly) window.localEvidenceReport = report || {};
+        else window.llmReport = report || {};
         const ai = report?.ai_insight || {};
-        const healthScore = Number(ai.health_score) || Number(report?.overall_health_score) || 0;
-        const compatScore = Number(report?.compatibility_score) || 0;
+        const healthScore = scoreValue(Number(ai.health_score) || Number(report?.overall_health_score) || 0);
+        const compatScore = scoreValue(Number(report?.compatibility_score) || 0);
         const verdict = report?.verdict_summary || {};
         const predictive = report?.predictive_outlook || activeData.evidence_pack?.predictive_outlook || {};
         const receipts = Array.isArray(report?.receipts) && report.receipts.length
@@ -550,7 +648,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         setText('verdict-headline', verdict.headline || ai.dynamic_title || 'Pattern read complete');
         setText('verdict-risk', verdict.risk_level || (Number(predictive.drop_off_risk) >= 65 ? 'High' : Number(predictive.drop_off_risk) >= 40 ? 'Medium' : 'Low'));
-        setText('verdict-confidence', verdict.confidence || (predictive.confidence ? `${predictive.confidence}%` : `${activeData.source_quality?.score || 60}%`));
+        setText('verdict-confidence', verdict.confidence ? escapeHTML(String(verdict.confidence)).replace(/\b100%/g, '95+%') : (predictive.confidence ? scoreText(predictive.confidence) : scoreText(activeData.source_quality?.score || 60)));
         setText('verdict-next-move', verdict.best_next_move || predictive.next_action || report?.coaching_advice || '');
 
         const receiptEl = document.getElementById('receipt-cards');
@@ -577,10 +675,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (ring) {
             setTimeout(() => { ring.style.setProperty('--score', String(healthScore)); }, 100);
         }
-        if (scoreNum) scoreNum.textContent = healthScore || '--';
+        if (scoreNum) scoreNum.textContent = healthScore ? scoreText(healthScore, { suffix: "", plusAtMax: true }) : '--';
 
         // Compatibility Score
-        setText('compatibility-score', compatScore || '--');
+        setText('compatibility-score', compatScore ? scoreText(compatScore, { suffix: "", plusAtMax: true }) : '--');
 
         // Reality Check + Recent Shift
         setText('ai-insight-reality', ai.reality_check || '');
@@ -592,10 +690,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const comm = report?.communication_style || {};
         setText('ai-comm-pattern', comm.dominant_pattern || '--');
         setText('ai-comm-tone', comm.tone ? `Tone: ${comm.tone}` : '');
-        const commBalance = Number(comm.balance_score) || 0;
-        setText('ai-comm-balance', commBalance ? `${commBalance}%` : '--');
+        const commBalance = scoreValue(Number(comm.balance_score) || 0);
+        setText('ai-comm-balance', commBalance ? scoreText(commBalance) : '--');
         const commBar = document.getElementById('ai-comm-bar');
-        if (commBar) setTimeout(() => { commBar.style.width = `${commBalance}%`; }, 200);
+        if (commBar) setTimeout(() => { commBar.style.width = barWidth(commBalance); }, 200);
 
         // Attachment Styles
         const attach = report?.attachment_style || {};
@@ -676,12 +774,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     <strong>${escapeHTML(value || '--')}</strong>
                 </div>`;
             predictiveMetrics.innerHTML = [
-                metric('Stability', predictive.stability !== undefined ? `${predictive.stability}%` : '--'),
-                metric('Drop-off risk', predictive.drop_off_risk !== undefined ? `${predictive.drop_off_risk}%` : '--'),
+                metric('Stability', predictive.stability !== undefined ? scoreText(predictive.stability) : '--'),
+                metric('Drop-off risk', predictive.drop_off_risk !== undefined ? scoreText(predictive.drop_off_risk) : '--'),
                 metric('Repair likelihood', predictive.repair_likelihood || '--'),
                 metric('Conflict risk', predictive.conflict_recurrence_risk || '--'),
                 metric('Reciprocity', predictive.reciprocity_trend || '--'),
-                metric('Confidence', predictive.confidence !== undefined ? `${predictive.confidence}%` : '--')
+                metric('Confidence', predictive.confidence !== undefined ? scoreText(predictive.confidence) : '--')
             ].join('');
         }
 
@@ -705,7 +803,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `).join('');
         }
-    };
+    }
 
     const resetCoachingChat = () => {
         window.coachingChatHistory = [];
@@ -775,6 +873,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const report = data.report;
             if (progress) progress.style.width = '100%';
             renderAiReport(report);
+            activeData.llmReport = report;
+            window.activeData = activeData;
+            sessionStorage.setItem('dashboard_data', JSON.stringify(activeData));
+            persistActiveReport();
 
             clearInterval(statusInterval);
             loading?.classList.add('hidden');
@@ -966,13 +1068,14 @@ async function downloadWrappedCard() {
         const partnerTotal = (stats.messages?.PARTNER || 0);
         const total = meTotal + partnerTotal;
         const mePct = total > 0 ? (meTotal / total * 100) : 50;
+        const meBarPct = clampVisualPercent(mePct, { min: 0, max: 100 });
         
-        document.getElementById('share-bar-me').style.width = mePct + '%';
-        document.getElementById('share-bar-partner').style.width = (100 - mePct) + '%';
+        document.getElementById('share-bar-me').style.width = meBarPct + '%';
+        document.getElementById('share-bar-partner').style.width = (100 - meBarPct) + '%';
 
         // Provide a stats object based solely on anonymous statistics
         const statsPayload = {
-            health_score: report.ai_insight?.health_score || '--',
+            health_score: formatHeuristicScore(report.ai_insight?.health_score || report.overall_health_score || 0, { suffix: "", plusAtMax: true }),
             top_insight: report.ai_insight?.brutal_verdict || "Your chat data has been decoded."
         };
         const imageData = generateShareCard(statsPayload);
@@ -1100,6 +1203,8 @@ function generateShareCard(analysisData) {
   const total = meTotal + partnerTotal;
   const mePct = total ? Math.round(meTotal / total * 100) : 50;
   const partnerPct = 100 - mePct;
+  const healthScore = formatHeuristicScore(ai.health_score || report.overall_health_score || analysisData.health_score || 0, { suffix: "", plusAtMax: true });
+  const dropOffRisk = predictive.drop_off_risk !== undefined ? formatHeuristicScore(predictive.drop_off_risk) : null;
   const init = stats.initiator_ratio || {};
   const avgReply = [init.me_latency_avg, init.partner_latency_avg]
     .filter(v => Number.isFinite(Number(v)) && Number(v) >= 0)
@@ -1133,10 +1238,10 @@ function generateShareCard(analysisData) {
 
   ctx.fillStyle = '#7b2fbe';
   ctx.font = '900 188px Inter, Arial, sans-serif';
-  ctx.fillText(`${ai.health_score || report.overall_health_score || analysisData.health_score || '--'}`, 112, 690);
+  ctx.fillText(`${healthScore || '--'}`, 112, 690);
   ctx.fillStyle = '#1a0a00';
   ctx.font = '900 34px Inter, Arial, sans-serif';
-  ctx.fillText('/100 relationship energy', 435, 665);
+  ctx.fillText('signal score', 435, 665);
 
   drawMetric(ctx, 'Messages', total.toLocaleString(), 112, 785);
   drawMetric(ctx, 'Duration', stats.duration || '--', 560, 785);
@@ -1145,8 +1250,8 @@ function generateShareCard(analysisData) {
 
   ctx.fillStyle = '#1a0a00';
   ctx.font = '900 30px Inter, Arial, sans-serif';
-  ctx.fillText(`${active.my_name || 'You'} ${mePct}%`, 112, 1215);
-  ctx.fillText(`${active.partner_name || 'Them'} ${partnerPct}%`, 112, 1260);
+  ctx.fillText(`${active.my_name || 'You'} ${mePct}% of ${total.toLocaleString()}`, 112, 1215);
+  ctx.fillText(`${active.partner_name || 'Them'} ${partnerPct}% of ${total.toLocaleString()}`, 112, 1260);
   ctx.fillStyle = '#e9ddc8';
   ctx.fillRect(112, 1288, 856, 44);
   ctx.fillStyle = '#1a0a00';
@@ -1159,7 +1264,7 @@ function generateShareCard(analysisData) {
 
   ctx.fillStyle = '#1a0a00';
   ctx.font = '900 30px Inter, Arial, sans-serif';
-  ctx.fillText(`PREDICTION: ${predictive.drop_off_risk !== undefined ? predictive.drop_off_risk + '% DROP-OFF RISK' : 'WATCH THE TREND'}`, 112, 1728);
+  ctx.fillText(`PREDICTION: ${dropOffRisk ? dropOffRisk + ' DROP-OFF RISK' : 'WATCH THE TREND'}`, 112, 1728);
   ctx.font = '800 38px Inter, Arial, sans-serif';
   wrapText(ctx, finalWord, 112, 1790, 856, 48);
 
@@ -1216,7 +1321,7 @@ document.addEventListener('DOMContentLoaded', () => {
         shareImageBtn.addEventListener('click', () => {
             // Provide a stats object based solely on anonymous statistics
             const statsPayload = {
-                health_score: window.llmReport?.ai_insight?.health_score || '--',
+                health_score: formatHeuristicScore(window.llmReport?.ai_insight?.health_score || window.llmReport?.overall_health_score || 0, { suffix: "", plusAtMax: true }),
                 top_insight: window.llmReport?.ai_insight?.brutal_verdict || "Your chat data has been decoded."
             };
             const imageData = generateShareCard(statsPayload);

@@ -43,6 +43,38 @@ function animateValue(id, start, end, duration, suffix = "", decimals = 0) {
     window.requestAnimationFrame(step);
 }
 
+function clampNumber(value, min = 0, max = 100) {
+    const num = Number(value);
+    if (!Number.isFinite(num)) return min;
+    return Math.max(min, Math.min(max, num));
+}
+
+function formatHeuristicScore(value, options = {}) {
+    const { suffix = "%", empty = "--", min = 5, max = 95, plusAtMax = true } = options;
+    const num = Number(value);
+    if (!Number.isFinite(num)) return empty;
+    const rounded = Math.round(clampNumber(num, min, max));
+    return plusAtMax && rounded >= max ? `${max}+${suffix}` : `${rounded}${suffix}`;
+}
+
+function clampHeuristicScore(value, min = 5, max = 95) {
+    return Math.round(clampNumber(value, min, max));
+}
+
+function clampVisualPercent(value, options = {}) {
+    const { min = 2, max = 98 } = options;
+    return clampNumber(value, min, max);
+}
+
+function formatDeterministicShare(value, denominator, options = {}) {
+    const { suffix = "%", empty = "--" } = options;
+    const num = Number(value);
+    if (!Number.isFinite(num)) return empty;
+    const rounded = Math.round(clampNumber(num, 0, 100));
+    const count = Number(denominator);
+    return Number.isFinite(count) && count > 0 ? `${rounded}${suffix} of ${count.toLocaleString()}` : `${rounded}${suffix}`;
+}
+
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { escapeHTML, animateValue };
+    module.exports = { escapeHTML, animateValue, clampNumber, formatHeuristicScore, clampHeuristicScore, clampVisualPercent, formatDeterministicShare };
 }

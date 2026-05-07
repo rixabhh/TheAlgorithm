@@ -160,7 +160,7 @@ class ConversationIntelligence {
         if (inputMode === 'paste' || inputMode === 'transcript') {
             warnings.push('Some timestamps may be synthetic, so timing-based predictions are less certain.');
         }
-        score = Math.max(0, Math.min(100, score));
+        score = Math.max(5, Math.min(95, score));
         return {
             score,
             warnings: Array.from(new Set(warnings)),

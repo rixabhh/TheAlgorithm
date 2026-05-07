@@ -36,7 +36,7 @@
 
 </head>
 
-<body class="comic-dots dashboard-body">
+<body class="dashboard-body">
 
 <!-- Scroll Progress Bar -->
 <div id="scroll-progress" class="scroll-progress"></div>
@@ -661,6 +661,37 @@
 <script src="static/js/dashboard_utils.js?v=5.0"></script>
 <script src="static/js/dashboard.js?v=5.0"></script>
 <script>
+    (() => {
+        const setCleanText = (selector, text) => {
+            const el = document.querySelector(selector);
+            if (el) el.textContent = text;
+        };
+        setCleanText('#sidebar-toggle', 'Menu');
+        setCleanText('a.btn--dark[href="/"]', 'Start New');
+        setCleanText('button[onclick="window.print()"]', 'Print Report');
+        setCleanText('#shareLinkBtn', 'Share Report');
+        setCleanText('#share-btn', 'Save Card');
+        const navLabels = [
+            ['#section-verdict-summary', '01', 'Verdict'],
+            ['#section-receipts', '02', 'Receipts'],
+            ['#section-predictive', '03', 'Predictive'],
+            ['#section-ratios', '04', 'Data Ratios'],
+            ['#section-mood', '05', 'Mood Timeline'],
+            ['#section-social', '06', 'Social Dynamics'],
+            ['#section-quick-stats', '07', 'Quick Stats'],
+            ['#section-pattern-signals', 'SIG', 'Signals'],
+            ['#section-vibe', 'AI', 'Vibe Insights']
+        ];
+        const nav = document.querySelector('.sidebar-nav');
+        if (nav) {
+            nav.innerHTML = navLabels.map(([href, icon, label], index) => `<li><a href="${href}" class="${index === 0 ? 'active' : ''}"><span class="icon">${icon}</span> ${label}</a></li>`).join('');
+        }
+        const vibe = document.getElementById('section-vibe');
+        const sourceQuality = document.getElementById('section-source-quality');
+        if (vibe && sourceQuality?.nextSibling) {
+            sourceQuality.parentNode.insertBefore(vibe, sourceQuality.nextSibling);
+        }
+    })();
     function closeFlashback() {
         document.getElementById('flashback-modal')?.classList.remove('active');
         document.getElementById('flashback-modal')?.classList.add('hidden');

@@ -8,6 +8,8 @@ The Algorithm analyzes exported chats, pasted conversations, screenshots, and tr
 
 Raw conversation content is parsed client-side by default. Optional AI features send aggregated statistics and anonymized evidence. Users can explicitly enable Deep AI with raw evidence for a report, which sends short scrubbed excerpts to their selected AI provider.
 
+The UI uses a premium neobrutal design system: cream app shell, dark report sidebar, rounded pastel cards, black ink borders, restrained shadows, polished chart spacing, and motion-safe button interactions.
+
 ## Current Stack
 
 - Static Cloudflare Pages app.
@@ -32,6 +34,8 @@ Raw conversation content is parsed client-side by default. Optional AI features 
 - Cloudflare AI free-tier support when a Workers AI binding is configured.
 - Story-friendly shareable vibe card with score, verdict, message split, response-speed signal, top receipt, predictive signal, and final AI insight.
 - Local history and compare flows stored in browser storage.
+- Strict score display policy: heuristic, confidence, prediction, and AI-style scores cap below false certainty; deterministic 0% or 100% shares are shown only with sample context.
+- Premium neobrutal UI across landing, upload, dashboard, history, privacy, instructions, pricing, and share card surfaces.
 
 ## Local Setup
 
@@ -57,6 +61,7 @@ node --check static/js/app.js
 node --check static/js/dashboard.js
 node --check static/js/dashboard_utils.js
 node --check static/js/analytics_engine.js
+node --check static/js/conversation_intelligence.js
 node --check static/js/parser.js
 ```
 
@@ -100,6 +105,12 @@ The frontend pages and `static/` assets can be hosted by any static host. AI end
 4. Optional AI calls send statistical payloads and anonymized evidence by default.
 5. Raw excerpts are sent only when the user enables Deep AI with raw evidence for that report.
 
+## Score Policy
+
+- Heuristic scores, predictive risks, source quality, compatibility, health, and confidence signals are displayed as capped estimates rather than certainty.
+- Exact `100%` is reserved for deterministic shares or counts with visible sample context.
+- Low sample size, missing timestamps, OCR uncertainty, or uncertain speaker mapping lowers confidence and surfaces a warning.
+
 ## Verification Status
 
 The current structure has been checked for:
@@ -111,6 +122,7 @@ The current structure has been checked for:
 - Duplicate dashboard IDs.
 - Flask/Python infrastructure residue.
 - Wrangler Pages compile and `/api/stats` local probe.
+- Heuristic score displays avoiding false `100%` certainty.
 
 ## License
 

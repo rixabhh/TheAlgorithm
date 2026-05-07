@@ -13,6 +13,14 @@ export async function onRequestPost(context) {
             return new Response(JSON.stringify({ error: "Raw excerpts require opt-in raw evidence mode." }), { status: 400 });
         }
 
+        const clampHeuristic = (value, fallback = 70) => {
+            const num = Number(value);
+            const base = Number.isFinite(num) ? num : fallback;
+            return Math.max(5, Math.min(95, Math.round(base)));
+        };
+        const symmetryScore = clampHeuristic(stats?.symmetry?.score, 70);
+        const sourceScore = clampHeuristic(source_quality?.score || evidence_pack?.predictive_outlook?.confidence, 60);
+
         // 1. RATE LIMITING & GLOBAL STATS (KV-based, Cloudflare only)
         if (provider === 'cloudflare' && env.KV_RATELIMIT) {
             const limitKey = `ratelimit_${ip}`;
@@ -27,14 +35,20 @@ export async function onRequestPost(context) {
             await env.KV_RATELIMIT.put(globalCountKey, (parseInt(globalCount) + 1).toString());
         }
 
-        const makeFallbackReport = (reason = "Limited data for deep read") => ({
-            relationship_persona: "Vibe Explorer",
-            compatibility_score: 80,
-            overall_health_score: stats?.symmetry?.score || 75,
+        const makeFallbackReport = (reason = "Limited data for deep read") => {
+            const dropOffRisk = clampHeuristic(evidence_pack?.predictive_outlook?.drop_off_risk ?? (100 - symmetryScore), 30);
+            const stability = clampHeuristic(evidence_pack?.predictive_outlook?.stability ?? (100 - dropOffRisk), 65);
+            const healthScore = clampHeuristic((symmetryScore * 0.75) + (sourceScore * 0.25), 75);
+            const topReceipt = evidence_pack?.receipts?.[0];
+            const nextAction = evidence_pack?.predictive_outlook?.next_action || topReceipt?.action || "Pick the strongest repeated pattern and ask for one concrete change.";
+            return ({
+            relationship_persona: topReceipt?.pattern ? `${topReceipt.pattern.replace(/_/g, ' ')} watcher` : "Pattern Watch",
+            compatibility_score: clampHeuristic((symmetryScore * 0.7) + (sourceScore * 0.3), 75),
+            overall_health_score: healthScore,
             communication_style: {
                 dominant_pattern: stats?.symmetry?.label || "Balanced",
                 tone: "Data-led",
-                balance_score: stats?.symmetry?.score || 75
+                balance_score: symmetryScore
             },
             attachment_style: {
                 person_1: "secure",
@@ -56,13 +70,13 @@ export async function onRequestPost(context) {
             ],
             strengths: ["The chat has enough signal to read participation and response patterns."],
             growth_areas: [reason],
-            coaching_advice: "Use this as a pattern map, not a verdict. Pick one repeated behavior and talk about that concrete pattern.",
+            coaching_advice: `${nextAction} Treat this as a pattern map, not a final verdict. Re-check whether the pattern changes after the next real conversation.`,
             fun_fact: `Longest active streak: ${stats?.streaks?.longest || 0} days.`,
             verdict_summary: {
-                headline: evidence_pack?.receipts?.[0]?.claim || "Pattern read complete",
-                risk_level: Number(evidence_pack?.predictive_outlook?.drop_off_risk || 0) >= 65 ? "high" : "medium",
-                confidence: `${source_quality?.score || evidence_pack?.predictive_outlook?.confidence || 60}%`,
-                best_next_move: evidence_pack?.predictive_outlook?.next_action || "Pick one repeated behavior and ask for a concrete change."
+                headline: topReceipt?.claim || "Pattern read complete",
+                risk_level: dropOffRisk >= 65 ? "high" : "medium",
+                confidence: `${sourceScore >= 95 ? '95+' : sourceScore}%`,
+                best_next_move: nextAction
             },
             receipts: evidence_pack?.receipts || [{
                 claim: "Local stats are readable",
@@ -72,25 +86,26 @@ export async function onRequestPost(context) {
                 action: "Use this as a starting point, then compare against the actual relationship context."
             }],
             predictive_outlook: evidence_pack?.predictive_outlook || {
-                stability: stats?.symmetry?.score || 70,
+                stability,
                 reciprocity_trend: stats?.symmetry?.label || "balanced",
                 repair_likelihood: "unclear",
-                drop_off_risk: Math.max(5, 100 - (stats?.symmetry?.score || 70)),
+                drop_off_risk: dropOffRisk,
                 conflict_recurrence_risk: "normal",
-                confidence: source_quality?.score || 60,
-                next_action: "Watch whether the pattern changes after one direct conversation."
+                confidence: sourceScore,
+                next_action: nextAction
             },
             ai_insight: {
                 vibe_label: "VIBE STATUS",
-                health_score: stats?.symmetry?.score || 75,
-                dynamic_title: "Quick Read",
-                reality_check: `Analysis complete for ${partner_name}. The strongest local signal is ${stats?.symmetry?.label || 'balanced'} participation.`,
-                recent_shift: "Recent-shift analysis is based on the weekly timeline: volume, sentiment, and response patterns.",
+                health_score: healthScore,
+                dynamic_title: topReceipt?.claim ? topReceipt.claim.split(' ').slice(0, 4).join(' ') : "Pattern Watch",
+                reality_check: topReceipt?.evidence || `The strongest local signal is ${stats?.symmetry?.label || 'balanced'} participation.`,
+                recent_shift: evidence_pack?.predictive_outlook?.trend ? `Recent trend appears ${evidence_pack.predictive_outlook.trend}.` : "Recent shift is based on volume, sentiment, and response patterns.",
                 red_flags: [reason],
-                green_flags: ["Active conversation patterns were detected"],
-                brutal_verdict: "The data gives you a useful mirror, not a courtroom verdict."
+                green_flags: topReceipt?.confidence ? [`Top receipt confidence is ${topReceipt.confidence}.`] : ["Active conversation patterns were detected."],
+                brutal_verdict: topReceipt?.action || "The data gives you a useful mirror, not a courtroom verdict."
             }
         });
+        };
 
         const normalizeReport = (candidate) => {
             const fallback = makeFallbackReport("AI response was incomplete, so this report was normalized from local statistics.");
@@ -106,9 +121,16 @@ export async function onRequestPost(context) {
             report.strengths = Array.isArray(candidate?.strengths) ? candidate.strengths : fallback.strengths;
             report.growth_areas = Array.isArray(candidate?.growth_areas) ? candidate.growth_areas : fallback.growth_areas;
             report.receipts = Array.isArray(candidate?.receipts) && candidate.receipts.length ? candidate.receipts : fallback.receipts;
-            report.compatibility_score = Number(report.compatibility_score) || fallback.compatibility_score;
-            report.overall_health_score = Number(report.overall_health_score) || Number(report.ai_insight.health_score) || fallback.overall_health_score;
-            report.ai_insight.health_score = Number(report.ai_insight.health_score) || report.overall_health_score;
+            report.compatibility_score = clampHeuristic(report.compatibility_score, fallback.compatibility_score);
+            report.overall_health_score = clampHeuristic(report.overall_health_score || report.ai_insight.health_score, fallback.overall_health_score);
+            report.ai_insight.health_score = clampHeuristic(report.ai_insight.health_score || report.overall_health_score, report.overall_health_score);
+            report.communication_style.balance_score = clampHeuristic(report.communication_style.balance_score, fallback.communication_style.balance_score);
+            report.predictive_outlook.stability = clampHeuristic(report.predictive_outlook.stability, fallback.predictive_outlook.stability);
+            report.predictive_outlook.drop_off_risk = clampHeuristic(report.predictive_outlook.drop_off_risk, fallback.predictive_outlook.drop_off_risk);
+            report.predictive_outlook.confidence = clampHeuristic(report.predictive_outlook.confidence, fallback.predictive_outlook.confidence);
+            if (typeof report.verdict_summary.confidence === 'string') {
+                report.verdict_summary.confidence = report.verdict_summary.confidence.replace(/\b100%/g, '95+%');
+            }
             return report;
         };
 
@@ -183,10 +205,17 @@ CRITICAL RULES:
   }
 }
 3. The VALUES inside the JSON MUST be written in the requested Output Language (${language || 'english'}). If Hinglish is requested, use conversational Hindi written in the English alphabet (e.g., 'Bhai kya kar raha hai').
-4. Style: make it social-media friendly and Gen Z without sounding fake. Use punchy lines, meme-aware phrasing, and clear emotional truth. Avoid clinical jargon unless you explain it simply.
-5. The ai_insight.dynamic_title must be short enough for a story card: 2-5 words.
-6. Red and green flags should be specific behavioral signals from the statistics, not generic relationship advice.
-7. Predictions must include confidence and should never claim certainty. Avoid diagnosis language. Use evidence-based wording like "suggests", "appears", or "risk".`;
+4. Style: premium social-native, not generic therapy copy. Use punchy, specific observations that sound like a sharp friend with data, not a horoscope.
+5. Every serious claim must point to a concrete signal from Statistics, Source Quality, Local Evidence Pack, or Opt-In Raw Evidence Excerpts.
+6. Fill the report hierarchy intentionally:
+   - verdict_summary is the above-the-fold executive read: one sharp headline, risk, confidence, and best next move.
+   - receipts are the proof cards: each claim needs evidence, pattern, confidence, and a useful action.
+   - predictive_outlook is the forward-looking panel: scores are risk estimates, not certainty.
+   - ai_insight is the story-card/readout layer: memorable title, reality check, shift, flags, and final verdict.
+7. Avoid filler like "communication is key", "work on trust", "keep talking", or generic attachment advice unless tied to an observed pattern.
+8. The ai_insight.dynamic_title must be short enough for a story card: 2-5 words.
+9. Red and green flags should be specific behavioral signals from the statistics, not generic relationship advice.
+10. Predictions must include confidence and should never claim certainty. Avoid diagnosis language. Use evidence-based wording like "suggests", "appears", or "risk".`;
 
         const PROVIDER_SYSTEM_PROMPTS = {
             "anthropic": `<role>\n${baseSystemPrompt}\n</role>`,
@@ -194,7 +223,7 @@ CRITICAL RULES:
         };
         const systemPrompt = PROVIDER_SYSTEM_PROMPTS[provider] || PROVIDER_SYSTEM_PROMPTS["default"];
         
-        let userPrompt = `Analyze these anonymous conversation statistics and provide deep behavioral insights.
+        let userPrompt = `Analyze these anonymous conversation statistics and provide deep behavioral insights that can be placed directly into a dashboard.
 ## Relationship Context
 - People: ${my_name} & ${partner_name}
 - Connection Type: ${connection_type || 'romantic'}
@@ -202,6 +231,13 @@ CRITICAL RULES:
 - Tone: ${tone}
 `;
         if (context) userPrompt += `- User Context/Background: ${context}\n`;
+        userPrompt += `\n## Output Quality Bar
+- Make the verdict feel useful in 5 seconds.
+- Write 3-6 receipts when evidence exists; avoid generic claims.
+- Use source_quality to lower confidence when the sample is weak.
+- Do not return exact 100% confidence or certainty language.
+- Keep actions concrete: what to say, what to watch, or what boundary to test next.
+`;
         userPrompt += `\n## Statistics\n${JSON.stringify(stats)}`;
         if (source_quality) userPrompt += `\n\n## Source Quality\n${JSON.stringify(source_quality)}`;
         if (evidence_pack) userPrompt += `\n\n## Local Evidence Pack\n${JSON.stringify(evidence_pack)}`;

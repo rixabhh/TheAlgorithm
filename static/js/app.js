@@ -1,4 +1,12 @@
 document.addEventListener('DOMContentLoaded', () => {
+    if (!document.querySelector('.ambient-floaters')) {
+        const ambient = document.createElement('div');
+        ambient.className = 'ambient-floaters';
+        ambient.setAttribute('aria-hidden', 'true');
+        ambient.innerHTML = ['♡', '?!', 'msg', '✓', '✦'].map(item => `<span>${item}</span>`).join('');
+        document.body.prepend(ambient);
+    }
+
     const escapeHTML = (str) => {
         if (str === null || str === undefined) return "";
         return String(str)
@@ -31,6 +39,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const transcriptText = document.getElementById('transcriptText');
     const rawAiConsent = document.getElementById('rawAiConsent');
     let latestOcrMeta = { confidence: null, warnings: [] };
+    const capSignalScore = (value) => {
+        const num = Number(value);
+        if (!Number.isFinite(num)) return 0;
+        return Math.max(5, Math.min(95, Math.round(num)));
+    };
 
     const getInputMode = () => inputModeEl?.value || 'export';
     const hasSourceInput = () => {
@@ -70,6 +83,40 @@ document.addEventListener('DOMContentLoaded', () => {
         navLinks?.classList.toggle('active');
         hamburger.setAttribute('aria-expanded',
             navLinks?.classList.contains('active') ? 'true' : 'false');
+    });
+
+    const uploadSection = document.getElementById('upload');
+    const heroSection = document.querySelector('.hero-main');
+    if (uploadSection && heroSection && uploadSection.previousElementSibling !== heroSection) {
+        heroSection.insertAdjacentElement('afterend', uploadSection);
+    }
+    const heroReportGrid = document.querySelector('.hero-report-grid');
+    if (heroReportGrid && uploadSection && (heroReportGrid.compareDocumentPosition(uploadSection) & Node.DOCUMENT_POSITION_FOLLOWING)) {
+        uploadSection.insertAdjacentElement('afterend', heroReportGrid);
+        heroReportGrid.setAttribute('aria-label', 'Sample report cards');
+    }
+
+    const faqItems = document.querySelectorAll('.faq-item');
+    faqItems.forEach((item, index) => {
+        const question = item.querySelector('.faq-question');
+        const answer = item.querySelector('.faq-answer');
+        if (!question || !answer) return;
+        const answerId = answer.id || `faq-answer-${index + 1}`;
+        answer.id = answerId;
+        question.setAttribute('aria-expanded', item.classList.contains('open') ? 'true' : 'false');
+        question.setAttribute('aria-controls', answerId);
+        answer.setAttribute('role', 'region');
+        question.addEventListener('click', () => {
+            const isOpen = item.classList.contains('open');
+            faqItems.forEach(other => {
+                other.classList.remove('open');
+                other.querySelector('.faq-question')?.setAttribute('aria-expanded', 'false');
+            });
+            if (!isOpen) {
+                item.classList.add('open');
+                question.setAttribute('aria-expanded', 'true');
+            }
+        });
     });
 
     // --- Custom Select Dropdowns ---
@@ -403,7 +450,7 @@ document.addEventListener('DOMContentLoaded', () => {
             latestOcrMeta = { confidence: result.confidence, warnings: result.warnings || [] };
             if (screenshotText) screenshotText.value = result.text;
             if (status) {
-                status.innerHTML = `<strong>OCR confidence: ${result.confidence || 0}%</strong><br>${escapeHTML((result.warnings || ['Review the text before analysing.']).join(' '))}`;
+                status.innerHTML = `<strong>OCR confidence: ${capSignalScore(result.confidence || 0)}%</strong><br>${escapeHTML((result.warnings || ['Review the text before analysing.']).join(' '))}`;
             }
         } catch (err) {
             latestOcrMeta = { confidence: 0, warnings: [err.message] };
@@ -477,7 +524,7 @@ document.addEventListener('DOMContentLoaded', () => {
         save(data) {
             let history = this.getAll();
             const entry = {
-                id: Date.now().toString(),
+                id: data.id || Date.now().toString(),
                 my_name: data.my_name,
                 partner_name: data.partner_name,
                 msg_count: data.msg_count || 0,
@@ -489,10 +536,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 privacy_mode: data.privacy_mode || 'stats_only',
                 source_quality: data.source_quality,
                 evidence_pack: data.evidence_pack,
+                llmReport: data.llmReport || null,
+                raw_excerpt_pack: undefined,
                 highlights: data.highlights,
                 flashbacks: data.flashbacks,
                 connection_type: data.connection_type
             };
+            history = history.filter(item => item.id !== entry.id);
             history.unshift(entry);
             if (history.length > 20) history.pop();
             localStorage.setItem(this.STORAGE_KEY, JSON.stringify(history));
@@ -832,6 +882,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     : null;
 
                 const dashboardData = {
+                    id: Date.now().toString(),
                     stats: analyticsResult,
                     my_name: myName,
                     partner_name: partnerName,
@@ -849,7 +900,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 };
                 if (rawExcerptPack) dashboardData.raw_excerpt_pack = rawExcerptPack;
 
-                historyManager.save(dashboardData);
+                const savedEntry = historyManager.save(dashboardData);
+                dashboardData.id = savedEntry.id;
                 sessionStorage.setItem('dashboard_data', JSON.stringify(dashboardData));
                 setProgressText('Opening dashboard...');
                 
