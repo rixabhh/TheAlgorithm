@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 connection_type: sharedData.connection_type || 'shared'
             };
         } catch (e) {
-            console.warn('Failed to parse shared report data', e);
+            // Error intentionally swallowed to prevent leaking details to the console
             return null;
         }
     };
@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } : item);
             localStorage.setItem(key, JSON.stringify(next));
         } catch (err) {
-            console.warn('Could not update report history', err);
+            // Error intentionally swallowed to prevent leaking details to the console
         }
     };
 
@@ -520,6 +520,20 @@ document.addEventListener('DOMContentLoaded', () => {
         saveBtn?.addEventListener('click', () => {
             const provider = providerEl.value || 'cloudflare';
             const key = apiKeyEl.value.trim();
+
+            if (provider === 'openai' && key && !key.startsWith('sk-')) {
+                alert("OpenAI API keys should start with 'sk-'.");
+                return;
+            }
+            if (provider === 'anthropic' && key && !key.startsWith('sk-ant-')) {
+                alert("Anthropic API keys should start with 'sk-ant-'.");
+                return;
+            }
+            if (provider === 'gemini' && key && (key.length !== 39 || !/^[a-zA-Z0-9_-]+$/.test(key))) {
+                alert("Google Gemini API keys must be exactly 39 characters long.");
+                return;
+            }
+
             localStorage.setItem('llm_provider', provider);
             sessionStorage.setItem('_llm_token', btoa(unescape(encodeURIComponent(key))));
             if (rawConsentEl) {
@@ -554,7 +568,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
         refreshAll();
     } catch (err) {
-        console.error('Dashboard render failed:', err);
+        // Error intentionally swallowed to prevent leaking details to the console
         document.querySelector('main')?.insertAdjacentHTML('afterbegin',
             `<div class="card p-6 mb-8" style="background:var(--red);color:var(--white)">
                 <strong>Render error:</strong> ${escapeHTML(err.message)}.
@@ -845,6 +859,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 2500);
 
         try {
+            const provider = localStorage.getItem('llm_provider') || 'cloudflare';
+            const key = sessionStorage.getItem('_llm_token') ? decodeURIComponent(escape(atob(sessionStorage.getItem('_llm_token')))) : '';
+
+            if (provider === 'openai' && key && !key.startsWith('sk-')) {
+                throw new Error("OpenAI API keys should start with 'sk-'.");
+            }
+            if (provider === 'anthropic' && key && !key.startsWith('sk-ant-')) {
+                throw new Error("Anthropic API keys should start with 'sk-ant-'.");
+            }
+            if (provider === 'gemini' && key && (key.length !== 39 || !/^[a-zA-Z0-9_-]+$/.test(key))) {
+                throw new Error("Google Gemini API keys must be exactly 39 characters long.");
+            }
+
             const payload = {
                 stats: activeData.stats,
                 my_name: activeData.my_name,

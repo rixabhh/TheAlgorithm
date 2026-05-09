@@ -9,3 +9,13 @@
 **Description:** Users love deep-dives into emotional patterns, but we only show a few stats right now. We need an engaging "Toxic Trait Mapping" section that's fully blurred out, acting as a teaser for a premium tier.
 **Why it matters:** Showing users what they're missing drives waitlist sign-ups and creates demand for the paid tier. It establishes a strong monetization hook by playing on curiosity about their negative relationship patterns.
 **Implementation:** Create a new HTML `<section>` in `dashboard.html` that uses the established `backdrop-blur-sm` locked UI pattern. Inside, add fake progress bars and "Danger Zone" mockups for traits like "Gaslighting" or "Love Bombing".
+
+## Title: Add tiered AI analysis options (quick read vs deep dive)
+**Why this feature matters:** Users may not want a full deep dive right away, especially for shorter chats, or they might want to use a cheaper model for a quick read and a better model for a deep dive.
+**Rough implementation approach:** Create two separate AI insight buttons and endpoints. The quick read would use a smaller prompt and perhaps a faster model to yield a summary. Deep dive would prompt for receipts, red/green flags, and granular behavioral signals using a comprehensive prompt.
+**User benefit:** Provides flexibility for users to explore the analysis with lower latency and API cost before deciding to run a full comprehensive emotional read.
+
+## Title: Add Mistral explicitly to the provider abstraction for European privacy fit
+**Why this provider matters:** Mistral is known for having models with strong reasoning that can also run within strict European data regulations, making it a great fit for privacy-conscious users.
+**Rough implementation approach:** Enhance `llm_helper.js` and `analyze.js` to correctly route Mistral API requests specifically or ensure the OpenAI compatibility works perfectly with their endpoint (`api.mistral.ai/v1/chat/completions`). Add Mistral to `PROVIDER_SYSTEM_PROMPTS` mapping.
+**User benefit:** Better privacy optics, lower cost for the `mistral-large-latest` or `mistral-small` models, and accurate prompt structure out-of-the-box.

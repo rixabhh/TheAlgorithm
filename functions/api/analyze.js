@@ -218,7 +218,9 @@ CRITICAL RULES:
 10. Predictions must include confidence and should never claim certainty. Avoid diagnosis language. Use evidence-based wording like "suggests", "appears", or "risk".`;
 
         const PROVIDER_SYSTEM_PROMPTS = {
+            "openai": baseSystemPrompt,
             "anthropic": `<role>\n${baseSystemPrompt}\n</role>`,
+            "gemini": baseSystemPrompt + "\n\nProvide the output in a strict, valid JSON format. Avoid formatting as markdown code blocks.",
             "default": baseSystemPrompt
         };
         const systemPrompt = PROVIDER_SYSTEM_PROMPTS[provider] || PROVIDER_SYSTEM_PROMPTS["default"];
@@ -296,7 +298,7 @@ CRITICAL RULES:
                         const retryResponseText = await makeLLMCall(provider, api_key, systemPrompt, stricterUserPrompt, env, retryController.signal);
                         report = parseResponse(retryResponseText);
                     } catch (retryErr) {
-                        console.error("Retry failed:", retryErr);
+                        // Internal error, don't leak it
                     } finally {
                         clearTimeout(retryTimeoutId);
                     }

@@ -33,7 +33,9 @@ ${JSON.stringify(llmReport)}
 -------------------------`;
 
         const PROVIDER_SYSTEM_PROMPTS = {
+            "openai": baseSystemPrompt,
             "anthropic": `<role>\n${baseSystemPrompt}\n</role>`,
+            "gemini": baseSystemPrompt,
             "default": baseSystemPrompt
         };
         const systemPrompt = PROVIDER_SYSTEM_PROMPTS[provider] || PROVIDER_SYSTEM_PROMPTS["default"];
