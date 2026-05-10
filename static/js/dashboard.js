@@ -1034,8 +1034,15 @@ document.addEventListener('DOMContentLoaded', () => {
  * Premium Vibe Card Generation (Vertical Format)
  */
 // eslint-disable-next-line no-unused-vars
-async function downloadWrappedCard() {
-    const btn = document.getElementById('downloadVibeBtn');
+async function downloadWrappedCard(btnId = 'downloadVibeBtn') {
+    // Determine which button triggered this (can be header or footer button)
+    let btn = document.getElementById(btnId);
+    if (!btn || btn.disabled) {
+        // Fallback to check the other if default is not found/disabled but event happened
+        if (btnId === 'downloadVibeBtnHeader') btn = document.getElementById('downloadVibeBtn');
+        else btn = document.getElementById('downloadVibeBtnHeader');
+    }
+
     if (!btn || btn.disabled) return;
     const originalText = btn.textContent;
     btn.disabled = true;
@@ -1079,6 +1086,32 @@ async function downloadWrappedCard() {
             top_insight: report.ai_insight?.brutal_verdict || "Your chat data has been decoded."
         };
         const imageData = generateShareCard(statsPayload);
+
+        // Try Web Share API first
+        if (navigator.share) {
+            try {
+                // Convert data URL to Blob
+                const res = await fetch(imageData);
+                const blob = await res.blob();
+                const file = new File([blob], 'my-algorithm-results.png', { type: 'image/png' });
+
+                await navigator.share({
+                    title: 'My Algorithm Results',
+                    text: 'Check out my chat vibe read from The Algorithm!',
+                    files: [file]
+                });
+                return; // Shared successfully
+            } catch (shareErr) {
+                // Ignore AbortError (user cancelled)
+                if (shareErr.name !== 'AbortError') {
+                    console.warn('Web Share failed, falling back to download', shareErr);
+                } else {
+                    return; // User cancelled, don't download
+                }
+            }
+        }
+
+        // Fallback to direct download
         const link = document.createElement('a');
         link.download = 'my-algorithm-results.png';
         link.href = imageData;
@@ -1313,22 +1346,3 @@ function formatShareTime(seconds) {
     return `${Math.round(seconds / 3600)}h`;
 }
 
-// Add download image button logic (if requested by UI, assuming standard layout from prompt)
-document.addEventListener('DOMContentLoaded', () => {
-    // Check if we need to add a share button
-    const shareImageBtn = document.getElementById('share-btn');
-    if (shareImageBtn) {
-        shareImageBtn.addEventListener('click', () => {
-            // Provide a stats object based solely on anonymous statistics
-            const statsPayload = {
-                health_score: formatHeuristicScore(window.llmReport?.ai_insight?.health_score || window.llmReport?.overall_health_score || 0, { suffix: "", plusAtMax: true }),
-                top_insight: window.llmReport?.ai_insight?.brutal_verdict || "Your chat data has been decoded."
-            };
-            const imageData = generateShareCard(statsPayload);
-            const link = document.createElement('a');
-            link.download = 'my-algorithm-results.png';
-            link.href = imageData;
-            link.click();
-        });
-    }
-});

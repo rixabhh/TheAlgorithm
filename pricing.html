@@ -48,11 +48,36 @@
                     <li>🔒 Deep PDF Exports</li>
                     <li>🔒 Early Access Features</li>
                 </ul>
-                <button class="btn btn--pink btn--full opacity-50" disabled>Join Waitlist</button>
+                <div id="waitlist-form-container">
+                    <p style="font-size:0.8rem; font-weight:600; margin-bottom:0.5rem; color:var(--gray-600)">Get notified when Pro launches:</p>
+                    <form id="waitlist-form" style="display:flex; gap:0.5rem;">
+                        <input type="email" id="waitlist-email" placeholder="Your email address" required style="flex:1; padding:0.5rem; border:2px solid var(--black); border-radius:4px; font-family:var(--font-body); font-size:0.9rem;">
+                        <button type="submit" class="btn btn--pink" style="margin:0; padding:0.5rem 1rem;">Join</button>
+                    </form>
+                    <p id="waitlist-success" class="hidden" style="color:var(--green); font-weight:bold; font-size:0.9rem; margin-top:0.5rem;">✅ You're on the list! We'll reach out soon.</p>
+                </div>
             </div>
         </div>
     </div>
 </section>
 
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const form = document.getElementById('waitlist-form');
+        const successMsg = document.getElementById('waitlist-success');
+
+        if (form) {
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                // Client-side only per constraints. No backend storage.
+                const email = document.getElementById('waitlist-email').value;
+                if (email) {
+                    form.style.display = 'none';
+                    successMsg.classList.remove('hidden');
+                }
+            });
+        }
+    });
+</script>
 </body>
 </html>

@@ -1,5 +1,8 @@
 # The Algorithm
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Privacy First](https://img.shields.io/badge/Privacy-First-success.svg)](#privacy-model)
+
 A privacy-first, social-native chat relationship analyzer built as a static Cloudflare Pages app with serverless API functions.
 
 ## Overview
@@ -9,6 +12,8 @@ The Algorithm analyzes exported chats, pasted conversations, screenshots, and tr
 Raw conversation content is parsed client-side by default. Optional AI features send aggregated statistics and anonymized evidence. Users can explicitly enable Deep AI with raw evidence for a report, which sends short scrubbed excerpts to their selected AI provider.
 
 The UI uses a premium neobrutal design system: cream app shell, dark report sidebar, rounded pastel cards, black ink borders, restrained shadows, polished chart spacing, and motion-safe button interactions.
+
+![Demo](https://via.placeholder.com/800x400?text=Demo+GIF/Screenshot+goes+here)
 
 ## Current Stack
 

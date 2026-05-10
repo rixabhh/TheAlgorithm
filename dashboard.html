@@ -123,7 +123,7 @@
                 <button onclick="window.print()" class="btn btn--black" style="padding:0.5rem 1rem;font-size:0.8rem">🖨️ Print Report</button>
 
                 <button id="shareLinkBtn" class="btn btn--yellow" style="padding:0.5rem 1rem;font-size:0.8rem">🔗 Share Report</button>
-                <button id="share-btn" class="btn btn--pink" style="padding:0.5rem 1rem;font-size:0.8rem">📸 Save Vibe Card</button>
+                <button id="downloadVibeBtnHeader" class="btn btn--pink" style="padding:0.5rem 1rem;font-size:0.8rem" onclick="downloadWrappedCard('downloadVibeBtnHeader')">📸 Share Vibe Card</button>
                 <button id="settingsBtn" class="btn btn--white" style="padding:0.5rem 1rem;font-size:0.8rem">AI Settings</button>
 
 
@@ -544,7 +544,7 @@
                 <div class="flex justify-between align-center mt-10 pt-6 border-t border-dashed op-20">
                     <span id="ai-insight-timestamp" class="text-xs color-gray-500"></span>
                     <div class="flex gap-2">
-                        <button id="downloadVibeBtn" class="btn btn--pink btn--sm" onclick="downloadWrappedCard()">📸 VIBE CARD</button>
+                        <button id="downloadVibeBtn" class="btn btn--pink btn--sm" onclick="downloadWrappedCard()">📸 SHARE VIBE CARD</button>
                         <button id="regenerateBtn" class="btn btn--white btn--sm">✨ REGENERATE</button>
                     </div>
                 </div>
