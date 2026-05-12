@@ -155,6 +155,8 @@ document.addEventListener('DOMContentLoaded', () => {
         renderEmoji(stats);
         renderHumorAndEnergy(stats);
         renderSilenceBreakers(stats);
+        renderRhythmAndApologies(stats);
+        renderTimePatterns(stats);
         renderLinks(stats);
 
         if (window.Chart) {
@@ -311,6 +313,35 @@ document.addEventListener('DOMContentLoaded', () => {
         container.innerHTML = `
             <div class="flex justify-between"><span>Ice Broken by ${myName}</span><span class="font-black">${escapeHTML(String(breakers.ME))} times</span></div>
             <div class="flex justify-between"><span>Ice Broken by ${partnerName}</span><span class="font-black">${escapeHTML(String(breakers.PARTNER))} times</span></div>
+        `;
+    };
+
+    const renderRhythmAndApologies = (stats) => {
+        const container = document.getElementById('rhythm-apologies-container');
+        if (!container) return;
+        const doubleTexts = stats.double_texts || { ME: 0, PARTNER: 0 };
+        const apologies = stats.apologies || { ME: 0, PARTNER: 0 };
+
+        const myName = escapeHTML(activeData.my_name);
+        const partnerName = escapeHTML(activeData.partner_name);
+
+        container.innerHTML = `
+            <div class="flex justify-between"><span>Double Texts (${myName})</span><span class="font-black">${escapeHTML(String(doubleTexts.ME))}</span></div>
+            <div class="flex justify-between"><span>Double Texts (${partnerName})</span><span class="font-black">${escapeHTML(String(doubleTexts.PARTNER))}</span></div>
+            <div class="flex justify-between mt-2"><span>Apologies (${myName})</span><span class="font-black">${escapeHTML(String(apologies.ME))}</span></div>
+            <div class="flex justify-between"><span>Apologies (${partnerName})</span><span class="font-black">${escapeHTML(String(apologies.PARTNER))}</span></div>
+        `;
+    };
+
+    const renderTimePatterns = (stats) => {
+        const container = document.getElementById('time-patterns-container');
+        if (!container) return;
+        const sleepTime = stats.sleep_time || '--';
+        const peakHours = stats.peak_hours || { label: '--', count: 0 };
+
+        container.innerHTML = `
+            <div class="flex justify-between"><span>Peak Activity Hour</span><span class="font-black">${escapeHTML(peakHours.label)}</span></div>
+            <div class="flex justify-between"><span>Estimated Sleep Time</span><span class="font-black">${escapeHTML(sleepTime)}</span></div>
         `;
     };
 

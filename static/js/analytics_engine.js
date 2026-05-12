@@ -58,6 +58,8 @@ class AnalyticsEngine {
         const maxInactivity = this.calculateMaxInactivity(processed);
         const sleepTime = this.estimateSleepTime(processed);
         const behavioralTraits = this.calculateBehavioralTraits(processed);
+        const peakHours = this.calculatePeakHours(processed);
+        const apologies = this.calculateApologies(processed);
         
         // --- NEW METRICS ---
         const threads = this.calculateThreads(processed);
@@ -93,6 +95,8 @@ class AnalyticsEngine {
             double_texts: doubleTexts,
             max_inactivity: maxInactivity,
             sleep_time: sleepTime,
+            peak_hours: peakHours,
+            apologies: apologies,
             behavioral_traits: behavioralTraits,
             messages: msgDist,
             total_messages: totalMessages,
@@ -323,6 +327,46 @@ class AnalyticsEngine {
         if (score < 40) label = "One-Sided";
         else if (score < 70) label = "Leaning";
         return { score, label };
+    }
+
+    calculateApologies(messages) {
+        const apologies = { ME: 0, PARTNER: 0 };
+        const APOLOGY_RE = /sorry|my bad|apologize|forgive|galti|maaf/i;
+        for (const m of messages) {
+            if (APOLOGY_RE.test(m.text || '')) {
+                apologies[m.sender]++;
+            }
+        }
+        return apologies;
+    }
+
+    calculatePeakHours(messages) {
+        const hours = new Array(24).fill(0);
+        for (const m of messages) {
+            const h = new Date(m.timestamp).getHours();
+            if (h >= 0 && h < 24) hours[h]++;
+        }
+
+        let peakHour = 0;
+        let maxCount = 0;
+        for (let i = 0; i < 24; i++) {
+            if (hours[i] > maxCount) {
+                maxCount = hours[i];
+                peakHour = i;
+            }
+        }
+
+        const formatHour = (h) => {
+            if (h === 0) return '12 AM';
+            if (h === 12) return '12 PM';
+            return h > 12 ? `${h - 12} PM` : `${h} AM`;
+        };
+
+        return {
+            hour: peakHour,
+            label: formatHour(peakHour),
+            count: maxCount
+        };
     }
 
     calculateBehavioralTraits(messages) {

@@ -215,7 +215,8 @@ CRITICAL RULES:
 7. Avoid filler like "communication is key", "work on trust", "keep talking", or generic attachment advice unless tied to an observed pattern.
 8. The ai_insight.dynamic_title must be short enough for a story card: 2-5 words.
 9. Red and green flags should be specific behavioral signals from the statistics, not generic relationship advice.
-10. Predictions must include confidence and should never claim certainty. Avoid diagnosis language. Use evidence-based wording like "suggests", "appears", or "risk".`;
+10. Predictions must include confidence and should never claim certainty. Avoid diagnosis language. Use evidence-based wording like "suggests", "appears", or "risk".
+11. Explicitly factor in rhythm metrics (e.g., peak hours, double texting, and apologies) from the Statistics when formulating insights. Use them to infer behavioral patterns around responsiveness and accountability.`;
 
         const PROVIDER_SYSTEM_PROMPTS = {
             "anthropic": `<role>\n${baseSystemPrompt}\n</role>`,
