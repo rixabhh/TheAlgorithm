@@ -2,16 +2,23 @@
 
 frontend:
   - changed-files:
-    - any-glob-to-any-file: ['static/**/*', '*.html']
+      - any-glob-to-any-file: ["static/**/*", "*.html"]
 
 backend:
   - changed-files:
-    - any-glob-to-any-file: ['functions/**/*']
+      - any-glob-to-any-file: ["functions/**/*"]
 
 infra:
   - changed-files:
-    - any-glob-to-any-file: ['.github/**/*', 'Makefile', 'package.json', 'wrangler.toml', '_redirects']
+      - any-glob-to-any-file:
+          [
+            ".github/**/*",
+            "Makefile",
+            "package.json",
+            "wrangler.toml",
+            "_redirects",
+          ]
 
 docs:
   - changed-files:
-    - any-glob-to-any-file: ['*.md']
+      - any-glob-to-any-file: ["*.md"]

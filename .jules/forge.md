@@ -1,0 +1,4 @@
+## 2024-05-24 — Cloudflare Pages Preview Environments
+**Discovery:** When configuring the `cloudflare/wrangler-action` for pull request preview deployments, fork PRs will fail because they don't have access to the base repository's secrets. Additionally, action execution might fail due to unexpected dirty git states in the runner environment.
+**Impact:** Broken CI pipelines for open-source contributors using forks, leading to frustration and false-negative workflow failures.
+**Action:** Always conditionally run the deployment step using `if: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}` to gracefully skip on forks. In addition, append `--commit-dirty=true` to the `pages deploy` command to prevent failures from unexpected dirty git states. Furthermore, the action requires explicitly mapping `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` to both `env:` and `with:` blocks.

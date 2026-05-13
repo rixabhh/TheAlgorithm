@@ -9,3 +9,11 @@
 **Description:** Users love deep-dives into emotional patterns, but we only show a few stats right now. We need an engaging "Toxic Trait Mapping" section that's fully blurred out, acting as a teaser for a premium tier.
 **Why it matters:** Showing users what they're missing drives waitlist sign-ups and creates demand for the paid tier. It establishes a strong monetization hook by playing on curiosity about their negative relationship patterns.
 **Implementation:** Create a new HTML `<section>` in `dashboard.html` that uses the established `backdrop-blur-sm` locked UI pattern. Inside, add fake progress bars and "Danger Zone" mockups for traits like "Gaslighting" or "Love Bombing".
+
+**Title:** Add automated dependency scanning for Node packages
+**Description:** We currently do not have a mechanism in our CI pipeline to automatically scan our `package.json` dependencies for security vulnerabilities.
+**Why it matters:** As the application grows and takes on more dependencies (even dev dependencies like `wrangler` and `prettier`), staying ahead of CVEs is critical to maintaining project integrity and security, ensuring contributors aren't working in a vulnerable environment.
+
+**Title:** Consolidate local developer setup into a single script
+**Description:** The local developer setup requires multiple manual steps (`npm install`, `npm run dev`) scattered across documentation. We should create a unified `setup.sh` or a generic `make init` command to bootstrap the environment.
+**Why it matters:** A seamless one-click setup significantly reduces friction for new contributors. If a contributor can clone and start running the application instantly, they are far more likely to successfully test and submit a PR without getting blocked by setup instructions.
