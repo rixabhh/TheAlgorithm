@@ -1,0 +1,5 @@
+## 2024-05-14 — Add security response headers and enhance file upload validation
+**Vulnerability/Gap:** Missing HTTP security headers for static and dynamic responses. File uploads only validated size but not extensions explicitly, increasing DoS surface. Missing BYOK rate limiting. Message array wasn't explicitly cleared in finally block.
+**Root Cause:** Security headers were not configured in Cloudflare Pages. File upload lacked strict type checking. BYOK rate limiting was bypassed completely.
+**Fix Applied:** Added `_headers` for static content and `functions/_middleware.js` for dynamic endpoints to inject CSP, X-Frame-Options, X-Content-Type-Options, and Referrer-Policy. Enhanced `static/js/app.js` to strictly enforce 10MB limit and only `.txt`, `.html`, and `.json` extensions. Ensured `rawMessages.length = 0` in `finally` block to free memory. Added BYOK rate limiting logic to both analysis and chat endpoints.
+**Remaining Risk:** CSRF protection could be strengthened, and we may want to investigate memory limits further if large files still cause browser memory crashes.

@@ -9,3 +9,13 @@
 **Description:** Users love deep-dives into emotional patterns, but we only show a few stats right now. We need an engaging "Toxic Trait Mapping" section that's fully blurred out, acting as a teaser for a premium tier.
 **Why it matters:** Showing users what they're missing drives waitlist sign-ups and creates demand for the paid tier. It establishes a strong monetization hook by playing on curiosity about their negative relationship patterns.
 **Implementation:** Create a new HTML `<section>` in `dashboard.html` that uses the established `backdrop-blur-sm` locked UI pattern. Inside, add fake progress bars and "Danger Zone" mockups for traits like "Gaslighting" or "Love Bombing".
+
+Title: Add CSRF protection on API endpoints
+Description/Risk: Cross-Site Request Forgery (CSRF) could allow malicious sites to trigger unexpected actions if a user is authenticated (though there are no sessions, relying strictly on BYOK limits still warrants CSRF defense-in-depth on API calls).
+Proposed solution: Implement an anti-CSRF token check, potentially using a client-generated non-predictable token validated server-side.
+Priority level: Medium
+
+Title: Client-side memory crash threshold tracking
+Description/Risk: Extremely large chat exports (>10MB, nearing limit) might still exhaust device RAM during memory array conversion in mobile devices.
+Proposed solution: Introduce a chunked reading/processing strategy rather than reading the entire string at once.
+Priority level: Medium

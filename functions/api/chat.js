@@ -9,12 +9,17 @@ export async function onRequestPost(context) {
         const { stats, llmReport, chat_history = [], message, provider = 'cloudflare', api_key = '' } = data;
 
         // 1. RATE LIMITING (KV-based, Cloudflare only)
-        if (provider === 'cloudflare' && env.KV_RATELIMIT) {
+        if (env.KV_RATELIMIT) {
             const limitKey = `ratelimit_chat_${ip}`;
             const current = await env.KV_RATELIMIT.get(limitKey);
             const count = current ? parseInt(current) : 0;
-            // Slightly higher limit for chatting compared to full generation
-            if (count >= 10) return new Response(JSON.stringify({ error: "Free tier limit reached (10 chats/hr). Wait or configure your own API key to continue coaching." }), { status: 429 });
+
+            // Limit is 10/hr for free tier, 50/hr for BYOK
+            const limit = provider === 'cloudflare' ? 10 : 50;
+
+            if (count >= limit) {
+                return new Response(JSON.stringify({ error: `Rate limit reached (${limit} chats/hr). Please try again later.` }), { status: 429 });
+            }
             await env.KV_RATELIMIT.put(limitKey, (count + 1).toString(), { expirationTtl: 3600 });
         }
 

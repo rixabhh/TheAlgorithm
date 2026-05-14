@@ -827,8 +827,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (inputMode === 'export') {
                     const file = fileInput.files[0];
-                    if (file.size > 20 * 1024 * 1024) {
-                        showError('File too large. Max 20MB. Try exporting a shorter date range.');
+                    if (file.size > 10 * 1024 * 1024) {
+                        showError('File too large. Max 10MB. Try exporting a shorter date range.');
+                        resetFormState();
+                        return;
+                    }
+
+                    const ext = file.name.slice((file.name.lastIndexOf(".") - 1 >>> 0) + 2).toLowerCase();
+                    if (!['txt', 'html', 'json'].includes(ext)) {
+                        showError('File type not supported. Only .txt, .html, and .json are permitted.');
                         resetFormState();
                         return;
                     }
@@ -919,6 +926,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 showError(err.message);
                 resetFormState();
             } finally {
+                // Free memory
+                if (typeof rawMessages !== 'undefined' && rawMessages !== null) {
+                    rawMessages.length = 0;
+                    rawMessages = null;
+                }
                 if (progressInterval) {
                     clearInterval(progressInterval);
                     progressInterval = null;
