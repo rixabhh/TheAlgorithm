@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Export Guide — The Algorithm</title>
     <link rel="stylesheet" href="static/css/style.css">
+    <link rel="stylesheet" href="static/css/revamp.css?v=11">
     <link rel="icon" type="image/png" href="static/favicon.png">
 
     <!-- Open Graph / Twitter Card tags -->
@@ -27,7 +28,9 @@
                 <span style="font-size:1.3rem;line-height:1;letter-spacing:-0.03em">The Algorithm</span>
                 <span style="font-size:.55rem;font-family:var(--font-body);font-weight:500;color:var(--gray-400);font-style:italic;letter-spacing:0.02em;text-transform:none">decode your chats</span>
             </a>
-            <button class="nav-hamburger" aria-label="Toggle Menu">☰</button>
+            <button class="nav-hamburger" aria-label="Toggle Menu" aria-expanded="false">
+                <span class="material-symbols-outlined">menu</span>
+            </button>
             <nav class="nav-links">
                 <a href="history.html" class="nav-link" style="padding:.25rem .7rem;border:1.5px solid var(--gray-600);border-radius:var(--r-pill);font-size:.62rem">Reports</a>
                 <a href="instructions.html" class="nav-link" style="padding:.25rem .7rem;border:1.5px solid var(--gray-600);border-radius:var(--r-pill);font-size:.62rem;background:var(--cream);color:var(--black);font-weight:900">How to Export</a>
@@ -168,7 +171,14 @@
             <p style="font-size:.7rem;color:var(--gray-600);font-weight:500;margin:0">Privacy-first AI analysis. &copy; 2026 The Algorithm.</p>
         </div>
     </footer>
-<script>
+    <nav class="revamp-bottom-nav" aria-label="Primary">
+        <a href="/#upload"><span class="material-symbols-outlined">analytics</span><span>Analyze</span></a>
+        <a href="/#upload"><span class="material-symbols-outlined">psychology</span><span>Vibe Check</span></a>
+        <a href="history.html"><span class="material-symbols-outlined">folder_open</span><span>Archives</span></a>
+        <a href="privacy.html"><span class="material-symbols-outlined">lock</span><span>Privacy</span></a>
+    </nav>
+
+    <script>
     document.addEventListener('DOMContentLoaded', () => {
         const hamburger = document.querySelector('.nav-hamburger');
         const navLinks = document.querySelector('.nav-links');

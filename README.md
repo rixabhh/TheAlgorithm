@@ -58,11 +58,11 @@ Additional checks used during verification:
 
 ```bash
 node --check static/js/app.js
-node --check static/js/dashboard.js
-node --check static/js/dashboard_utils.js
-node --check static/js/analytics_engine.js
-node --check static/js/conversation_intelligence.js
-node --check static/js/parser.js
+node --check static/js/pages/dashboard.js
+node --check static/js/pages/dashboard_utils.js
+node --check static/js/utils/analytics_engine.js
+node --check static/js/modules/conversation_intelligence.js
+node --check static/js/utils/parser.js
 ```
 
 ## AI Providers

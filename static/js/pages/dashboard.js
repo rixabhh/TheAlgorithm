@@ -29,6 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let isSharedMode = false;
     const providerHints = {
         cloudflare: 'Uses the configured Cloudflare Workers AI binding when available.',
+        openrouter_free: 'Uses OpenRouter openrouter/free. Add a key here or configure OPENROUTER_API_KEY on the backend.',
         openrouter: 'Use an OpenRouter key. Recommended model is openai/gpt-4o-mini.',
         openai: 'OpenAI keys usually start with sk-.',
         anthropic: 'Anthropic keys usually start with sk-ant-.',
@@ -479,7 +480,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const autoTriggerAi = () => {
         const provider = localStorage.getItem('llm_provider') || 'cloudflare';
         const hasKey = sessionStorage.getItem('_llm_token');
-        if (provider === 'cloudflare' || hasKey) {
+        if (provider === 'cloudflare' || provider === 'openrouter_free' || hasKey) {
             setTimeout(() => {
                 document.getElementById('generateAiBtn')?.click();
             }, 1000);
@@ -1204,6 +1205,7 @@ function generateShareCard(analysisData) {
   const mePct = total ? Math.round(meTotal / total * 100) : 50;
   const partnerPct = 100 - mePct;
   const healthScore = formatHeuristicScore(ai.health_score || report.overall_health_score || analysisData.health_score || 0, { suffix: "", plusAtMax: true });
+  const predictive = report.predictive_outlook || active.evidence_pack?.predictive_outlook || {};
   const dropOffRisk = predictive.drop_off_risk !== undefined ? formatHeuristicScore(predictive.drop_off_risk) : null;
   const init = stats.initiator_ratio || {};
   const avgReply = [init.me_latency_avg, init.partner_latency_avg]
@@ -1212,7 +1214,6 @@ function generateShareCard(analysisData) {
   const replyText = avgReply ? formatShareTime(avgReply) : '--';
   const redFlag = ai.red_flags?.[0] || report.growth_areas?.[0] || 'No major red flag detected.';
   const topReceipt = report.receipts?.[0] || active.evidence_pack?.receipts?.[0];
-  const predictive = report.predictive_outlook || active.evidence_pack?.predictive_outlook || {};
   const greenFlag = topReceipt?.claim || ai.green_flags?.[0] || report.strengths?.[0] || 'There is enough signal to read the vibe.';
   const title = ai.dynamic_title || report.relationship_persona || 'Vibe Check';
   const finalWord = ai.brutal_verdict || analysisData.top_insight || 'The chat has spoken.';

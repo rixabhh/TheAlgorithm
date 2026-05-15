@@ -79,11 +79,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // U-01: Wire hamburger nav toggle
     const hamburger = document.querySelector('.nav-hamburger');
     const navLinks = document.querySelector('.nav-links');
-    hamburger?.addEventListener('click', () => {
-        navLinks?.classList.toggle('active');
-        hamburger.setAttribute('aria-expanded',
-            navLinks?.classList.contains('active') ? 'true' : 'false');
-    });
+    if (hamburger && navLinks && !hamburger.dataset.navBound) {
+        hamburger.dataset.navBound = 'true';
+        hamburger.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+            hamburger.setAttribute('aria-expanded',
+                navLinks.classList.contains('active') ? 'true' : 'false');
+        });
+    }
 
     const uploadSection = document.getElementById('upload');
     const heroSection = document.querySelector('.hero-main');
@@ -91,7 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
         heroSection.insertAdjacentElement('afterend', uploadSection);
     }
     const heroReportGrid = document.querySelector('.hero-report-grid');
-    if (heroReportGrid && uploadSection && (heroReportGrid.compareDocumentPosition(uploadSection) & Node.DOCUMENT_POSITION_FOLLOWING)) {
+    if (heroReportGrid && uploadSection && !heroSection.contains(heroReportGrid) && (heroReportGrid.compareDocumentPosition(uploadSection) & Node.DOCUMENT_POSITION_FOLLOWING)) {
         uploadSection.insertAdjacentElement('afterend', heroReportGrid);
         heroReportGrid.setAttribute('aria-label', 'Sample report cards');
     }
@@ -166,7 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
                          document.getElementById('partnerName')?.value.trim();
         const provider = localStorage.getItem('llm_provider') || 'cloudflare';
         const keyRaw = sessionStorage.getItem('_llm_token');
-        const hasValidKey = (provider === 'cloudflare') || (keyRaw && keyRaw.trim() !== '' && keyRaw !== btoa(''));
+        const hasValidKey = (provider === 'cloudflare') || (provider === 'openrouter_free') || (keyRaw && keyRaw.trim() !== '' && keyRaw !== btoa(''));
         
         analyzeBtn.disabled = !(hasInput && hasNames && hasValidKey);
         
@@ -219,6 +222,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (provider === 'cloudflare') {
             icon.textContent = '☁️';
             text.textContent = 'Free Tier (2/hr limit)';
+        } else if (provider === 'openrouter_free') {
+            icon.textContent = 'OR';
+            text.textContent = 'OpenRouter free router';
         } else if (key && key.trim() !== "" && key !== btoa("")) {
             icon.textContent = '✅';
             text.textContent = 'API Key Configured';
@@ -497,7 +503,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const hfContainer = document.getElementById('hfUrlContainer');
         const apiKeyContainer = document.getElementById('apiKeyContainer');
         if (!hintEl) return;
-        const hints = { 'cloudflare': 'Free Tier (2 reports/hr)', 'openai': 'sk-...', 'anthropic': 'sk-ant-...', 'gemini': '39-char API Key', 'mistral': 'API Key', 'grok': 'xAI API Key', 'openrouter': 'OpenRouter API Key', 'cohere': 'Cohere API Key' };
+        const hints = { 'cloudflare': 'Free Tier (2 reports/hr)', 'openrouter_free': 'Uses OpenRouter openrouter/free. Add a key here or configure OPENROUTER_API_KEY on the backend.', 'openai': 'sk-...', 'anthropic': 'sk-ant-...', 'gemini': '39-char API Key', 'mistral': 'API Key', 'grok': 'xAI API Key', 'openrouter': 'OpenRouter API Key', 'cohere': 'Cohere API Key' };
         hintEl.textContent = hints[provider] || '';
         
         if (hfContainer) hfContainer.classList.toggle('hidden', provider !== 'huggingface');
@@ -743,7 +749,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const provider = localStorage.getItem('llm_provider') || 'cloudflare';
             const apiKeyB64 = sessionStorage.getItem('_llm_token');
-            if (provider !== 'cloudflare') {
+            if (provider !== 'cloudflare' && provider !== 'openrouter_free') {
                 if (!apiKeyB64 || apiKeyB64.trim() === '' || apiKeyB64 === btoa('')) {
                     showError(`An API Key is required for ${document.querySelector('#llmProvider option:checked')?.text || provider}. Configure it first.`);
                     if (analyzeBtn) {
@@ -766,7 +772,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else if (provider === 'gemini' && rawKey.length !== 39) {
                     isKeyValid = false;
                     keyError = 'Gemini keys must be exactly 39 characters';
-                } else if (provider === 'openrouter' && rawKey.length < 20) {
+                } else if ((provider === 'openrouter' || provider === 'openrouter_free') && rawKey.length < 20) {
                     isKeyValid = false;
                     keyError = 'OpenRouter keys look too short';
                 }
@@ -929,14 +935,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-    // M-01: First-visit onboarding — auto-show Trust Center
-    if (!localStorage.getItem('algo_seen') && trustCenterModal) {
-        setTimeout(() => {
-            showModal(trustCenterModal);
-        }, 800);
-        // Set flag on any dismiss
-        const markSeen = () => localStorage.setItem('algo_seen', '1');
-        closeTrustCenter?.addEventListener('click', markSeen);
-        understoodBtn?.addEventListener('click', markSeen);
-    }
+    // Keep trust details user-initiated; auto-modals block the upload flow on phones.
+    const markTrustSeen = () => localStorage.setItem('algo_seen', '1');
+    closeTrustCenter?.addEventListener('click', markTrustSeen);
+    understoodBtn?.addEventListener('click', markTrustSeen);
 });

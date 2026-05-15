@@ -6,6 +6,7 @@
     <title>The Algorithm — Decode Your Relationship</title>
     <meta name="description" content="Upload your chat history and get deep behavioral insights, emotional analytics, and AI coaching. Securely and privately.">
     <link rel="stylesheet" href="static/css/style.css">
+    <link rel="stylesheet" href="static/css/revamp.css?v=11">
     <link rel="icon" type="image/png" href="static/favicon.png">
 
     <!-- Open Graph / Twitter Card tags -->
@@ -21,7 +22,7 @@
 
 </head>
 
-<body class="comic-dots">
+<body class="comic-dots revamp-home">
 
 <!-- ═══ NAV ═══ -->
 <header class="nav">
@@ -30,12 +31,14 @@
             <span style="font-size:1.3rem;line-height:1;letter-spacing:-0.03em">The Algorithm</span>
             <span style="font-size:.55rem;font-family:var(--font-body);font-weight:500;color:var(--gray-400);font-style:italic;letter-spacing:0.02em;text-transform:none">decode your chats</span>
         </a>
-        <button class="nav-hamburger" aria-label="Toggle Menu">☰</button>
+        <button class="nav-hamburger" aria-label="Toggle Menu" aria-expanded="false">
+            <span class="material-symbols-outlined">menu</span>
+        </button>
         <nav class="nav-links">
-            <a href="history.html" class="nav-link" style="padding:.25rem .7rem;border:1.5px solid var(--gray-600);border-radius:var(--r-pill);font-size:.62rem;background:var(--cream);color:var(--black);font-weight:900">Reports</a>
+            <a href="#upload" class="nav-link" style="padding:.25rem .7rem;border:1.5px solid var(--gray-600);border-radius:var(--r-pill);font-size:.62rem;background:var(--cream);color:var(--black);font-weight:900">Analyze</a>
+            <a href="history.html" class="nav-link" style="padding:.25rem .7rem;border:1.5px solid var(--gray-600);border-radius:var(--r-pill);font-size:.62rem">Archives</a>
             <a href="instructions.html" class="nav-link" style="padding:.25rem .7rem;border:1.5px solid var(--gray-600);border-radius:var(--r-pill);font-size:.62rem">How to Export</a>
             <a href="privacy.html" class="nav-link" style="padding:.25rem .7rem;border:1.5px solid var(--gray-600);border-radius:var(--r-pill);font-size:.62rem">Privacy</a>
-            <a href="#upload" class="btn btn--yellow" style="font-size:.62rem;padding:.28rem .85rem;box-shadow:2px 2px 0 0 rgba(255,255,255,0.15);border-color:var(--yellow)">Analyse Now</a>
         </nav>
     </div>
 </header>
@@ -43,9 +46,8 @@
 <!-- ═══ HERO SECTION ═══ -->
 <section class="hero-main" style="background:var(--cream); position:relative; padding:8rem 0 12rem; z-index:10; overflow:hidden">
     <div class="container text-center relative" style="z-index:5">
-        <span class="pill-label pill-label--purple hero-kicker">chat clarity report</span>
         <h1 style="line-height:1.1; margin-bottom:2.2rem; letter-spacing:-0.03em">Stop guessing. <br><span style="color:var(--pink); font-style:italic">Read the pattern.</span></h1>
-        <p style="color:var(--gray-600); max-width:660px; margin:0 auto 3.5rem; font-weight:500; line-height:1.6">Upload the conversation and get a clear read on effort, mixed signals, red flags, and what to do next.</p>
+        <p style="color:var(--gray-600); max-width:660px; margin:0 auto 3.5rem; font-weight:500; line-height:1.6">Upload the chat and get a readable report on effort, mixed signals, receipts, and the next move.</p>
         <div class="hero-proof-strip" aria-label="Product capabilities">
             <div><strong>Upload</strong><span>files or screenshots</span></div>
             <div><strong>Paste</strong><span>quick chat check</span></div>
@@ -53,24 +55,24 @@
             <div><strong>Next</strong><span>clear next move</span></div>
         </div>
         <div class="flex justify-center gap-8">
-            <button class="btn btn--pink btn--lg" style="font-size:1rem; padding:0.9rem 2.6rem" onclick="document.getElementById('upload').scrollIntoView()">Start Now</button>
-            <a href="history.html" class="btn btn--white btn--lg" style="font-size:1rem; padding:0.9rem 2.6rem">View History</a>
+            <button class="btn btn--pink btn--lg" style="font-size:1rem; padding:0.9rem 2.6rem" onclick="document.getElementById('upload').scrollIntoView()"><span class="material-symbols-outlined">upload</span> Start Analysis</button>
+            <button class="btn btn--white btn--lg" style="font-size:1rem; padding:0.9rem 2.6rem" onclick="document.querySelector('[data-mode=paste]')?.click();document.getElementById('upload')?.scrollIntoView()"><span class="material-symbols-outlined">content_paste</span> Quick Paste</button>
         </div>
-        <div class="grid gap-4 mt-12 hero-report-grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));max-width:960px;margin-left:auto;margin-right:auto;text-align:left">
+        <div class="hero-report-grid" style="display:flex;flex-direction:column;max-width:460px;margin-left:auto;margin-right:0;text-align:left">
             <div class="card" style="padding:1rem;border-width:3px">
-                <span class="pill-label pill-label--pink" style="font-size:.6rem">verdict</span>
-                <h3 style="font-size:1.15rem;margin:.65rem 0 .35rem">Mixed Signals Loop</h3>
-                <p style="font-size:.78rem;color:var(--gray-600);margin:0">Warmth spikes after distance, not before it. That is a pattern, not a random mood.</p>
+                <span class="pill-label pill-label--yellow" style="font-size:.6rem">98% match</span>
+                <h3 style="font-size:1.15rem;margin:.65rem 0 .35rem">Vibe Check</h3>
+                <p style="font-size:.82rem;color:var(--gray-600);margin:0">"idk maybe we should hang soon if u want"</p>
             </div>
             <div class="card" style="padding:1rem;border-width:3px">
-                <span class="pill-label pill-label--yellow" style="font-size:.6rem">receipt</span>
-                <h3 style="font-size:1.15rem;margin:.65rem 0 .35rem">3 Questions Dodged</h3>
-                <p style="font-size:.78rem;color:var(--gray-600);margin:0">The report shows where the topic got switched and what to ask next.</p>
+                <span class="pill-label pill-label--pink" style="font-size:.6rem">translation</span>
+                <h3 style="font-size:1.15rem;margin:.65rem 0 .35rem">Low Effort Probe</h3>
+                <p style="font-size:.82rem;color:var(--gray-600);margin:0">Testing waters without committing. Respond with a specific time/place or leave it alone.</p>
             </div>
             <div class="card" style="padding:1rem;border-width:3px">
-                <span class="pill-label pill-label--purple" style="font-size:.6rem">prediction</span>
-                <h3 style="font-size:1.15rem;margin:.65rem 0 .35rem">Drop-off Risk: 64%</h3>
-                <p style="font-size:.78rem;color:var(--gray-600);margin:0">Confidence changes based on source quality, recency, and reply trends.</p>
+                <span class="pill-label pill-label--purple" style="font-size:.6rem">what you get</span>
+                <h3 style="font-size:1.15rem;margin:.65rem 0 .35rem">Receipts + Next Move</h3>
+                <p style="font-size:.82rem;color:var(--gray-600);margin:0">A verdict, the patterns behind it, and one tactical move you can actually use.</p>
             </div>
         </div>
     </div>
@@ -125,26 +127,6 @@
             <p style="color:var(--gray-600);margin:.5rem 0;font-weight:500">Get a verdict, receipts, and one next move you can use in the real conversation.</p>
         </div>
 
-        <!-- Pro Feature: Advanced Comparison (Locked) -->
-        <div class="card rotate-right relative group" style="border-width:4px;border-radius:var(--r-lg)">
-            <div class="absolute inset-0 bg-black/60 backdrop-blur-sm rounded-xl flex items-center justify-center z-10 opacity-0 group-hover:opacity-100 transition-all duration-300" style="background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);border-radius:var(--r-lg);">
-                <div class="text-center">
-                    <span class="text-3xl" style="font-size:2rem;">🔐</span>
-                    <p class="text-white font-bold mt-2" style="color:var(--white);margin-top:.5rem;">Pro Feature</p>
-                    <a href="pricing.html" class="btn btn--pink btn--sm mt-3" style="font-size:0.75rem;padding:.4rem 1rem;">Join Waitlist</a>
-                </div>
-            </div>
-
-            <div class="opacity-40 pointer-events-none">
-                <div style="width:52px;height:52px;background:var(--blue);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-heading);font-weight:900;font-size:1.5rem;color:var(--white);border:3px solid var(--black);box-shadow:3px 3px 0 0 var(--black);margin-bottom:1rem">4</div>
-                <h3>Compare Relationships</h3>
-                <p style="color:var(--gray-600);margin:.5rem 0;font-weight:500">Compare how your dynamic shifts between different friends and partners.</p>
-            </div>
-        </div>
-
-
-
-
     </div>
 
     <!-- wave divider bottom -->
@@ -195,14 +177,14 @@
 
 <!-- ═══ UPLOAD FORM ═══ -->
 <section id="upload" class="section-py" style="padding-bottom:3rem">
-    <div class="container" style="max-width:900px">
+    <div class="container" style="max-width:1120px">
         <div class="card card--lg" style="border-width:3px;padding:1.5rem 1.75rem">
             <div class="text-center" style="margin-bottom:1.25rem">
                 <span class="pill-label pill-label--pink mb-2 inline-block">drop your chat</span>
                 <h2 style="font-size:1.6rem">Start Your Analysis</h2>
             </div>
 
-            <form id="uploadForm" style="display:grid;grid-template-columns:1fr 1fr;gap:2.5rem">
+            <form id="uploadForm" style="display:grid;grid-template-columns:minmax(0,0.95fr) minmax(0,1.05fr);gap:2rem">
                 <!-- ── LEFT: Configuration ── -->
                 <div style="display:flex;flex-direction:column;gap:1.25rem">
                     <h3 style="border-bottom:2px solid var(--black);padding-bottom:.35rem;display:inline-block;align-self:flex-start;font-size:1rem">1. Details</h3>
@@ -492,6 +474,25 @@
     </div>
 </footer>
 
+<nav class="revamp-bottom-nav" aria-label="Primary">
+    <a class="is-active" href="#upload">
+        <span class="material-symbols-outlined">analytics</span>
+        <span>Analyze</span>
+    </a>
+    <a href="#upload">
+        <span class="material-symbols-outlined">psychology</span>
+        <span>Vibe Check</span>
+    </a>
+    <a href="history.html">
+        <span class="material-symbols-outlined">folder_open</span>
+        <span>Archives</span>
+    </a>
+    <a href="privacy.html">
+        <span class="material-symbols-outlined">lock</span>
+        <span>Privacy</span>
+    </a>
+</nav>
+
 
 <!-- ═════════════ MODALS & OVERLAYS ═══════════ -->
 
@@ -511,20 +512,21 @@
 
         <div class="text-center mb-6" style="border-bottom:3px solid var(--black);padding-bottom:1rem">
             <div style="font-size:1.5rem;margin-bottom:.5rem;font-family:var(--font-heading);font-weight:900;color:var(--purple)">⚙</div>
-            <h2 id="settingsTitle" style="font-size:1.5rem">API Config</h2>
-            <p style="font-size:.8rem;color:var(--gray-500);font-weight:500;margin:0">Free Tier or Bring Your Own Key (BYOK)</p>
+            <h2 id="settingsTitle" style="font-size:1.5rem">AI Configuration</h2>
+            <p style="font-size:.8rem;color:var(--gray-500);font-weight:500;margin:0">Tune the engine. Keys stay in this browser session.</p>
         </div>
 
         <div style="display:flex;flex-direction:column;gap:1.25rem">
             <div>
-                <label for="llmProvider" style="display:block;font-weight:700;font-size:.8rem;text-transform:uppercase;margin-bottom:.35rem">Provider</label>
+                <label for="llmProvider" style="display:block;font-weight:700;font-size:.8rem;text-transform:uppercase;margin-bottom:.35rem">Execution Engine</label>
                 <select id="llmProvider" class="field-input">
                     <option value="cloudflare" selected>Cloudflare AI (Free - 2/hr)</option>
+                    <option value="openrouter_free">OpenRouter Free Router</option>
                     <option value="openai">OpenAI (GPT-4o)</option>
                     <option value="anthropic">Anthropic (Claude 3.5)</option>
                     <option value="gemini">Google (Gemini 2.5 Flash)</option>
                     <option value="grok">xAI (Grok-2)</option>
-                    <option value="openrouter">OpenRouter (100+ Models)</option>
+                    <option value="openrouter">OpenRouter (GPT-4o Mini)</option>
                     <option value="cohere">Cohere</option>
                     <option value="mistral">Mistral AI</option>
                 </select>
@@ -648,15 +650,16 @@
     </div>
 </div>
 
-<script src="static/js/parser.js?v=1.0"></script>
-<script src="static/js/analytics_engine.js?v=1.0"></script>
-<script src="static/js/conversation_intelligence.js?v=1.0"></script>
+<script src="static/js/utils/parser.js?v=1.0"></script>
+<script src="static/js/utils/analytics_engine.js?v=1.0"></script>
+<script src="static/js/modules/conversation_intelligence.js?v=1.0"></script>
 <script src="static/js/app.js?v=5.1"></script>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const hamburger = document.querySelector('.nav-hamburger');
         const navLinks = document.querySelector('.nav-links');
-        if (hamburger && navLinks) {
+        if (hamburger && navLinks && !hamburger.dataset.navBound) {
+            hamburger.dataset.navBound = 'true';
             hamburger.addEventListener('click', () => navLinks.classList.toggle('active'));
         }
     });

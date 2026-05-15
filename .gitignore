@@ -1,14 +1,51 @@
+# Environment & Secrets
 .env
+.env.local
+.env.*.local
+
+# Dependencies
+node_modules/
+
+# Build & Cache
+.wrangler/
+.wranglerignore
+
+# Logs
+*.log
+codex-dev-server*.log
+
+# Test & Temp Data
 CHATS/
 models/
 docs/
+doc/
 stitch.md
 test_chat.txt
 .dummy_chat.txt
-.wrangler/
-node_modules/
 .aider*
-doc/
 
-# Ignore Roadmap
+# Design Files (Not Production Code)
+UI REVAMP/
+
+# Documentation
 TheAlgorithm_ProductionRoadmap.md
+
+# Redundant Build Wrappers
+Makefile
+
+# OS Files
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+ehthumbs.db
+
+# Editor Temp Files
+*.swp
+*.swo
+*~
+.vim/
+
+# IDE Settings (if any)
+.vscode/settings.json
+.idea/

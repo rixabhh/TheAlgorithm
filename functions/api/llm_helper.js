@@ -8,6 +8,7 @@ export async function makeChatLLMCall(provider, api_key, systemPrompt, chat_hist
         return aiResult.response;
     }
 
+    api_key = resolveProviderApiKey(provider, api_key, env);
     if (!api_key) return null;
 
     if (provider === 'cohere') {
@@ -96,6 +97,7 @@ export async function makeChatLLMCall(provider, api_key, systemPrompt, chat_hist
         else if (provider === 'groq') { url = 'https://api.groq.com/openai/v1/chat/completions'; model = 'llama-3.1-70b-versatile'; }
         else if (provider === 'grok') { url = 'https://api.x.ai/v1/chat/completions'; model = 'grok-2-latest'; }
         else if (provider === 'openrouter') { url = 'https://openrouter.ai/api/v1/chat/completions'; model = 'openai/gpt-4o-mini'; }
+        else if (provider === 'openrouter_free') { url = 'https://openrouter.ai/api/v1/chat/completions'; model = 'openrouter/free'; }
         else if (provider === 'mistral') { url = 'https://api.mistral.ai/v1/chat/completions'; model = 'mistral-large-latest'; }
 
         if (!url) return null;
@@ -124,6 +126,7 @@ export async function makeLLMCall(provider, api_key, systemPrompt, userPrompt, e
         return aiResult.response;
     }
 
+    api_key = resolveProviderApiKey(provider, api_key, env);
     if (!api_key) return null;
 
     if (provider === 'cohere') {
@@ -187,6 +190,7 @@ export async function makeLLMCall(provider, api_key, systemPrompt, userPrompt, e
         else if (provider === 'groq') { url = 'https://api.groq.com/openai/v1/chat/completions'; model = 'llama-3.1-70b-versatile'; }
         else if (provider === 'grok') { url = 'https://api.x.ai/v1/chat/completions'; model = 'grok-2-latest'; }
         else if (provider === 'openrouter') { url = 'https://openrouter.ai/api/v1/chat/completions'; model = 'openai/gpt-4o-mini'; }
+        else if (provider === 'openrouter_free') { url = 'https://openrouter.ai/api/v1/chat/completions'; model = 'openrouter/free'; }
         else if (provider === 'mistral') { url = 'https://api.mistral.ai/v1/chat/completions'; model = 'mistral-large-latest'; }
 
         if (!url) return null;
@@ -196,7 +200,7 @@ export async function makeLLMCall(provider, api_key, systemPrompt, userPrompt, e
             messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }]
         };
 
-        if (provider === 'openai' || provider === 'mistral' || provider === 'openrouter') {
+        if (provider === 'openai' || provider === 'mistral' || provider === 'openrouter' || provider === 'openrouter_free') {
             reqBody.response_format = { type: "json_object" };
         }
 
@@ -213,13 +217,21 @@ export async function makeLLMCall(provider, api_key, systemPrompt, userPrompt, e
     }
 }
 
+function resolveProviderApiKey(provider, apiKey, env) {
+    if (apiKey) return apiKey;
+    if (provider === 'openrouter' || provider === 'openrouter_free') {
+        return env?.OPENROUTER_API_KEY || env?.OPENROUTER_KEY || '';
+    }
+    return '';
+}
+
 function makeOpenAICompatibleHeaders(provider, apiKey, env) {
     const headers = {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json'
     };
 
-    if (provider === 'openrouter') {
+    if (provider === 'openrouter' || provider === 'openrouter_free') {
         headers['HTTP-Referer'] = env?.PUBLIC_SITE_URL || env?.CF_PAGES_URL || 'https://thealgorithm.pages.dev';
         headers['X-OpenRouter-Title'] = 'The Algorithm';
     }
