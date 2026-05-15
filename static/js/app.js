@@ -381,22 +381,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Use textContent for user input to prevent XSS
                 detectionCard.innerHTML = `
-                    <div class="flex items-center gap-3 p-4 bg-white/10 rounded-lg border border-white/20">
+                    <div class="flex items-center gap-3 p-4" style="background:var(--cream); border:var(--border-thick); box-shadow:var(--shadow); border-radius:var(--r-sm); color:var(--black)">
                         <span class="text-2xl">${PLATFORM_ICONS[platform] || '📄'}</span>
                         <div>
-                            <p class="font-medium text-white">Detected: ${platform}</p>
-                            <p class="text-sm text-white/60"><span id="previewFileName"></span> • ${messageCountStr}</p>
+                            <p class="font-medium" style="font-family:var(--font-heading);font-weight:900">Detected: ${platform}</p>
+                            <p class="text-sm" style="font-weight:600;color:var(--gray-600)"><span id="previewFileName"></span> • ${messageCountStr}</p>
                         </div>
                     </div>
                 `;
                 document.getElementById('previewFileName').textContent = fileName;
             } catch (err) {
                  detectionCard.innerHTML = `
-                    <div class="flex items-center gap-3 p-4 bg-white/10 rounded-lg border border-white/20">
+                    <div class="flex items-center gap-3 p-4" style="background:var(--cream); border:var(--border-thick); box-shadow:var(--shadow); border-radius:var(--r-sm); color:var(--black)">
                         <span class="text-2xl">📄</span>
                         <div>
-                            <p class="font-medium text-white" id="fallbackPreviewFileName"></p>
-                            <p class="text-sm text-white/60">${fileSize} KB</p>
+                            <p class="font-medium" style="font-family:var(--font-heading);font-weight:900" id="fallbackPreviewFileName"></p>
+                            <p class="text-sm" style="font-weight:600;color:var(--gray-600)">${fileSize} KB</p>
                         </div>
                     </div>
                 `;
@@ -789,12 +789,17 @@ document.addEventListener('DOMContentLoaded', () => {
             if (loadingOverlay) {
                 loadingOverlay.classList.remove('hidden');
                 if (progressText) {
-                    const steps = ['Reading source...', 'Normalizing messages...', 'Extracting evidence...', 'Calculating statistics...', 'Preparing dashboard...'];
+                    const steps = ['Parsing messages...', 'Calculating statistics...', 'Generating insights...'];
                     let stepIndex = 0;
+                    progressText.style.transition = 'opacity 0.3s ease';
                     progressText.textContent = steps[stepIndex++];
                     progressInterval = setInterval(() => {
                         if (stepIndex < steps.length) {
-                            progressText.textContent = steps[stepIndex++];
+                            progressText.style.opacity = '0';
+                            setTimeout(() => {
+                                progressText.textContent = steps[stepIndex++];
+                                progressText.style.opacity = '1';
+                            }, 300);
                         }
                     }, 2500);
                 }
