@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Privacy Policy — The Algorithm</title>
     <link rel="stylesheet" href="static/css/style.css">
-    <link rel="stylesheet" href="static/css/revamp.css?v=11">
+    <link rel="stylesheet" href="static/css/revamp.css?v=12">
     <link rel="icon" type="image/png" href="static/favicon.png">
 
     <!-- Open Graph / Twitter Card tags -->
@@ -57,12 +57,12 @@
             
             <div class="mb-6">
                 <h3 class="mb-2" style="color:var(--orange)">3. Third Party Processors</h3>
-                <p style="color:var(--gray-600); line-height:1.6">The analytics output is directly forwarded via secure TLS to the AI provider of your choice (OpenAI, Anthropic, Cloudflare AI, etc.). We configure zero-retention policies using standard enterprise headers to mandate exclusion from LLM training pools.</p>
+                <p style="color:var(--gray-600); line-height:1.6">The analytics output is forwarded via secure TLS to the AI provider selected in settings or to our server-side free insights route. We configure privacy-focused headers where providers support them and never send raw message content unless you explicitly enable raw evidence mode.</p>
             </div>
 
             <div class="mb-6">
-                <h3 class="mb-2" style="color:var(--blue)">4. Cloudflare AI (Free Tier)</h3>
-                <p style="color:var(--gray-600); line-height:1.6">When using the free tier, anonymous statistics (message counts, response times, sentiment scores — never raw message content) are processed by Cloudflare's AI service (<code style="font-size:.85em;background:var(--cream);padding:1px 4px;border-radius:3px">@cf/meta/llama-3-8b-instruct</code>) under <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener" style="color:var(--blue);font-weight:700">Cloudflare's privacy policy</a>. Cloudflare Workers AI does not use inference data for model training.</p>
+                <h3 class="mb-2" style="color:var(--blue)">4. Free Insights Route</h3>
+                <p style="color:var(--gray-600); line-height:1.6">When using free insights, anonymous statistics such as message counts, response times, and derived signals are processed by the configured server-side AI route. Raw message content is not sent in the default mode.</p>
             </div>
             
             <div class="mt-10 pt-6 text-center" style="border-top:2px dashed var(--gray-300)">

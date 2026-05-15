@@ -2,13 +2,13 @@
 <html lang="en" style="scroll-behavior:smooth">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Your Report — The Algorithm</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js" defer></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js" defer></script>
     <link rel="stylesheet" href="static/css/style.css">
-    <link rel="stylesheet" href="static/css/revamp.css?v=11">
+    <link rel="stylesheet" href="static/css/revamp.css?v=12">
     <style>
         /* Tooltip and micro-interaction additions */
         .trait-bar-container:hover .tooltip { opacity: 1; visibility: visible; }
@@ -593,9 +593,8 @@
             <div>
                 <label for="llmProvider" style="display:block;font-weight:700;font-size:.8rem;text-transform:uppercase;margin-bottom:.35rem">Execution Engine</label>
                 <select id="llmProvider" class="field-input">
-                    <option value="cloudflare">Cloudflare AI (Free - 2/hr)</option>
-                    <option value="openrouter_free">OpenRouter Free Router</option>
-                    <option value="openrouter">OpenRouter (GPT-4o Mini)</option>
+                    <option value="free">Free insights (2/hr)</option>
+                    <option value="openrouter">OpenRouter (Bring your own key)</option>
                     <option value="openai">OpenAI</option>
                     <option value="anthropic">Anthropic</option>
                     <option value="gemini">Google Gemini</option>
@@ -604,6 +603,7 @@
                     <option value="mistral">Mistral AI</option>
                     <option value="cohere">Cohere</option>
                 </select>
+                <p id="providerSelectionStatus" class="provider-selection-status" aria-live="polite"></p>
             </div>
             <div id="apiKeyContainer">
                 <label for="apiKey" style="display:block;font-weight:700;font-size:.8rem;text-transform:uppercase;margin-bottom:.35rem">API Key</label>
@@ -681,7 +681,7 @@
 
 <!-- Scripts -->
 <script src="static/js/pages/dashboard_utils.js?v=5.0"></script>
-<script src="static/js/pages/dashboard.js?v=5.0"></script>
+<script src="static/js/pages/dashboard.js?v=5.1"></script>
 <script>
     (() => {
         const setCleanText = (selector, text) => {

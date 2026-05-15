@@ -31,7 +31,7 @@ The UI uses a premium neobrutal design system: cream app shell, dark report side
 - AI insight generation with a punchy, Gen Z, social-friendly tone, verdict summary, receipts, and predictive outlook.
 - Dashboard AI settings modal, so provider/API-key changes can be made from the report page.
 - BYOK support for OpenRouter, OpenAI, Anthropic, Gemini, xAI Grok, Groq, Mistral, and Cohere.
-- Cloudflare AI free-tier support when a Workers AI binding is configured.
+- Free insights route with shared rate limiting, OpenRouter backend key support, and Workers AI fallback when configured.
 - Story-friendly shareable vibe card with score, verdict, message split, response-speed signal, top receipt, predictive signal, and final AI insight.
 - Local history and compare flows stored in browser storage.
 - Strict score display policy: heuristic, confidence, prediction, and AI-style scores cap below false certainty; deterministic 0% or 100% shares are shown only with sample context.
@@ -74,7 +74,13 @@ OpenRouter is supported through its OpenAI-compatible chat completions API. The 
 - `HTTP-Referer`
 - `X-OpenRouter-Title`
 
-Production Cloudflare bindings such as `KV_RATELIMIT` or Workers AI should be attached in the Cloudflare project settings when needed.
+For backend-managed free insights, configure `OPENROUTER_API_KEY` in the Cloudflare Pages environment. `OPENROUTER_KEY` is also accepted as a fallback variable name. Local development can use a `.dev.vars` file:
+
+```bash
+OPENROUTER_API_KEY=sk-or-v1-your-key
+```
+
+Production Cloudflare bindings such as `KV_RATELIMIT` or Workers AI should be attached in the Cloudflare project settings when needed. Free insights use the same KV rate limit as the old Cloudflare-only path.
 
 ## Deployment
 

@@ -6,10 +6,12 @@ export async function onRequestPost(context) {
 
     try {
         const data = await request.json();
-        const { stats, llmReport, chat_history = [], message, provider = 'cloudflare', api_key = '' } = data;
+        const { stats, llmReport, chat_history = [], message, provider = 'free', api_key = '' } = data;
 
-        // 1. RATE LIMITING (KV-based, Cloudflare only)
-        if (provider === 'cloudflare' && env.KV_RATELIMIT) {
+        const freeTierProviders = new Set(['free', 'cloudflare', 'openrouter_free']);
+
+        // 1. RATE LIMITING (KV-based, shared free tier)
+        if (freeTierProviders.has(provider) && env.KV_RATELIMIT) {
             const limitKey = `ratelimit_chat_${ip}`;
             const current = await env.KV_RATELIMIT.get(limitKey);
             const count = current ? parseInt(current) : 0;

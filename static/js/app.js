@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const trustCenterModal = document.getElementById('trustCenterModal');
     const closeTrustCenter = document.getElementById('closeTrustCenter');
     const understoodBtn = document.getElementById('understoodBtn');
-    const intelligence = new ConversationIntelligence();
+    const intelligence = typeof ConversationIntelligence !== 'undefined' ? new ConversationIntelligence() : null;
     const inputModeEl = document.getElementById('inputMode');
     const pasteChatText = document.getElementById('pasteChatText');
     const screenshotFiles = document.getElementById('screenshotFiles');
@@ -44,6 +44,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!Number.isFinite(num)) return 0;
         return Math.max(5, Math.min(95, Math.round(num)));
     };
+    const FREE_PROVIDERS = new Set(['free', 'cloudflare', 'openrouter_free']);
+    const isFreeProvider = (provider) => FREE_PROVIDERS.has(provider);
+    const normalizeProvider = (provider) => isFreeProvider(provider || 'free') ? 'free' : provider;
+    const getStoredProvider = () => normalizeProvider(localStorage.getItem('llm_provider'));
 
     const getInputMode = () => inputModeEl?.value || 'export';
     const hasSourceInput = () => {
@@ -81,10 +85,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const navLinks = document.querySelector('.nav-links');
     if (hamburger && navLinks && !hamburger.dataset.navBound) {
         hamburger.dataset.navBound = 'true';
+        const setNavOpen = (open) => {
+            navLinks.classList.toggle('active', open);
+            document.body.classList.toggle('nav-open', open);
+            hamburger.setAttribute('aria-expanded', open ? 'true' : 'false');
+        };
         hamburger.addEventListener('click', () => {
-            navLinks.classList.toggle('active');
-            hamburger.setAttribute('aria-expanded',
-                navLinks.classList.contains('active') ? 'true' : 'false');
+            setNavOpen(!navLinks.classList.contains('active'));
+        });
+        navLinks.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => setNavOpen(false));
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') setNavOpen(false);
         });
     }
 
@@ -167,9 +180,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const hasInput = hasSourceInput();
         const hasNames = document.getElementById('myName')?.value.trim() &&
                          document.getElementById('partnerName')?.value.trim();
-        const provider = localStorage.getItem('llm_provider') || 'cloudflare';
+        const provider = getStoredProvider();
         const keyRaw = sessionStorage.getItem('_llm_token');
-        const hasValidKey = (provider === 'cloudflare') || (provider === 'openrouter_free') || (keyRaw && keyRaw.trim() !== '' && keyRaw !== btoa(''));
+        const hasValidKey = isFreeProvider(provider) || (keyRaw && keyRaw.trim() !== '' && keyRaw !== btoa(''));
         
         analyzeBtn.disabled = !(hasInput && hasNames && hasValidKey);
         
@@ -216,18 +229,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const updateApiKeyUI = () => {
         const icon = document.getElementById('apiKeyStatusIcon');
         const text = document.getElementById('apiKeyStatusText');
-        const provider = localStorage.getItem('llm_provider') || 'cloudflare';
+        const statusCard = document.getElementById('providerStatusCard');
+        const provider = getStoredProvider();
         if (!icon || !text) return;
         const key = sessionStorage.getItem('_llm_token');
-        if (provider === 'cloudflare') {
-            icon.textContent = '☁️';
-            text.textContent = 'Free Tier (2/hr limit)';
+        statusCard?.classList.remove('provider-status-ready');
+        if (isFreeProvider(provider)) {
+            icon.textContent = 'OK';
+            text.textContent = 'Free insights selected';
+            statusCard?.classList.add('provider-status-ready');
         } else if (provider === 'openrouter_free') {
             icon.textContent = 'OR';
-            text.textContent = 'OpenRouter free router';
+            text.textContent = 'Free insights';
         } else if (key && key.trim() !== "" && key !== btoa("")) {
             icon.textContent = '✅';
             text.textContent = 'API Key Configured';
+            statusCard?.classList.add('provider-status-ready');
         } else {
             icon.textContent = '🔑';
             text.textContent = 'API Key Required';
@@ -298,7 +315,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // C-01: Populate modal from storage on open, not just once on load
         settingsBtn.addEventListener('click', () => {
             // Re-read stored values every time modal opens
-            const savedProvider = localStorage.getItem('llm_provider') || 'cloudflare';
+            const savedProvider = getStoredProvider();
             if (llmProviderEl) llmProviderEl.value = savedProvider;
             if (apiKeyEl) {
                 const storedToken = sessionStorage.getItem('_llm_token');
@@ -317,7 +334,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const key = apiKeyEl ? apiKeyEl.value.trim() : '';
             sessionStorage.setItem('_llm_token', btoa(unescape(encodeURIComponent(key))));
             localStorage.setItem('hf_url', hfUrlEl ? hfUrlEl.value.trim() : '');
-            localStorage.setItem('llm_provider', llmProviderEl ? llmProviderEl.value : 'cloudflare');
+            localStorage.setItem('llm_provider', llmProviderEl ? llmProviderEl.value : 'free');
             updateApiKeyUI();
             hideModal(settingsModal);
         });
@@ -500,14 +517,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateProviderHint(provider) {
         const hintEl = document.getElementById('providerHint');
+        const selectionStatus = document.getElementById('providerSelectionStatus');
         const hfContainer = document.getElementById('hfUrlContainer');
         const apiKeyContainer = document.getElementById('apiKeyContainer');
         if (!hintEl) return;
-        const hints = { 'cloudflare': 'Free Tier (2 reports/hr)', 'openrouter_free': 'Uses OpenRouter openrouter/free. Add a key here or configure OPENROUTER_API_KEY on the backend.', 'openai': 'sk-...', 'anthropic': 'sk-ant-...', 'gemini': '39-char API Key', 'mistral': 'API Key', 'grok': 'xAI API Key', 'openrouter': 'OpenRouter API Key', 'cohere': 'Cohere API Key' };
+        const hints = { 'free': 'Free insights are rate-limited and need no setup.', 'cloudflare': 'Free insights fallback (2 reports/hr)', 'openrouter_free': 'Legacy free insights route.', 'openai': 'sk-...', 'anthropic': 'sk-ant-...', 'gemini': '39-char API Key', 'mistral': 'API Key', 'grok': 'xAI API Key', 'openrouter': 'OpenRouter API Key', 'cohere': 'Cohere API Key' };
         hintEl.textContent = hints[provider] || '';
+        if (selectionStatus) {
+            const isReady = isFreeProvider(provider);
+            selectionStatus.textContent = isReady
+                ? 'Selected: Free insights is ready. No API key needed.'
+                : 'Selected: Bring your own key to enable this provider.';
+            selectionStatus.classList.toggle('is-ready', isReady);
+            selectionStatus.classList.toggle('is-required', !isReady);
+        }
         
         if (hfContainer) hfContainer.classList.toggle('hidden', provider !== 'huggingface');
-        if (apiKeyContainer) apiKeyContainer.classList.toggle('hidden', provider === 'cloudflare');
+        if (apiKeyContainer) apiKeyContainer.classList.toggle('hidden', isFreeProvider(provider));
         updateSubmitState();
     }
 
@@ -554,7 +580,16 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.setItem(this.STORAGE_KEY, JSON.stringify(history));
             return entry;
         }
-        getAll() { const raw = localStorage.getItem(this.STORAGE_KEY); return raw ? JSON.parse(raw) : []; }
+        getAll() {
+            try {
+                const raw = localStorage.getItem(this.STORAGE_KEY);
+                const parsed = raw ? JSON.parse(raw) : [];
+                return Array.isArray(parsed) ? parsed : [];
+            } catch (err) {
+                console.warn('Could not read saved analysis history:', err);
+                return [];
+            }
+        }
         delete(id) {
             let history = this.getAll().filter(item => item.id !== id);
             localStorage.setItem(this.STORAGE_KEY, JSON.stringify(history));
@@ -631,6 +666,7 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.addEventListener('click', () => historyManager.delete(btn.dataset.id));
         });
     };
+    document.getElementById('clearHistoryBtn')?.addEventListener('click', () => historyManager.clear());
     renderHistory();
 
     // --- Compare Controller ---
@@ -747,9 +783,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             
-            const provider = localStorage.getItem('llm_provider') || 'cloudflare';
+            const provider = getStoredProvider();
             const apiKeyB64 = sessionStorage.getItem('_llm_token');
-            if (provider !== 'cloudflare' && provider !== 'openrouter_free') {
+            if (!isFreeProvider(provider)) {
                 if (!apiKeyB64 || apiKeyB64.trim() === '' || apiKeyB64 === btoa('')) {
                     showError(`An API Key is required for ${document.querySelector('#llmProvider option:checked')?.text || provider}. Configure it first.`);
                     if (analyzeBtn) {
@@ -772,7 +808,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else if (provider === 'gemini' && rawKey.length !== 39) {
                     isKeyValid = false;
                     keyError = 'Gemini keys must be exactly 39 characters';
-                } else if ((provider === 'openrouter' || provider === 'openrouter_free') && rawKey.length < 20) {
+                } else if (provider === 'openrouter' && rawKey.length < 20) {
                     isKeyValid = false;
                     keyError = 'OpenRouter keys look too short';
                 }
@@ -806,8 +842,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            const parser = new ChatParser();
-            const analytics = new AnalyticsEngine();
+                const parser = new ChatParser();
+                const analytics = new AnalyticsEngine();
 
             if (analyzeBtn) {
                 analyzeBtn.disabled = true;
@@ -818,6 +854,7 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 // Check if aborted
                 if (activeAbortController?.signal.aborted) throw new Error('Analysis cancelled.');
+                if (!intelligence) throw new Error('Conversation intelligence module failed to load. Please refresh and try again.');
                 
                 const myName = document.getElementById('myName').value;
                 const partnerName = document.getElementById('partnerName').value;

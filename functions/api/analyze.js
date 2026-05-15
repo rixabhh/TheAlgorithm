@@ -6,7 +6,7 @@ export async function onRequestPost(context) {
 
     try {
         const data = await request.json();
-        const { stats, my_name, partner_name, connection_type, language, context, compare_data, provider = 'cloudflare', api_key = '', evidence_pack = null, source_quality = null, privacy_mode = 'stats_only', raw_excerpt_pack = null } = data;
+        const { stats, my_name, partner_name, connection_type, language, context, compare_data, provider = 'free', api_key = '', evidence_pack = null, source_quality = null, privacy_mode = 'stats_only', raw_excerpt_pack = null } = data;
         const tone = data.tone || 'balanced';
 
         if (raw_excerpt_pack && privacy_mode !== 'opt_in_raw') {
@@ -21,8 +21,10 @@ export async function onRequestPost(context) {
         const symmetryScore = clampHeuristic(stats?.symmetry?.score, 70);
         const sourceScore = clampHeuristic(source_quality?.score || evidence_pack?.predictive_outlook?.confidence, 60);
 
-        // 1. RATE LIMITING & GLOBAL STATS (KV-based, Cloudflare only)
-        if (provider === 'cloudflare' && env.KV_RATELIMIT) {
+        const freeTierProviders = new Set(['free', 'cloudflare', 'openrouter_free']);
+
+        // 1. RATE LIMITING & GLOBAL STATS (KV-based, shared free tier)
+        if (freeTierProviders.has(provider) && env.KV_RATELIMIT) {
             const limitKey = `ratelimit_${ip}`;
             const current = await env.KV_RATELIMIT.get(limitKey);
             const count = current ? parseInt(current) : 0;
@@ -35,12 +37,31 @@ export async function onRequestPost(context) {
             await env.KV_RATELIMIT.put(globalCountKey, (parseInt(globalCount) + 1).toString());
         }
 
-        const makeFallbackReport = (reason = "Limited data for deep read") => {
+        const makeFallbackReport = () => {
+            const totalMessages = stats?.total_messages || ((stats?.messages?.ME || 0) + (stats?.messages?.PARTNER || 0));
+            const messageSplit = `${stats?.messages?.ME || 0} vs ${stats?.messages?.PARTNER || 0}`;
             const dropOffRisk = clampHeuristic(evidence_pack?.predictive_outlook?.drop_off_risk ?? (100 - symmetryScore), 30);
             const stability = clampHeuristic(evidence_pack?.predictive_outlook?.stability ?? (100 - dropOffRisk), 65);
             const healthScore = clampHeuristic((symmetryScore * 0.75) + (sourceScore * 0.25), 75);
-            const topReceipt = evidence_pack?.receipts?.[0];
-            const nextAction = evidence_pack?.predictive_outlook?.next_action || topReceipt?.action || "Pick the strongest repeated pattern and ask for one concrete change.";
+            const providedReceipts = Array.isArray(evidence_pack?.receipts) ? evidence_pack.receipts.filter(Boolean) : [];
+            const localRiskClaim = dropOffRisk >= 65
+                ? "Drop-off risk is elevated"
+                : symmetryScore < 60
+                    ? "Participation imbalance"
+                    : "No major local red flag";
+            const fallbackReceipt = {
+                claim: localRiskClaim,
+                evidence: `The local parser analysed ${totalMessages} messages with a ${messageSplit} message split.`,
+                pattern: "local_stats",
+                confidence: totalMessages >= 100 ? "medium" : "low",
+                action: "Use the strongest repeated signal to ask for one clear change, then watch whether the pattern improves."
+            };
+            const hasProvidedReceipts = providedReceipts.length > 0;
+            const receipts = hasProvidedReceipts ? providedReceipts : [fallbackReceipt];
+            const topReceipt = receipts[0] || fallbackReceipt;
+            const nextAction = evidence_pack?.predictive_outlook?.next_action || topReceipt?.action || fallbackReceipt.action;
+            const patternName = String(topReceipt?.pattern || "local_stats").replace(/_/g, " ");
+            const attachmentNote = stats?.attachment_style || "Attachment read is inferred from aggregate timing, balance, and repeated-response patterns only.";
             return ({
             relationship_persona: topReceipt?.pattern ? `${topReceipt.pattern.replace(/_/g, ' ')} watcher` : "Pattern Watch",
             compatibility_score: clampHeuristic((symmetryScore * 0.7) + (sourceScore * 0.3), 75),
@@ -53,7 +74,7 @@ export async function onRequestPost(context) {
             attachment_style: {
                 person_1: "secure",
                 person_2: "secure",
-                compatibility_note: stats?.attachment_style || "Not enough signal for a strong attachment read."
+                compatibility_note: attachmentNote
             },
             humor_dynamics: {
                 fun_person: ((stats?.laughter?.ME || 0) >= (stats?.laughter?.PARTNER || 0)) ? my_name : partner_name,
@@ -64,12 +85,12 @@ export async function onRequestPost(context) {
                 insight: "Long gaps are counted from local chat statistics only."
             },
             key_insights: [
-                `${stats?.total_messages || ((stats?.messages?.ME || 0) + (stats?.messages?.PARTNER || 0))} messages analysed.`,
-                `Conversation symmetry is ${stats?.symmetry?.label || 'balanced'}.`,
-                `Detected style: ${stats?.attachment_style || 'not clear yet'}.`
+                `${totalMessages} messages analysed with a ${messageSplit} message split.`,
+                topReceipt?.evidence || `Conversation symmetry is ${stats?.symmetry?.label || 'balanced'}.`,
+                source_quality?.warnings?.[0] || `Strongest local pattern: ${patternName}.`
             ],
-            strengths: ["The chat has enough signal to read participation and response patterns."],
-            growth_areas: [reason],
+            strengths: [`Local stats can compare message share, timing, and repeated patterns across ${totalMessages} messages.`],
+            growth_areas: [topReceipt?.claim || `Watch the ${patternName} pattern.`],
             coaching_advice: `${nextAction} Treat this as a pattern map, not a final verdict. Re-check whether the pattern changes after the next real conversation.`,
             fun_fact: `Longest active streak: ${stats?.streaks?.longest || 0} days.`,
             verdict_summary: {
@@ -78,13 +99,7 @@ export async function onRequestPost(context) {
                 confidence: `${sourceScore >= 95 ? '95+' : sourceScore}%`,
                 best_next_move: nextAction
             },
-            receipts: evidence_pack?.receipts || [{
-                claim: "Local stats are readable",
-                evidence: "The browser generated enough aggregate signal for a first-pass report.",
-                pattern: "stats_only",
-                confidence: "medium",
-                action: "Use this as a starting point, then compare against the actual relationship context."
-            }],
+            receipts,
             predictive_outlook: evidence_pack?.predictive_outlook || {
                 stability,
                 reciprocity_trend: stats?.symmetry?.label || "balanced",
@@ -97,10 +112,10 @@ export async function onRequestPost(context) {
             ai_insight: {
                 vibe_label: "VIBE STATUS",
                 health_score: healthScore,
-                dynamic_title: topReceipt?.claim ? topReceipt.claim.split(' ').slice(0, 4).join(' ') : "Pattern Watch",
+                dynamic_title: hasProvidedReceipts && topReceipt?.claim ? topReceipt.claim.split(' ').slice(0, 4).join(' ') : "Local Pattern Read",
                 reality_check: topReceipt?.evidence || `The strongest local signal is ${stats?.symmetry?.label || 'balanced'} participation.`,
                 recent_shift: evidence_pack?.predictive_outlook?.trend ? `Recent trend appears ${evidence_pack.predictive_outlook.trend}.` : "Recent shift is based on volume, sentiment, and response patterns.",
-                red_flags: [reason],
+                red_flags: [topReceipt?.claim || `Watch the ${patternName} pattern.`],
                 green_flags: topReceipt?.confidence ? [`Top receipt confidence is ${topReceipt.confidence}.`] : ["Active conversation patterns were detected."],
                 brutal_verdict: topReceipt?.action || "The data gives you a useful mirror, not a courtroom verdict."
             }
@@ -108,7 +123,7 @@ export async function onRequestPost(context) {
         };
 
         const normalizeReport = (candidate) => {
-            const fallback = makeFallbackReport("AI response was incomplete, so this report was normalized from local statistics.");
+            const fallback = makeFallbackReport();
             const report = { ...fallback, ...(candidate || {}) };
             report.communication_style = { ...fallback.communication_style, ...(candidate?.communication_style || {}) };
             report.attachment_style = { ...fallback.attachment_style, ...(candidate?.attachment_style || {}) };
@@ -204,7 +219,7 @@ CRITICAL RULES:
     "brutal_verdict": "string"
   }
 }
-3. The VALUES inside the JSON MUST be written in the requested Output Language (${language || 'english'}). If Hinglish is requested, use conversational Hindi written in the English alphabet (e.g., 'Bhai kya kar raha hai').
+3. The VALUES inside the JSON MUST be written in the requested Output Language (${language || 'english'}). If Hinglish is requested, use conversational Hindi written in the English alphabet with neutral wording (e.g., 'ye pattern clear dikh raha hai'). Do not use "bhai", "behen", "bro", "sis", or gendered placeholders unless the user's own context/source explicitly uses them.
 4. Style: premium social-native, not generic therapy copy. Use punchy, specific observations that sound like a sharp friend with data, not a horoscope.
 5. Every serious claim must point to a concrete signal from Statistics, Source Quality, Local Evidence Pack, or Opt-In Raw Evidence Excerpts.
 6. Fill the report hierarchy intentionally:
@@ -215,7 +230,12 @@ CRITICAL RULES:
 7. Avoid filler like "communication is key", "work on trust", "keep talking", or generic attachment advice unless tied to an observed pattern.
 8. The ai_insight.dynamic_title must be short enough for a story card: 2-5 words.
 9. Red and green flags should be specific behavioral signals from the statistics, not generic relationship advice.
-10. Predictions must include confidence and should never claim certainty. Avoid diagnosis language. Use evidence-based wording like "suggests", "appears", or "risk".`;
+10. Predictions must include confidence and should never claim certainty. Avoid diagnosis language. Use evidence-based wording like "suggests", "appears", or "risk".
+11. Do NOT output uniform high scores. If the stats do not support a strong signal, lower the score and explain the uncertainty.
+12. Personalize the read with the provided names, message counts, source quality, symmetry, response timing, and the strongest receipt pattern.
+13. If behavioral trait scores are close together, call that out as low differentiation instead of pretending every trait is 95+.
+14. Never use "not enough data" as the main insight when Statistics or Local Evidence Pack exists. Say which signals are strong and which parts are lower-confidence.
+15. Make the dashboard copy readable on mobile: short headlines, one idea per sentence, no giant paragraph blocks.`;
 
         const PROVIDER_SYSTEM_PROMPTS = {
             "anthropic": `<role>\n${baseSystemPrompt}\n</role>`,
@@ -236,6 +256,8 @@ CRITICAL RULES:
 - Write 3-6 receipts when evidence exists; avoid generic claims.
 - Use source_quality to lower confidence when the sample is weak.
 - Do not return exact 100% confidence or certainty language.
+- Do not make every metric "high"; vary scores based on the actual Statistics and Local Evidence Pack.
+- Mention at least two concrete signals such as message split, reply speed, unanswered-question count, source confidence, or top receipt.
 - Keep actions concrete: what to say, what to watch, or what boundary to test next.
 `;
         userPrompt += `\n## Statistics\n${JSON.stringify(stats)}`;
@@ -287,7 +309,8 @@ CRITICAL RULES:
                 report = parseResponse(rawResponseText);
 
                 // Fallback / Retry Logic
-                if (!report && api_key && provider !== 'cloudflare') {
+                const canRetry = provider !== 'cloudflare' && (api_key || provider === 'free' || provider === 'openrouter_free');
+                if (!report && canRetry) {
                     // Try one more time with a stricter prompt if parsing failed
                     const stricterUserPrompt = userPrompt + "\n\nWARNING: Your previous response failed validation. You MUST return ONLY a valid JSON object matching the requested schema. No conversational text.";
                     const retryController = new AbortController();
@@ -312,51 +335,17 @@ CRITICAL RULES:
             if (callError.name === 'AbortError') {
                 throw new Error("Analysis timed out. Please try again.");
             }
-            throw callError;
+            if (freeTierProviders.has(provider)) {
+                console.error("Free analysis failed; using local evidence fallback:", callError);
+                report = makeFallbackReport();
+            } else {
+                throw callError;
+            }
         }
 
         // 3. FALLBACK
         if (!report) {
-            if (language === 'hinglish') {
-                report = {
-                    relationship_persona: "Vibe Explorer",
-                    compatibility_score: 80,
-                    ai_insight: {
-                        dynamic_title: "Quick Read",
-                        reality_check: partner_name + " ke saath analysis complete ho gaya hai.",
-                        recent_shift: "Energy bilkul stable lag rahi hai.",
-                        red_flags: ["Deep read ke liye data thoda kam hai"],
-                        green_flags: ["Dono active check-ins kar rahe ho"],
-                        brutal_verdict: "Ek number vibe hai bhai/behen."
-                    }
-                };
-            } else if (language === 'hindi') {
-                report = {
-                    relationship_persona: "Vibe Explorer",
-                    compatibility_score: 80,
-                    ai_insight: {
-                        dynamic_title: "Quick Read",
-                        reality_check: partner_name + " के साथ विश्लेषण पूरा हुआ।",
-                        recent_shift: "ऊर्जा स्थिर लग रही है।",
-                        red_flags: ["गहन विश्लेषण के लिए डेटा अपर्याप्त है"],
-                        green_flags: ["सक्रिय संवाद चल रहा है"],
-                        brutal_verdict: "संबंध अच्छा है।"
-                    }
-                };
-            } else {
-                report = {
-                    relationship_persona: "Vibe Explorer",
-                    compatibility_score: 80,
-                    ai_insight: {
-                        dynamic_title: "Quick Read",
-                        reality_check: "Analysis complete for " + partner_name,
-                        recent_shift: "The energy is stable.",
-                        red_flags: ["Limited data for deep read"],
-                        green_flags: ["Active check-ins"],
-                        brutal_verdict: "It's a vibe."
-                    }
-                };
-            }
+            report = makeFallbackReport();
         }
 
         report = normalizeReport(report);

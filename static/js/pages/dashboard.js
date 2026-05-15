@@ -27,9 +27,14 @@ document.addEventListener('DOMContentLoaded', () => {
     let dataB = null;
     let activeData = null;
     let isSharedMode = false;
+    const FREE_PROVIDERS = new Set(['free', 'cloudflare', 'openrouter_free']);
+    const isFreeProvider = (provider) => FREE_PROVIDERS.has(provider);
+    const normalizeProvider = (provider) => isFreeProvider(provider || 'free') ? 'free' : provider;
+    const getStoredProvider = () => normalizeProvider(localStorage.getItem('llm_provider'));
     const providerHints = {
-        cloudflare: 'Uses the configured Cloudflare Workers AI binding when available.',
-        openrouter_free: 'Uses OpenRouter openrouter/free. Add a key here or configure OPENROUTER_API_KEY on the backend.',
+        free: 'Free insights are rate-limited and need no setup.',
+        cloudflare: 'Free insights fallback when configured.',
+        openrouter_free: 'Legacy free insights route.',
         openrouter: 'Use an OpenRouter key. Recommended model is openai/gpt-4o-mini.',
         openai: 'OpenAI keys usually start with sk-.',
         anthropic: 'Anthropic keys usually start with sk-ant-.',
@@ -377,7 +382,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     borderWidth: 0
                 }]
             },
-            options: { cutout: '70%', plugins: { legend: { position: 'bottom' } } }
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '68%',
+                layout: { padding: 4 },
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { boxWidth: 28, padding: 14, font: { size: 12, weight: '700' } }
+                    }
+                }
+            }
         });
     };
 
@@ -398,7 +414,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     { label: activeData.partner_name, data: weeks.map(w => w.partner_count), backgroundColor: '#FF4081' }
                 ]
             },
-            options: { scales: { x: { stacked: true }, y: { stacked: true } } }
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: { padding: 8 },
+                plugins: {
+                    legend: { labels: { boxWidth: 28, padding: 14, font: { size: 12, weight: '700' } } }
+                },
+                scales: {
+                    x: { stacked: true, ticks: { maxRotation: 0, autoSkip: true, font: { size: 11 } } },
+                    y: { stacked: true, ticks: { font: { size: 11 } } }
+                }
+            }
         });
     };
 
@@ -436,12 +463,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 maintainAspectRatio: false,
                 scales: {
                     x: {
-                        grid: { display: false }
+                        grid: { display: false },
+                        ticks: { maxRotation: 0, autoSkip: true, font: { size: 11 } }
                     },
                     y: {
                         min: -1,
                         max: 1,
                         ticks: {
+                            font: { size: 11 },
                             callback: function(value) {
                                 if (value === 1) return 'Positive Mode';
                                 if (value === 0) return 'Neutral';
@@ -478,9 +507,9 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const autoTriggerAi = () => {
-        const provider = localStorage.getItem('llm_provider') || 'cloudflare';
+        const provider = getStoredProvider();
         const hasKey = sessionStorage.getItem('_llm_token');
-        if (provider === 'cloudflare' || provider === 'openrouter_free' || hasKey) {
+        if (isFreeProvider(provider) || hasKey) {
             setTimeout(() => {
                 document.getElementById('generateAiBtn')?.click();
             }, 1000);
@@ -495,17 +524,26 @@ document.addEventListener('DOMContentLoaded', () => {
         const providerEl = document.getElementById('llmProvider');
         const apiKeyEl = document.getElementById('apiKey');
         const hintEl = document.getElementById('providerHint');
+        const selectionStatus = document.getElementById('providerSelectionStatus');
         const apiKeyContainer = document.getElementById('apiKeyContainer');
         const rawConsentEl = document.getElementById('dashboardRawConsent');
         if (!settingsBtn || !modal || !providerEl || !apiKeyEl) return;
 
         const refreshHint = () => {
-            const provider = providerEl.value || 'cloudflare';
+            const provider = providerEl.value || 'free';
             if (hintEl) hintEl.textContent = providerHints[provider] || '';
-            apiKeyContainer?.classList.toggle('hidden', provider === 'cloudflare');
+            apiKeyContainer?.classList.toggle('hidden', isFreeProvider(provider));
+            if (selectionStatus) {
+                const isReady = isFreeProvider(provider);
+                selectionStatus.textContent = isReady
+                    ? 'Selected: Free insights is ready. No API key needed.'
+                    : 'Selected: Bring your own key to enable this provider.';
+                selectionStatus.classList.toggle('is-ready', isReady);
+                selectionStatus.classList.toggle('is-required', !isReady);
+            }
         };
         const showModal = () => {
-            providerEl.value = localStorage.getItem('llm_provider') || 'cloudflare';
+            providerEl.value = getStoredProvider();
             const storedToken = sessionStorage.getItem('_llm_token');
             apiKeyEl.value = (storedToken && storedToken !== btoa('')) ? decodeURIComponent(escape(atob(storedToken))) : '';
             if (rawConsentEl) rawConsentEl.checked = activeData.privacy_mode === 'opt_in_raw';
@@ -519,7 +557,7 @@ document.addEventListener('DOMContentLoaded', () => {
         modal.addEventListener('click', (e) => { if (e.target === modal) hideModal(); });
         providerEl.addEventListener('change', refreshHint);
         saveBtn?.addEventListener('click', () => {
-            const provider = providerEl.value || 'cloudflare';
+            const provider = providerEl.value || 'free';
             const key = apiKeyEl.value.trim();
             localStorage.setItem('llm_provider', provider);
             sessionStorage.setItem('_llm_token', btoa(unescape(encodeURIComponent(key))));
@@ -587,9 +625,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 balance_score: symmetry.score || source.score || 70
             },
             attachment_style: {
-                person_1: 'not enough signal',
-                person_2: 'not enough signal',
-                compatibility_note: 'Attachment labels need AI context. Local evidence is focused on effort, timing, and repeated patterns.'
+                person_1: 'pattern based',
+                person_2: 'pattern based',
+                compatibility_note: 'Local read based on aggregate timing, balance, and repeated receipt signals.'
             },
             key_insights: [
                 `${total.toLocaleString()} messages were analysed from ${activeData.input_mode || 'chat'} input.`,
@@ -859,7 +897,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 evidence_pack: activeData.evidence_pack || null,
                 raw_excerpt_pack: activeData.privacy_mode === 'opt_in_raw' ? (activeData.raw_excerpt_pack || null) : null,
                 compare_data: isCompareMode ? { a: dataA.stats, b: dataB.stats, nameA: dataA.partner_name, nameB: dataB.partner_name } : null,
-                provider: localStorage.getItem('llm_provider') || 'cloudflare',
+                provider: getStoredProvider(),
                 api_key: sessionStorage.getItem('_llm_token') ? decodeURIComponent(escape(atob(sessionStorage.getItem('_llm_token')))) : ''
             };
 
@@ -891,7 +929,7 @@ document.addEventListener('DOMContentLoaded', () => {
             loading?.classList.add('hidden');
             // M-02: Inline error recovery instead of alert()
             const errorMsg = e.message && e.message.includes('Free tier limit')
-                ? 'Cloudflare free tier limit reached (2 requests per hour). Configure your own API key for unlimited access.'
+                ? 'Free insights limit reached (2 reports per hour). Configure your own API key for unlimited access.'
                 : `Analysis failed: ${escapeHTML(e.message)}`;
             if (permission) permission.innerHTML = `
                 <div class="text-center p-8">
@@ -980,7 +1018,7 @@ document.addEventListener('DOMContentLoaded', () => {
         historyEl.scrollTop = historyEl.scrollHeight;
 
         try {
-            const provider = localStorage.getItem('llm_provider') || 'cloudflare';
+            const provider = getStoredProvider();
             const payload = {
                 stats: activeData.stats,
                 llmReport: window.llmReport,

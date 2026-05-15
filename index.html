@@ -2,11 +2,11 @@
 <html lang="en" style="scroll-behavior:smooth">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>The Algorithm — Decode Your Relationship</title>
     <meta name="description" content="Upload your chat history and get deep behavioral insights, emotional analytics, and AI coaching. Securely and privately.">
     <link rel="stylesheet" href="static/css/style.css">
-    <link rel="stylesheet" href="static/css/revamp.css?v=11">
+    <link rel="stylesheet" href="static/css/revamp.css?v=12">
     <link rel="icon" type="image/png" href="static/favicon.png">
 
     <!-- Open Graph / Twitter Card tags -->
@@ -354,7 +354,7 @@
                     <h3 style="border-bottom:2px solid var(--black);padding-bottom:.35rem;display:inline-block;align-self:flex-start;margin-top:.25rem;font-size:1rem">3. Process</h3>
 
                     <!-- API Key Status -->
-                    <div style="display:flex;align-items:center;justify-content:space-between;padding:.75rem;border:var(--border);border-radius:var(--r-sm);background:var(--pink);box-shadow:var(--shadow)">
+                    <div id="providerStatusCard" style="display:flex;align-items:center;justify-content:space-between;padding:.75rem;border:var(--border);border-radius:var(--r-sm);background:var(--pink);box-shadow:var(--shadow)">
                         <div class="flex items-center gap-3">
                             <span id="apiKeyStatusIcon" style="font-size:.75rem;font-weight:900;background:var(--white);border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border:2px solid var(--black);flex-shrink:0;font-family:var(--font-heading)">API</span>
                             <div>
@@ -520,16 +520,16 @@
             <div>
                 <label for="llmProvider" style="display:block;font-weight:700;font-size:.8rem;text-transform:uppercase;margin-bottom:.35rem">Execution Engine</label>
                 <select id="llmProvider" class="field-input">
-                    <option value="cloudflare" selected>Cloudflare AI (Free - 2/hr)</option>
-                    <option value="openrouter_free">OpenRouter Free Router</option>
+                    <option value="free" selected>Free insights (2/hr)</option>
+                    <option value="openrouter">OpenRouter (Bring your own key)</option>
                     <option value="openai">OpenAI (GPT-4o)</option>
                     <option value="anthropic">Anthropic (Claude 3.5)</option>
                     <option value="gemini">Google (Gemini 2.5 Flash)</option>
                     <option value="grok">xAI (Grok-2)</option>
-                    <option value="openrouter">OpenRouter (GPT-4o Mini)</option>
                     <option value="cohere">Cohere</option>
                     <option value="mistral">Mistral AI</option>
                 </select>
+                <p id="providerSelectionStatus" class="provider-selection-status" aria-live="polite"></p>
             </div>
 
             <div id="apiKeyContainer">
@@ -651,16 +651,22 @@
 </div>
 
 <script src="static/js/utils/parser.js?v=1.0"></script>
-<script src="static/js/utils/analytics_engine.js?v=1.0"></script>
+<script src="static/js/utils/analytics_engine.js?v=1.1"></script>
 <script src="static/js/modules/conversation_intelligence.js?v=1.0"></script>
-<script src="static/js/app.js?v=5.1"></script>
+<script src="static/js/app.js?v=5.2"></script>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const hamburger = document.querySelector('.nav-hamburger');
         const navLinks = document.querySelector('.nav-links');
         if (hamburger && navLinks && !hamburger.dataset.navBound) {
             hamburger.dataset.navBound = 'true';
-            hamburger.addEventListener('click', () => navLinks.classList.toggle('active'));
+            const setNavOpen = (open) => {
+                navLinks.classList.toggle('active', open);
+                document.body.classList.toggle('nav-open', open);
+                hamburger.setAttribute('aria-expanded', open ? 'true' : 'false');
+            };
+            hamburger.addEventListener('click', () => setNavOpen(!navLinks.classList.contains('active')));
+            navLinks.querySelectorAll('a').forEach(link => link.addEventListener('click', () => setNavOpen(false)));
         }
     });
 </script>

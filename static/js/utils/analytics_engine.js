@@ -327,8 +327,8 @@ class AnalyticsEngine {
 
     calculateBehavioralTraits(messages) {
         const traits = {
-            ME: { curiosity: 0, politeness: 0, warmth: 0, intimacy: 0, greetings: 0, gratitude: 0, affection: 0, compliments: 0, questions: 0 },
-            PARTNER: { curiosity: 0, politeness: 0, warmth: 0, intimacy: 0, greetings: 0, gratitude: 0, affection: 0, compliments: 0, questions: 0 }
+            ME: { total: 0, affirmative: 0, greetings: 0, gratitude: 0, affection: 0, compliments: 0, questions: 0 },
+            PARTNER: { total: 0, affirmative: 0, greetings: 0, gratitude: 0, affection: 0, compliments: 0, questions: 0 }
         };
 
         const GREETING_RE = /hi|hello|hey|morning|night|bye|namaste|salam/i;
@@ -338,15 +338,25 @@ class AnalyticsEngine {
 
         for (const m of messages) {
             const user = traits[m.sender];
-            if (GREETING_RE.test(m.text)) { user.greetings++; user.politeness += 10; }
-            if (GRATITUDE_RE.test(m.text)) { user.gratitude++; user.politeness += 15; }
-            if (COMPLIMENT_RE.test(m.text)) { user.compliments++; user.warmth += 15; }
-            if (QUESTION_RE.test(m.text)) { user.questions++; user.curiosity += 10; }
-            if (this.INTIMACY_RE.test(m.text)) { user.affection++; user.intimacy += 20; }
-            if (this.AFFIRMATIVE_RE.test(m.text)) user.warmth += 5;
+            if (!user) continue;
+            user.total++;
+            if (GREETING_RE.test(m.text)) user.greetings++;
+            if (GRATITUDE_RE.test(m.text)) user.gratitude++;
+            if (COMPLIMENT_RE.test(m.text)) user.compliments++;
+            if (QUESTION_RE.test(m.text)) user.questions++;
+            if (this.INTIMACY_RE.test(m.text)) user.affection++;
+            if (this.AFFIRMATIVE_RE.test(m.text)) user.affirmative++;
         }
 
         const finalize = (u) => {
+            const ratio = (count) => count / Math.max(1, u.total);
+            const densityScore = (count, strongDensity, baseline = 0.01) => {
+                if (!u.total) return 0;
+                const density = Math.max(0, ratio(count) - baseline);
+                const score = 22 + (density / Math.max(0.01, strongDensity - baseline)) * 68;
+                return Math.round(Math.max(8, Math.min(95, score)));
+            };
+            const blend = (...values) => Math.round(values.reduce((a, b) => a + b, 0) / Math.max(1, values.length));
             const highlights = [
                 { label: 'Greetings', count: u.greetings },
                 { label: 'Gratitude', count: u.gratitude },
@@ -357,13 +367,22 @@ class AnalyticsEngine {
 
             return {
                 scores: {
-                    curiosity: Math.min(100, u.curiosity),
-                    politeness: Math.min(100, u.politeness),
-                    warmth: Math.min(100, u.warmth),
-                    intimacy: Math.min(100, u.intimacy)
+                    curiosity: densityScore(u.questions, 0.28, 0.025),
+                    politeness: blend(densityScore(u.greetings, 0.14, 0.01), densityScore(u.gratitude, 0.08, 0)),
+                    warmth: blend(densityScore(u.compliments, 0.08, 0), densityScore(u.affirmative, 0.22, 0.025)),
+                    intimacy: densityScore(u.affection, 0.14, 0)
                 },
                 highlights: highlights,
-                summary: highlights.map(h => `Strong ${h.label} showing (${h.count} instances).`)
+                sample_size: u.total,
+                densities: {
+                    questions: Number(ratio(u.questions).toFixed(3)),
+                    gratitude: Number(ratio(u.gratitude).toFixed(3)),
+                    warmth: Number(ratio(u.affirmative + u.compliments).toFixed(3)),
+                    affection: Number(ratio(u.affection).toFixed(3))
+                },
+                summary: highlights.length
+                    ? highlights.slice(0, 4).map(h => `${h.label}: ${h.count} signals across ${u.total} messages.`)
+                    : [`No strong social trait spikes across ${u.total} messages.`]
             };
         };
 
