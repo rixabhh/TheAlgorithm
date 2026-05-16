@@ -6,7 +6,7 @@
     <title>The Algorithm — Decode Your Relationship</title>
     <meta name="description" content="Upload your chat history and get deep behavioral insights, emotional analytics, and AI coaching. Securely and privately.">
     <link rel="stylesheet" href="static/css/style.css">
-    <link rel="stylesheet" href="static/css/revamp.css?v=14">
+    <link rel="stylesheet" href="static/css/revamp.css?v=15">
     <style>
         @media (max-width: 900px) {
             html, body { max-width: 100vw !important; overflow-x: hidden !important; }
@@ -28,8 +28,40 @@
             }
         }
         @media (max-width: 480px) {
+            body.revamp-home .hero-main .container {
+                align-items: center !important;
+                display: flex !important;
+                flex-direction: column !important;
+                text-align: center !important;
+            }
+            body.revamp-home .hero-main h1,
+            body.revamp-home .hero-main p {
+                text-align: center !important;
+            }
+            body.revamp-home .hero-main .flex.justify-center {
+                align-items: center !important;
+                display: grid !important;
+                justify-items: center !important;
+                width: 100% !important;
+            }
+            body.revamp-home .hero-main .btn {
+                justify-content: center !important;
+                max-width: 320px !important;
+                width: 100% !important;
+            }
             body.revamp-home .hero-report-grid {
+                display: flex !important;
+                margin: 1rem auto 0 !important;
+                max-width: 340px !important;
+                width: calc(100vw - 2rem) !important;
+            }
+            body.revamp-home .hero-report-grid .card:nth-child(n+3) {
                 display: none !important;
+            }
+            body.revamp-home .hero-report-grid .card {
+                margin: 0 !important;
+                padding: .85rem !important;
+                width: 100% !important;
             }
         }
     </style>
@@ -501,11 +533,11 @@
 </footer>
 
 <nav class="revamp-bottom-nav" aria-label="Primary">
-    <a class="is-active" href="#upload">
+    <a class="is-active" href="#upload" onclick="document.getElementById('upload')?.scrollIntoView({behavior:'smooth',block:'start'});return false;">
         <span class="material-symbols-outlined">analytics</span>
         <span>Analyze</span>
     </a>
-    <a href="#upload">
+    <a href="#quick-paste" onclick="document.querySelector('[data-mode=paste]')?.click();document.getElementById('upload')?.scrollIntoView({behavior:'smooth',block:'start'});return false;">
         <span class="material-symbols-outlined">psychology</span>
         <span>Vibe Check</span>
     </a>

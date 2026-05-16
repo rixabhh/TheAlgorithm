@@ -112,6 +112,13 @@ document.addEventListener('DOMContentLoaded', () => {
         heroReportGrid.setAttribute('aria-label', 'Sample report cards');
     }
 
+    if (window.location.hash === '#quick-paste' || window.location.hash === '#vibe-check') {
+        requestAnimationFrame(() => {
+            document.querySelector('[data-mode=paste]')?.click();
+            uploadSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    }
+
     const faqItems = document.querySelectorAll('.faq-item');
     faqItems.forEach((item, index) => {
         const question = item.querySelector('.faq-question');

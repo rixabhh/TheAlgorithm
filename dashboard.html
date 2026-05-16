@@ -8,7 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js" defer></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js" defer></script>
     <link rel="stylesheet" href="static/css/style.css">
-    <link rel="stylesheet" href="static/css/revamp.css?v=14">
+    <link rel="stylesheet" href="static/css/revamp.css?v=15">
     <style>
         /* Tooltip and micro-interaction additions */
         .trait-bar-container:hover .tooltip { opacity: 1; visibility: visible; }
@@ -68,9 +68,11 @@
             }
         }
         @media (max-width: 480px) {
-            body.dashboard-body .dashboard-header .flex,
             body.dashboard-body .dashboard-stat-strip {
-                grid-template-columns: 1fr !important;
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            }
+            body.dashboard-body .dashboard-header .flex {
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
             }
         }
     </style>
@@ -619,7 +621,7 @@
         <span class="material-symbols-outlined">analytics</span>
         <span>Analyze</span>
     </a>
-    <a class="is-active" href="#section-vibe">
+    <a class="is-active" href="#section-vibe" onclick="document.getElementById('section-vibe')?.scrollIntoView({behavior:'smooth',block:'start'});return false;">
         <span class="material-symbols-outlined">psychology</span>
         <span>Vibe Check</span>
     </a>
