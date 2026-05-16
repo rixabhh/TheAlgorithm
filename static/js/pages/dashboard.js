@@ -1024,6 +1024,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 llmReport: window.llmReport,
                 chat_history: window.coachingChatHistory || [],
                 message: text,
+                tone: activeData.tone || 'balanced',
+                language: activeData.language || 'english',
                 provider: provider,
                 api_key: sessionStorage.getItem('_llm_token') ? decodeURIComponent(escape(atob(sessionStorage.getItem('_llm_token')))) : ''
             };
@@ -1206,25 +1208,34 @@ window.addEventListener('DOMContentLoaded', () => {
 /**
  * Share Card Generation
  */
-function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
-    if (!text) return;
-    const words = text.split(' ');
+function wrapText(ctx, text, x, y, maxWidth, lineHeight, maxLines = 4) {
+    if (!text) return y;
+    const words = String(text).replace(/\s+/g, ' ').trim().split(' ');
+    const lines = [];
     let line = '';
+    let truncated = false;
 
-    for(let n = 0; n < words.length; n++) {
-      const testLine = line + words[n] + ' ';
-      const metrics = ctx.measureText(testLine);
-      const testWidth = metrics.width;
-      if (testWidth > maxWidth && n > 0) {
-        ctx.fillText(line, x, y);
-        line = words[n] + ' ';
-        y += lineHeight;
-      }
-      else {
-        line = testLine;
-      }
+    for (let n = 0; n < words.length; n++) {
+        const testLine = `${line}${words[n]} `;
+        if (ctx.measureText(testLine).width > maxWidth && n > 0) {
+            lines.push(line.trim());
+            line = `${words[n]} `;
+            if (lines.length === maxLines) {
+                truncated = true;
+                break;
+            }
+        } else {
+            line = testLine;
+        }
     }
-    ctx.fillText(line, x, y);
+    if (lines.length < maxLines && line.trim()) lines.push(line.trim());
+    lines.slice(0, maxLines).forEach((item, index) => {
+        const finalLine = index === maxLines - 1 && truncated
+            ? item.replace(/[,.!?;:]*$/, '') + '...'
+            : item;
+        ctx.fillText(finalLine, x, y + (index * lineHeight));
+    });
+    return y + (Math.max(1, lines.length) * lineHeight);
 }
 
 function generateShareCard(analysisData) {
@@ -1257,92 +1268,101 @@ function generateShareCard(analysisData) {
   const finalWord = ai.brutal_verdict || analysisData.top_insight || 'The chat has spoken.';
 
   const gradient = ctx.createLinearGradient(0, 0, 1080, 1920);
-  gradient.addColorStop(0, '#fff4d8');
-  gradient.addColorStop(0.52, '#ff4d8d');
-  gradient.addColorStop(1, '#1a0a00');
+  gradient.addColorStop(0, '#ffe8b8');
+  gradient.addColorStop(0.42, '#ff4d8d');
+  gradient.addColorStop(1, '#6d28d9');
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, 1080, 1920);
 
-  ctx.fillStyle = '#1a0a00';
+  ctx.fillStyle = '#17150f';
   ctx.fillRect(54, 54, 972, 1812);
-  ctx.fillStyle = '#fff8f0';
-  ctx.fillRect(72, 72, 936, 1776);
-
-  drawPill(ctx, 'THE ALGORITHM', 112, 120, '#1a0a00', '#ffd600', 32);
-  drawPill(ctx, ai.vibe_label || 'VIBE CHECK', 112, 205, '#ff4d8d', '#fff', 28);
-
-  ctx.fillStyle = '#1a0a00';
-  ctx.font = '900 96px Inter, Arial, sans-serif';
-  wrapText(ctx, title.toUpperCase(), 112, 345, 830, 104);
-
-  ctx.fillStyle = '#7b2fbe';
-  ctx.font = '900 188px Inter, Arial, sans-serif';
-  ctx.fillText(`${healthScore || '--'}`, 112, 690);
-  ctx.fillStyle = '#1a0a00';
-  ctx.font = '900 34px Inter, Arial, sans-serif';
-  ctx.fillText('signal score', 435, 665);
-
-  drawMetric(ctx, 'Messages', total.toLocaleString(), 112, 785);
-  drawMetric(ctx, 'Duration', stats.duration || '--', 560, 785);
-  drawMetric(ctx, 'Reply speed', replyText, 112, 980);
-  drawMetric(ctx, 'Balance', stats.symmetry?.label || `${mePct}/${partnerPct}`, 560, 980);
-
-  ctx.fillStyle = '#1a0a00';
-  ctx.font = '900 30px Inter, Arial, sans-serif';
-  ctx.fillText(`${active.my_name || 'You'} ${mePct}% of ${total.toLocaleString()}`, 112, 1215);
-  ctx.fillText(`${active.partner_name || 'Them'} ${partnerPct}% of ${total.toLocaleString()}`, 112, 1260);
-  ctx.fillStyle = '#e9ddc8';
-  ctx.fillRect(112, 1288, 856, 44);
-  ctx.fillStyle = '#1a0a00';
-  ctx.fillRect(112, 1288, 856 * mePct / 100, 44);
+  ctx.fillStyle = '#fff8ed';
+  ctx.fillRect(76, 76, 928, 1768);
+  ctx.fillStyle = '#ffe16d';
+  ctx.fillRect(76, 76, 928, 20);
   ctx.fillStyle = '#ff4d8d';
-  ctx.fillRect(112 + 856 * mePct / 100, 1288, 856 * partnerPct / 100, 44);
+  ctx.fillRect(76, 1824, 928, 20);
 
-  drawInsightBox(ctx, 'RED FLAG', redFlag, 112, 1395, '#ffe1e6');
-  drawInsightBox(ctx, 'TOP RECEIPT', greenFlag, 112, 1545, '#e6ffe9');
+  drawPill(ctx, 'THE ALGORITHM', 112, 126, '#17150f', '#ffe16d', 30);
+  drawPill(ctx, ai.vibe_label || 'VIBE CHECK', 112, 208, '#ff4d8d', '#ffffff', 26);
 
-  ctx.fillStyle = '#1a0a00';
-  ctx.font = '900 30px Inter, Arial, sans-serif';
-  ctx.fillText(`PREDICTION: ${dropOffRisk ? dropOffRisk + ' DROP-OFF RISK' : 'WATCH THE TREND'}`, 112, 1728);
-  ctx.font = '800 38px Inter, Arial, sans-serif';
-  wrapText(ctx, finalWord, 112, 1790, 856, 48);
+  ctx.fillStyle = '#17150f';
+  ctx.font = '900 82px Arial, sans-serif';
+  wrapText(ctx, title.toUpperCase(), 112, 342, 856, 88, 3);
+
+  ctx.fillStyle = '#6d28d9';
+  ctx.font = '900 170px Arial, sans-serif';
+  ctx.fillText(`${healthScore || '--'}`, 112, 660);
+  ctx.fillStyle = '#17150f';
+  ctx.font = '900 32px Arial, sans-serif';
+  ctx.fillText('signal score', 430, 642);
+
+  drawMetric(ctx, 'Messages', total.toLocaleString(), 112, 760, '#ffffff');
+  drawMetric(ctx, 'Duration', stats.duration || '--', 560, 760, '#fff4cc');
+  drawMetric(ctx, 'Reply speed', replyText, 112, 930, '#ffe8f0');
+  drawMetric(ctx, 'Balance', stats.symmetry?.label || `${mePct}/${partnerPct}`, 560, 930, '#eee3ff');
+
+  ctx.fillStyle = '#17150f';
+  ctx.font = '900 28px Arial, sans-serif';
+  wrapText(ctx, `${active.my_name || 'You'} ${mePct}% / ${active.partner_name || 'Them'} ${partnerPct}% of ${total.toLocaleString()} messages`, 112, 1162, 856, 36, 2);
+  ctx.fillStyle = '#e9ddc8';
+  ctx.fillRect(112, 1232, 856, 46);
+  ctx.fillStyle = '#17150f';
+  ctx.fillRect(112, 1232, 856 * mePct / 100, 46);
+  ctx.fillStyle = '#ff4d8d';
+  ctx.fillRect(112 + 856 * mePct / 100, 1232, 856 * partnerPct / 100, 46);
+
+  drawInsightBox(ctx, 'WATCH THIS', redFlag, 112, 1340, '#ffe1e6');
+  drawInsightBox(ctx, 'STRONG SIGNAL', greenFlag, 112, 1500, '#e6ffe9');
+
+  ctx.fillStyle = '#17150f';
+  ctx.font = '900 28px Arial, sans-serif';
+  ctx.fillText(`PREDICTION: ${dropOffRisk ? dropOffRisk + ' DROP-OFF RISK' : 'WATCH THE TREND'}`, 112, 1700);
+  ctx.fillStyle = '#fff4cc';
+  ctx.fillRect(112, 1732, 856, 74);
+  ctx.strokeStyle = '#17150f';
+  ctx.lineWidth = 5;
+  ctx.strokeRect(112, 1732, 856, 74);
+  ctx.fillStyle = '#17150f';
+  ctx.font = '800 30px Arial, sans-serif';
+  wrapText(ctx, finalWord, 136, 1778, 808, 36, 2);
 
   return canvas.toDataURL('image/png');
 }
 
 function drawPill(ctx, text, x, y, bg, fg, size) {
     ctx.fillStyle = bg;
-    ctx.fillRect(x, y, Math.min(856, 34 + text.length * size * 0.62), size + 28);
+    ctx.fillRect(x, y, Math.min(856, 34 + String(text).length * size * 0.58), size + 26);
     ctx.fillStyle = fg;
-    ctx.font = `900 ${size}px Inter, Arial, sans-serif`;
-    ctx.fillText(text, x + 18, y + size + 9);
+    ctx.font = `900 ${size}px Arial, sans-serif`;
+    ctx.fillText(String(text).toUpperCase(), x + 18, y + size + 8);
 }
 
-function drawMetric(ctx, label, value, x, y) {
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(x, y, 390, 140);
+function drawMetric(ctx, label, value, x, y, bg = '#ffffff') {
+    ctx.fillStyle = bg;
+    ctx.fillRect(x, y, 392, 126);
     ctx.strokeStyle = '#1a0a00';
     ctx.lineWidth = 5;
-    ctx.strokeRect(x, y, 390, 140);
+    ctx.strokeRect(x, y, 392, 126);
     ctx.fillStyle = '#78716c';
-    ctx.font = '900 24px Inter, Arial, sans-serif';
+    ctx.font = '900 22px Arial, sans-serif';
     ctx.fillText(label.toUpperCase(), x + 28, y + 42);
     ctx.fillStyle = '#1a0a00';
-    ctx.font = '900 46px Inter, Arial, sans-serif';
-    wrapText(ctx, String(value), x + 28, y + 102, 330, 48);
+    ctx.font = '900 42px Arial, sans-serif';
+    wrapText(ctx, String(value), x + 28, y + 92, 330, 44, 1);
 }
 
 function drawInsightBox(ctx, label, text, x, y, bg) {
     ctx.fillStyle = bg;
-    ctx.fillRect(x, y, 856, 118);
+    ctx.fillRect(x, y, 856, 120);
     ctx.strokeStyle = '#1a0a00';
     ctx.lineWidth = 5;
-    ctx.strokeRect(x, y, 856, 118);
+    ctx.strokeRect(x, y, 856, 120);
     ctx.fillStyle = '#1a0a00';
-    ctx.font = '900 24px Inter, Arial, sans-serif';
+    ctx.font = '900 23px Arial, sans-serif';
     ctx.fillText(label, x + 26, y + 38);
-    ctx.font = '800 30px Inter, Arial, sans-serif';
-    wrapText(ctx, text, x + 26, y + 82, 800, 36);
+    ctx.font = '800 28px Arial, sans-serif';
+    wrapText(ctx, text, x + 26, y + 82, 800, 32, 2);
 }
 
 function formatShareTime(seconds) {

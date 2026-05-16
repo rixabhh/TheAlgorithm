@@ -8,7 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js" defer></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js" defer></script>
     <link rel="stylesheet" href="static/css/style.css">
-    <link rel="stylesheet" href="static/css/revamp.css?v=12">
+    <link rel="stylesheet" href="static/css/revamp.css?v=14">
     <style>
         /* Tooltip and micro-interaction additions */
         .trait-bar-container:hover .tooltip { opacity: 1; visibility: visible; }
@@ -21,6 +21,57 @@
             background: var(--pink);
             border-radius: 50%;
             box-shadow: 0 0 10px var(--pink);
+        }
+        @media (max-width: 900px) {
+            html, body, body.dashboard-body {
+                max-width: 100vw !important;
+                min-width: 0 !important;
+                overflow-x: hidden !important;
+                width: 100% !important;
+            }
+            body.dashboard-body .dashboard-wrapper,
+            body.dashboard-body .main-content,
+            body.dashboard-body .main-content > *,
+            body.dashboard-body #dashboard-sidebar {
+                box-sizing: border-box !important;
+                max-width: calc(100vw - 2rem) !important;
+                min-width: 0 !important;
+                overflow-x: hidden !important;
+                width: calc(100vw - 2rem) !important;
+            }
+            body.dashboard-body .dashboard-header,
+            body.dashboard-body .dashboard-stat-strip,
+            body.dashboard-body #section-source-quality .card {
+                box-sizing: border-box !important;
+                max-width: 100% !important;
+                min-width: 0 !important;
+                overflow-x: hidden !important;
+                width: 100% !important;
+            }
+            body.dashboard-body .dashboard-header .flex,
+            body.dashboard-body .dashboard-stat-strip {
+                display: grid !important;
+                gap: .45rem !important;
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                width: 100% !important;
+            }
+            body.dashboard-body .dashboard-header .btn,
+            body.dashboard-body .dashboard-stat-strip > * {
+                max-width: 100% !important;
+                min-width: 0 !important;
+                white-space: normal !important;
+                width: 100% !important;
+            }
+            #source-quality-title,
+            #source-quality-warnings {
+                overflow-wrap: anywhere !important;
+            }
+        }
+        @media (max-width: 480px) {
+            body.dashboard-body .dashboard-header .flex,
+            body.dashboard-body .dashboard-stat-strip {
+                grid-template-columns: 1fr !important;
+            }
         }
     </style>
 
@@ -681,7 +732,7 @@
 
 <!-- Scripts -->
 <script src="static/js/pages/dashboard_utils.js?v=5.0"></script>
-<script src="static/js/pages/dashboard.js?v=5.1"></script>
+<script src="static/js/pages/dashboard.js?v=5.3"></script>
 <script>
     (() => {
         const setCleanText = (selector, text) => {
@@ -694,24 +745,23 @@
         setCleanText('#shareLinkBtn', 'Share Report');
         setCleanText('#share-btn', 'Save Card');
         const navLabels = [
-            ['#section-verdict-summary', '01', 'Verdict'],
-            ['#section-receipts', '02', 'Receipts'],
-            ['#section-predictive', '03', 'Predictive'],
-            ['#section-ratios', '04', 'Data Ratios'],
-            ['#section-mood', '05', 'Mood Timeline'],
-            ['#section-social', '06', 'Social Dynamics'],
-            ['#section-quick-stats', '07', 'Quick Stats'],
-            ['#section-pattern-signals', 'SIG', 'Signals'],
-            ['#section-vibe', 'AI', 'Vibe Insights']
+            ['#section-overview', '01', 'Overview'],
+            ['#section-ratios', '02', 'Data Ratios'],
+            ['#section-mood', '03', 'Mood Timeline'],
+            ['#section-social', '04', 'Social Dynamics'],
+            ['#section-quick-stats', '05', 'Quick Stats'],
+            ['#section-pattern-signals', '06', 'Signals'],
+            ['#word-cloud', '07', 'Common Vibes'],
+            ['#section-vibe', 'AI', 'Deep Insights']
         ];
         const nav = document.querySelector('.sidebar-nav');
         if (nav) {
             nav.innerHTML = navLabels.map(([href, icon, label], index) => `<li><a href="${href}" class="${index === 0 ? 'active' : ''}"><span class="icon">${icon}</span> ${label}</a></li>`).join('');
         }
         const vibe = document.getElementById('section-vibe');
-        const sourceQuality = document.getElementById('section-source-quality');
-        if (vibe && sourceQuality?.nextSibling) {
-            sourceQuality.parentNode.insertBefore(vibe, sourceQuality.nextSibling);
+        const wordCloud = document.getElementById('word-cloud');
+        if (vibe && wordCloud?.parentNode && wordCloud.nextSibling !== vibe) {
+            wordCloud.parentNode.insertBefore(vibe, wordCloud.nextSibling);
         }
     })();
     function closeFlashback() {

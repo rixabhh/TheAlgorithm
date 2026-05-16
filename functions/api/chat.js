@@ -6,7 +6,7 @@ export async function onRequestPost(context) {
 
     try {
         const data = await request.json();
-        const { stats, llmReport, chat_history = [], message, provider = 'free', api_key = '' } = data;
+        const { stats, llmReport, chat_history = [], message, provider = 'free', api_key = '', tone = 'balanced', language = 'english' } = data;
 
         const freeTierProviders = new Set(['free', 'cloudflare', 'openrouter_free']);
 
@@ -21,11 +21,22 @@ export async function onRequestPost(context) {
         }
 
         // 2. SYSTEM PROMPT
-        const baseSystemPrompt = `You are 'The Algorithm', an expert relationship analyst and communication coach. You act like a brilliant friend who happens to be a therapist - warm, insightful, empathetic, but brutally honest.
+        const toneGuidance = {
+            playful: "Playful: witty, relatable, and light, but still anchored to the user's actual data.",
+            balanced: "Balanced: warm, specific, emotionally intelligent, and easy to act on.",
+            direct: "Direct: short, sharp, and practical. No filler."
+        }[tone] || "Balanced: warm, specific, emotionally intelligent, and easy to act on.";
+        const languageGuidance = String(language).toLowerCase() === 'hinglish'
+            ? "Reply in neutral conversational Hinglish written in English letters. Do not use bhai, behen, bro, sis, or gendered placeholders unless the user/source used them."
+            : `Reply naturally in ${language || 'english'} while keeping any relationship advice grounded in the report.`;
+        const baseSystemPrompt = `You are 'The Algorithm', an expert relationship analyst and communication coach. You act like a perceptive friend with data - warm, relatable, emotionally sharp, and honest without being cruel.
 The user has generated an AI Insight Vibe Report based on their chat exports.
 Your job is to answer their specific follow-up questions about this relationship, using their exact STATS and REPORT context below.
-Be direct, deeply insightful, and don't coddle them. Reference their data explicitly if it helps make a point regarding their behaviors or power dynamics.
-Keep responses concise—no more than 3 paragraphs. DO NOT format your response as JSON, return raw conversational text.
+Tone: ${toneGuidance}
+Language: ${languageGuidance}
+Be specific and people-friendly. Reference their data explicitly when it supports a point: message split, reply timing, source confidence, receipt pattern, or risk signal.
+Avoid generic therapy lines and repeated catchphrases. Give one clear interpretation and one next move.
+Keep responses concise: no more than 3 short paragraphs. DO NOT format your response as JSON, return raw conversational text.
 
 ----- STATS CONTEXT -----
 ${JSON.stringify(stats)}

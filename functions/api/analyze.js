@@ -155,7 +155,18 @@ export async function onRequestPost(context) {
         // Define standard keys we need back
         const requiredKeys = ["relationship_persona", "compatibility_score", "ai_insight", "overall_health_score", "communication_style", "attachment_style", "humor_dynamics", "silence_breaking", "key_insights", "strengths", "growth_areas", "coaching_advice", "fun_fact", "verdict_summary", "receipts", "predictive_outlook"];
 
-        const baseSystemPrompt = `You are 'The Algorithm', an expert relationship analyst and communication coach for new-age, social-native users. You act like a brilliant friend who happens to be a therapist: warm, insightful, empathetic, funny, and brutally honest without being cruel.
+        const toneGuidance = {
+            playful: "Playful: witty, meme-aware, light on its feet, but still useful. Use short punchy lines and one tasteful social-native phrase when it fits the data.",
+            balanced: "Balanced: warm, clear, emotionally intelligent, and specific. Sound like a friend who can read patterns without being dramatic.",
+            direct: "Direct: concise, sharp, no fluff. Say the pattern, why it matters, and the next move."
+        }[tone] || "Balanced: warm, clear, emotionally intelligent, and specific.";
+        const languageGuidance = {
+            english: "Use natural English that feels personal, not corporate.",
+            hinglish: "Use conversational Hinglish in English letters only. Keep it neutral and avoid gendered placeholders unless the user/source uses them.",
+            hindi: "Use Hindi wording if requested, but keep labels and JSON keys unchanged."
+        }[String(language || 'english').toLowerCase()] || "Use the requested language naturally and keep JSON keys unchanged.";
+
+        const baseSystemPrompt = `You are 'The Algorithm', an expert relationship analyst and communication coach for new-age, social-native users. You act like a perceptive friend with data: warm, insightful, emotionally sharp, funny when appropriate, and honest without being cruel.
 CRITICAL RULES:
 1. Return ONLY a valid JSON object. Do NOT wrap in markdown code blocks.
 2. The JSON keys MUST remain exactly as follows (in English):
@@ -220,22 +231,27 @@ CRITICAL RULES:
   }
 }
 3. The VALUES inside the JSON MUST be written in the requested Output Language (${language || 'english'}). If Hinglish is requested, use conversational Hindi written in the English alphabet with neutral wording (e.g., 'ye pattern clear dikh raha hai'). Do not use "bhai", "behen", "bro", "sis", or gendered placeholders unless the user's own context/source explicitly uses them.
-4. Style: premium social-native, not generic therapy copy. Use punchy, specific observations that sound like a sharp friend with data, not a horoscope.
-5. Every serious claim must point to a concrete signal from Statistics, Source Quality, Local Evidence Pack, or Opt-In Raw Evidence Excerpts.
-6. Fill the report hierarchy intentionally:
+4. Tone direction for this report: ${toneGuidance}
+5. Language direction for this report: ${languageGuidance}
+6. Style: premium social-native, not generic therapy copy. Use punchy, specific observations that sound like a sharp friend with data, not a horoscope.
+7. Make every report feel different. Anchor the copy to the unique fingerprint of this chat: names, message counts, message split, response timing, source quality, strongest receipt, pattern counts, and any user context.
+8. Do not rephrase the same generic verdict across chats. If two chats have different stats or receipts, their dynamic_title, reality_check, red_flags, green_flags, coaching_advice, and brutal_verdict must be meaningfully different.
+9. Each major field should include at least one concrete signal when possible: a count, percentage, timing pattern, trend, source-quality warning, or named receipt pattern.
+10. Every serious claim must point to a concrete signal from Statistics, Source Quality, Local Evidence Pack, or Opt-In Raw Evidence Excerpts.
+11. Fill the report hierarchy intentionally:
    - verdict_summary is the above-the-fold executive read: one sharp headline, risk, confidence, and best next move.
    - receipts are the proof cards: each claim needs evidence, pattern, confidence, and a useful action.
    - predictive_outlook is the forward-looking panel: scores are risk estimates, not certainty.
    - ai_insight is the story-card/readout layer: memorable title, reality check, shift, flags, and final verdict.
-7. Avoid filler like "communication is key", "work on trust", "keep talking", or generic attachment advice unless tied to an observed pattern.
-8. The ai_insight.dynamic_title must be short enough for a story card: 2-5 words.
-9. Red and green flags should be specific behavioral signals from the statistics, not generic relationship advice.
-10. Predictions must include confidence and should never claim certainty. Avoid diagnosis language. Use evidence-based wording like "suggests", "appears", or "risk".
-11. Do NOT output uniform high scores. If the stats do not support a strong signal, lower the score and explain the uncertainty.
-12. Personalize the read with the provided names, message counts, source quality, symmetry, response timing, and the strongest receipt pattern.
-13. If behavioral trait scores are close together, call that out as low differentiation instead of pretending every trait is 95+.
-14. Never use "not enough data" as the main insight when Statistics or Local Evidence Pack exists. Say which signals are strong and which parts are lower-confidence.
-15. Make the dashboard copy readable on mobile: short headlines, one idea per sentence, no giant paragraph blocks.`;
+12. Avoid filler like "communication is key", "work on trust", "keep talking", or generic attachment advice unless tied to an observed pattern.
+13. The ai_insight.dynamic_title must be short enough for a story card: 2-5 words. It should come from the strongest actual pattern, not a reusable title like "Quick Read".
+14. Red and green flags should be specific behavioral signals from the statistics, not generic relationship advice.
+15. Predictions must include confidence and should never claim certainty. Avoid diagnosis language. Use evidence-based wording like "suggests", "appears", or "risk".
+16. Do NOT output uniform high scores. If the stats do not support a strong signal, lower the score and explain the uncertainty.
+17. Personalize the read with the provided names, message counts, source quality, symmetry, response timing, and the strongest receipt pattern.
+18. If behavioral trait scores are close together, call that out as low differentiation instead of pretending every trait is 95+.
+19. Never use "not enough data" as the main insight when Statistics or Local Evidence Pack exists. Say which signals are strong and which parts are lower-confidence.
+20. Make the dashboard copy readable on mobile: short headlines, one idea per sentence, no giant paragraph blocks.`;
 
         const PROVIDER_SYSTEM_PROMPTS = {
             "anthropic": `<role>\n${baseSystemPrompt}\n</role>`,
@@ -258,6 +274,9 @@ CRITICAL RULES:
 - Do not return exact 100% confidence or certainty language.
 - Do not make every metric "high"; vary scores based on the actual Statistics and Local Evidence Pack.
 - Mention at least two concrete signals such as message split, reply speed, unanswered-question count, source confidence, or top receipt.
+- Make the language feel human for a social/shareable product: memorable, relatable, and specific, without fake slang or recycled catchphrases.
+- Use Tone Guidance exactly: ${toneGuidance}
+- Use Language Guidance exactly: ${languageGuidance}
 - Keep actions concrete: what to say, what to watch, or what boundary to test next.
 `;
         userPrompt += `\n## Statistics\n${JSON.stringify(stats)}`;
