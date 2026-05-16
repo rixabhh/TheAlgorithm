@@ -559,6 +559,29 @@ document.addEventListener('DOMContentLoaded', () => {
         saveBtn?.addEventListener('click', () => {
             const provider = providerEl.value || 'free';
             const key = apiKeyEl.value.trim();
+
+            let isKeyValid = true;
+            let keyError = '';
+
+            if (provider === 'openai' && !key.startsWith('sk-')) {
+                isKeyValid = false;
+                keyError = 'OpenAI keys must start with "sk-"';
+            } else if (provider === 'anthropic' && !key.startsWith('sk-ant-')) {
+                isKeyValid = false;
+                keyError = 'Anthropic keys must start with "sk-ant-"';
+            } else if (provider === 'gemini' && key.length !== 39) {
+                isKeyValid = false;
+                keyError = 'Gemini keys must be exactly 39 characters';
+            } else if (provider === 'openrouter' && key.length < 20) {
+                isKeyValid = false;
+                keyError = 'OpenRouter keys look too short';
+            }
+
+            if (!isKeyValid) {
+                alert(`Invalid API Key format: ${keyError}.`);
+                return;
+            }
+
             localStorage.setItem('llm_provider', provider);
             sessionStorage.setItem('_llm_token', btoa(unescape(encodeURIComponent(key))));
             if (rawConsentEl) {
