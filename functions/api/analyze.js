@@ -6,12 +6,8 @@ export async function onRequestPost(context) {
 
     try {
         const data = await request.json();
-        const { stats, my_name, partner_name, connection_type, language, context, compare_data, provider = 'free', api_key = '', evidence_pack = null, source_quality = null, privacy_mode = 'stats_only', raw_excerpt_pack = null } = data;
+        const { stats, my_name, partner_name, connection_type, language, context, compare_data, provider = 'free', api_key = '', evidence_pack = null, source_quality = null } = data;
         const tone = data.tone || 'balanced';
-
-        if (raw_excerpt_pack && privacy_mode !== 'opt_in_raw') {
-            return new Response(JSON.stringify({ error: "Raw excerpts require opt-in raw evidence mode." }), { status: 400 });
-        }
 
         const clampHeuristic = (value, fallback = 70) => {
             const num = Number(value);
@@ -155,7 +151,7 @@ export async function onRequestPost(context) {
         // Define standard keys we need back
         const requiredKeys = ["relationship_persona", "compatibility_score", "ai_insight", "overall_health_score", "communication_style", "attachment_style", "humor_dynamics", "silence_breaking", "key_insights", "strengths", "growth_areas", "coaching_advice", "fun_fact", "verdict_summary", "receipts", "predictive_outlook"];
 
-        const baseSystemPrompt = `You are 'The Algorithm', an expert relationship analyst and communication coach for new-age, social-native users. You act like a brilliant friend who happens to be a therapist: warm, insightful, empathetic, funny, and brutally honest without being cruel.
+        const baseSystemPrompt = `You are 'The Algorithm', an expert relationship analyst and communication coach for new-age, social-native users. You act like a brilliant friend who happens to be a therapist: warm, insightful, empathetic, funny, and brutally honest without being cruel. Do not just offer generic advice like "communicate more" - be incredibly specific based on the exact statistics provided. If you see a power imbalance, call it out directly but kindly.
 CRITICAL RULES:
 1. Return ONLY a valid JSON object. Do NOT wrap in markdown code blocks.
 2. The JSON keys MUST remain exactly as follows (in English):
@@ -239,6 +235,7 @@ CRITICAL RULES:
 
         const PROVIDER_SYSTEM_PROMPTS = {
             "anthropic": `<role>\n${baseSystemPrompt}\n</role>`,
+            "gemini": `${baseSystemPrompt}\nCRITICAL: Return ONLY valid JSON. Do not use Markdown formatting like \`\`\`json.`,
             "default": baseSystemPrompt
         };
         const systemPrompt = PROVIDER_SYSTEM_PROMPTS[provider] || PROVIDER_SYSTEM_PROMPTS["default"];
@@ -263,9 +260,6 @@ CRITICAL RULES:
         userPrompt += `\n## Statistics\n${JSON.stringify(stats)}`;
         if (source_quality) userPrompt += `\n\n## Source Quality\n${JSON.stringify(source_quality)}`;
         if (evidence_pack) userPrompt += `\n\n## Local Evidence Pack\n${JSON.stringify(evidence_pack)}`;
-        if (raw_excerpt_pack && privacy_mode === 'opt_in_raw') {
-            userPrompt += `\n\n## Opt-In Raw Evidence Excerpts\nThe user explicitly enabled raw evidence mode. Use only these short scrubbed excerpts as supporting evidence; do not quote more than needed.\n${JSON.stringify(raw_excerpt_pack)}`;
-        }
         
         if (compare_data) {
             userPrompt = `COMPARE two anonymous chat statistics for ${my_name}.
@@ -290,7 +284,17 @@ CRITICAL RULES:
             clearTimeout(timeoutId);
 
             const parseResponse = (text) => {
-                const match = text.match(/\{[\s\S]*\}/);
+                let cleanedText = text.trim();
+                if (cleanedText.startsWith('```json')) {
+                    cleanedText = cleanedText.replace(/^```json/, '');
+                }
+                if (cleanedText.startsWith('```')) {
+                    cleanedText = cleanedText.replace(/^```/, '');
+                }
+                if (cleanedText.endsWith('```')) {
+                    cleanedText = cleanedText.replace(/```$/, '');
+                }
+                const match = cleanedText.match(/\{[\s\S]*\}/);
                 if (match) {
                     try {
                         const parsed = JSON.parse(match[0]);
@@ -312,11 +316,12 @@ CRITICAL RULES:
                 const canRetry = provider !== 'cloudflare' && (api_key || provider === 'free' || provider === 'openrouter_free');
                 if (!report && canRetry) {
                     // Try one more time with a stricter prompt if parsing failed
-                    const stricterUserPrompt = userPrompt + "\n\nWARNING: Your previous response failed validation. You MUST return ONLY a valid JSON object matching the requested schema. No conversational text.";
+                    const stricterSystemPrompt = systemPrompt + "\n\nCRITICAL ERROR: Your previous response was either not valid JSON or missing required fields. YOU MUST ONLY RETURN RAW JSON WITH NO MARKDOWN BLOCK FORMATTING OR PREAMBLE.";
+                    const stricterUserPrompt = userPrompt + "\n\nWARNING: Your previous response failed validation. You MUST return ONLY a valid JSON object matching the requested schema. No conversational text. DO NOT WRAP IN BACKTICKS.";
                     const retryController = new AbortController();
                     const retryTimeoutId = setTimeout(() => retryController.abort(), 30000);
                     try {
-                        const retryResponseText = await makeLLMCall(provider, api_key, systemPrompt, stricterUserPrompt, env, retryController.signal);
+                        const retryResponseText = await makeLLMCall(provider, api_key, stricterSystemPrompt, stricterUserPrompt, env, retryController.signal);
                         report = parseResponse(retryResponseText);
                     } catch (retryErr) {
                         console.error("Retry failed:", retryErr);
