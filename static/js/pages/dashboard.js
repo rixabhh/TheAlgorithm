@@ -1240,92 +1240,48 @@ function wrapText(ctx, text, x, y, maxWidth, lineHeight, maxLines = 4) {
 
 function generateShareCard(analysisData) {
   const canvas = document.createElement('canvas');
-  canvas.width = 1080;
-  canvas.height = 1920;
+  canvas.width = 1200;
+  canvas.height = 630; // OG image dimensions
   const ctx = canvas.getContext('2d');
+
+  // Extract data with fallbacks
   const active = window.activeData || {};
-  const stats = active.stats || {};
   const report = window.llmReport || {};
   const ai = report.ai_insight || {};
-  const messages = stats.messages || {};
-  const meTotal = messages.ME || 0;
-  const partnerTotal = messages.PARTNER || 0;
-  const total = meTotal + partnerTotal;
-  const mePct = total ? Math.round(meTotal / total * 100) : 50;
-  const partnerPct = 100 - mePct;
+
+  // Safe fallbacks for display
   const healthScore = formatHeuristicScore(ai.health_score || report.overall_health_score || analysisData.health_score || 0, { suffix: "", plusAtMax: true });
-  const predictive = report.predictive_outlook || active.evidence_pack?.predictive_outlook || {};
-  const dropOffRisk = predictive.drop_off_risk !== undefined ? formatHeuristicScore(predictive.drop_off_risk) : null;
-  const init = stats.initiator_ratio || {};
-  const avgReply = [init.me_latency_avg, init.partner_latency_avg]
-    .filter(v => Number.isFinite(Number(v)) && Number(v) >= 0)
-    .reduce((acc, v, _, arr) => acc + Number(v) / arr.length, 0);
-  const replyText = avgReply ? formatShareTime(avgReply) : '--';
-  const redFlag = ai.red_flags?.[0] || report.growth_areas?.[0] || 'No major red flag detected.';
-  const topReceipt = report.receipts?.[0] || active.evidence_pack?.receipts?.[0];
-  const greenFlag = topReceipt?.claim || ai.green_flags?.[0] || report.strengths?.[0] || 'There is enough signal to read the vibe.';
-  const title = ai.dynamic_title || report.relationship_persona || 'Vibe Check';
-  const finalWord = ai.brutal_verdict || analysisData.top_insight || 'The chat has spoken.';
+  const topInsight = ai.brutal_verdict || analysisData.top_insight || "Your chat data has been decoded.";
 
-  const gradient = ctx.createLinearGradient(0, 0, 1080, 1920);
-  gradient.addColorStop(0, '#ffe8b8');
-  gradient.addColorStop(0.42, '#ff4d8d');
-  gradient.addColorStop(1, '#6d28d9');
+  // Dark gradient background
+  const gradient = ctx.createLinearGradient(0, 0, 1200, 630);
+  gradient.addColorStop(0, '#1a0a2e');
+  gradient.addColorStop(1, '#0f0a1e');
   ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, 1080, 1920);
+  ctx.fillRect(0, 0, 1200, 630);
 
-  ctx.fillStyle = '#17150f';
-  ctx.fillRect(54, 54, 972, 1812);
-  ctx.fillStyle = '#fff8ed';
-  ctx.fillRect(76, 76, 928, 1768);
-  ctx.fillStyle = '#ffe16d';
-  ctx.fillRect(76, 76, 928, 20);
-  ctx.fillStyle = '#ff4d8d';
-  ctx.fillRect(76, 1824, 928, 20);
+  // Logo / branding
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 48px Inter, sans-serif';
+  ctx.fillText('The Algorithm', 60, 100);
 
-  drawPill(ctx, 'THE ALGORITHM', 112, 126, '#17150f', '#ffe16d', 30);
-  drawPill(ctx, ai.vibe_label || 'VIBE CHECK', 112, 208, '#ff4d8d', '#ffffff', 26);
+  // Health score
+  ctx.fillStyle = '#a855f7';
+  ctx.font = 'bold 120px Inter, sans-serif';
+  ctx.fillText(`${healthScore}`, 60, 260);
+  ctx.fillStyle = '#ffffff80';
+  ctx.font = '32px Inter, sans-serif';
+  ctx.fillText('relationship health score', 60, 310);
 
-  ctx.fillStyle = '#17150f';
-  ctx.font = '900 82px Arial, sans-serif';
-  wrapText(ctx, title.toUpperCase(), 112, 342, 856, 88, 3);
+  // Top insight
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '28px Inter, sans-serif';
+  wrapText(ctx, topInsight, 60, 400, 1080, 40);
 
-  ctx.fillStyle = '#6d28d9';
-  ctx.font = '900 170px Arial, sans-serif';
-  ctx.fillText(`${healthScore || '--'}`, 112, 660);
-  ctx.fillStyle = '#17150f';
-  ctx.font = '900 32px Arial, sans-serif';
-  ctx.fillText('signal score', 430, 642);
-
-  drawMetric(ctx, 'Messages', total.toLocaleString(), 112, 760, '#ffffff');
-  drawMetric(ctx, 'Duration', stats.duration || '--', 560, 760, '#fff4cc');
-  drawMetric(ctx, 'Reply speed', replyText, 112, 930, '#ffe8f0');
-  drawMetric(ctx, 'Balance', stats.symmetry?.label || `${mePct}/${partnerPct}`, 560, 930, '#eee3ff');
-
-  ctx.fillStyle = '#17150f';
-  ctx.font = '900 28px Arial, sans-serif';
-  wrapText(ctx, `${active.my_name || 'You'} ${mePct}% / ${active.partner_name || 'Them'} ${partnerPct}% of ${total.toLocaleString()} messages`, 112, 1162, 856, 36, 2);
-  ctx.fillStyle = '#e9ddc8';
-  ctx.fillRect(112, 1232, 856, 46);
-  ctx.fillStyle = '#17150f';
-  ctx.fillRect(112, 1232, 856 * mePct / 100, 46);
-  ctx.fillStyle = '#ff4d8d';
-  ctx.fillRect(112 + 856 * mePct / 100, 1232, 856 * partnerPct / 100, 46);
-
-  drawInsightBox(ctx, 'WATCH THIS', redFlag, 112, 1340, '#ffe1e6');
-  drawInsightBox(ctx, 'STRONG SIGNAL', greenFlag, 112, 1500, '#e6ffe9');
-
-  ctx.fillStyle = '#17150f';
-  ctx.font = '900 28px Arial, sans-serif';
-  ctx.fillText(`PREDICTION: ${dropOffRisk ? dropOffRisk + ' DROP-OFF RISK' : 'WATCH THE TREND'}`, 112, 1700);
-  ctx.fillStyle = '#fff4cc';
-  ctx.fillRect(112, 1732, 856, 74);
-  ctx.strokeStyle = '#17150f';
-  ctx.lineWidth = 5;
-  ctx.strokeRect(112, 1732, 856, 74);
-  ctx.fillStyle = '#17150f';
-  ctx.font = '800 30px Arial, sans-serif';
-  wrapText(ctx, finalWord, 136, 1778, 808, 36, 2);
+  // Footer
+  ctx.fillStyle = '#ffffff40';
+  ctx.font = '24px Inter, sans-serif';
+  ctx.fillText('thealgorithm.rixabh.workers.dev', 60, 590);
 
   return canvas.toDataURL('image/png');
 }
