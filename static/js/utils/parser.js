@@ -38,6 +38,8 @@ class ChatParser {
         if (lowerName.endsWith('.json')) {
             // Check content structure if needed, or rely on user choice
             // Defaulting to JSON platform based on what app.js handles
+
+            if (content.includes('"type": "message"') && content.includes('"ts":')) return 'Slack';
             if (content.includes('"author":') && content.includes('"timestamp":')) return 'Discord';
             if (content.includes('"sender_name":') && content.includes('"timestamp_ms":')) return 'Instagram';
             return 'JSON';
@@ -215,6 +217,40 @@ class ChatParser {
     /**
      * Parses Discord (.json)
      */
+
+    /**
+     * Parses Slack (.json)
+     */
+    parseSlack(jsonData) {
+        const messages = [];
+        const data = typeof jsonData === 'string' ? JSON.parse(jsonData) : jsonData;
+
+        // Slack exports usually have an array of messages
+        const msgArray = Array.isArray(data) ? data : [];
+
+        if (msgArray && Array.isArray(msgArray)) {
+            for (const msg of msgArray) {
+                if (messages.length >= 50000) break;
+                // Slack uses 'user_profile.real_name', 'user_profile.display_name', 'user', or 'bot_id'
+                const sender = msg.user_profile?.real_name || msg.user_profile?.display_name || msg.user || msg.username || msg.bot_id || "UNKNOWN";
+                const text = msg.text || "";
+                const ts = msg.ts; // Slack timestamp is a string representing seconds since epoch
+
+                if (ts && text) {
+                    const tsMs = parseFloat(ts) * 1000;
+                    const timestamp = new Date(tsMs);
+                    if (isNaN(timestamp.getTime())) continue;
+                    messages.push({
+                        timestamp,
+                        sender: sender,
+                        text: text
+                    });
+                }
+            }
+        }
+        return messages;
+    }
+
     parseDiscord(jsonData) {
         const messages = [];
         const data = typeof jsonData === 'string' ? JSON.parse(jsonData) : jsonData;
