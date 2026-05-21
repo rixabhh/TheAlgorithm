@@ -383,7 +383,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 const chunk = file.slice(0, 500000);
                 const content = await chunk.text();
                 const parser = new ChatParser();
-                const platform = parser.detect(content, fileName);
+                let platform = '📄';
+                try {
+                    platform = parser.detect(content, fileName);
+                } catch (e) {
+                    // Fallback to text document without logging sensitive data
+                }
 
                 // Estimate message count roughly (newlines for txt, divs for html)
                 let messageCountStr = '...';
@@ -877,11 +882,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (inputMode === 'export') {
                     const file = fileInput.files[0];
-                    if (file.size > 20 * 1024 * 1024) {
-                        showError('File too large. Max 20MB. Try exporting a shorter date range.');
+                    if (file.size > 10 * 1024 * 1024) {
+                        showError('File too large. Max 10MB. Try exporting a shorter date range.');
                         resetFormState();
                         return;
                     }
+
+                    const fileName = file.name.toLowerCase();
+                    if (!fileName.endsWith('.txt') && !fileName.endsWith('.html') && !fileName.endsWith('.json')) {
+                        showError('Invalid file type. Only .txt, .html, and .json files are supported.');
+                        resetFormState();
+                        return;
+                    }
+
                     setProgressText('Reading export...');
                     const content = await file.text();
                     const jsonPlat = document.getElementById('jsonPlatform') ? document.getElementById('jsonPlatform').value : 'Instagram';
