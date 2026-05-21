@@ -22,19 +22,30 @@ export async function onRequestPost(context) {
         const sourceScore = clampHeuristic(source_quality?.score || evidence_pack?.predictive_outlook?.confidence, 60);
 
         const freeTierProviders = new Set(['free', 'cloudflare', 'openrouter_free']);
+        const isFree = freeTierProviders.has(provider);
 
-        // 1. RATE LIMITING & GLOBAL STATS (KV-based, shared free tier)
-        if (freeTierProviders.has(provider) && env.KV_RATELIMIT) {
+        // 1. RATE LIMITING & GLOBAL STATS (KV-based, shared across all tiers)
+        if (env.KV_RATELIMIT) {
             const limitKey = `ratelimit_${ip}`;
             const current = await env.KV_RATELIMIT.get(limitKey);
             const count = current ? parseInt(current) : 0;
-            if (count >= 2) return new Response(JSON.stringify({ error: "Free tier limit reached (2/hr). Wait or use BYOK." }), { status: 429 });
+            const maxLimit = isFree ? 2 : 10;
+
+            if (count >= maxLimit) {
+                const errorMsg = isFree
+                    ? "Free tier limit reached (2/hr). Wait or use BYOK."
+                    : "Rate limit reached (10/hr). Please try again later.";
+                return new Response(JSON.stringify({ error: errorMsg }), { status: 429 });
+            }
+
             await env.KV_RATELIMIT.put(limitKey, (count + 1).toString(), { expirationTtl: 3600 });
             
             // Increment global stats counter
-            const globalCountKey = 'global_stats_chats_count';
-            const globalCount = await env.KV_RATELIMIT.get(globalCountKey) || '0';
-            await env.KV_RATELIMIT.put(globalCountKey, (parseInt(globalCount) + 1).toString());
+            if (isFree) {
+                const globalCountKey = 'global_stats_chats_count';
+                const globalCount = await env.KV_RATELIMIT.get(globalCountKey) || '0';
+                await env.KV_RATELIMIT.put(globalCountKey, (parseInt(globalCount) + 1).toString());
+            }
         }
 
         const makeFallbackReport = () => {
