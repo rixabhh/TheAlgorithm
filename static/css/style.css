@@ -515,9 +515,10 @@ h3 { font-size: clamp(1.1rem, 2vw, 1.5rem); }
     position: relative;
     line-height: 1.2;
 }
-.btn:hover {
+.btn:hover, .btn:focus-visible {
     box-shadow: var(--shadow-hover);
-    transform: translate(-1px, -1px);
+    transform: translate(-1px, -1px) scale(1.02);
+    outline: none;
 }
 .btn:active {
     box-shadow: var(--shadow-active);
@@ -672,6 +673,8 @@ h3 { font-size: clamp(1.1rem, 2vw, 1.5rem); }
 .field-input:focus {
     box-shadow: 2px 2px 0 0 var(--purple);
     background: var(--white);
+    transform: scale(1.01);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 .field-input::placeholder {
     color: var(--gray-400);
