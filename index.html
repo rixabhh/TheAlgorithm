@@ -340,6 +340,7 @@
                             <p style="font-weight:700;margin-bottom:.5rem;font-size:.9rem">Drop your export here</p>
                             <label for="chatFile" class="btn btn--purple" style="font-size:.65rem;padding:.3rem .85rem;cursor:pointer;margin:0">Browse Files</label>
                             <input type="file" id="chatFile" class="sr-only" accept=".txt,.html,.json">
+                            <p style="font-size:0.75rem; color:var(--gray-500); text-align:center; margin-top:0.75rem; margin-bottom:0; font-weight:600;">🔒 Processed locally in browser</p>
                         </div>
                     </div>
 
@@ -659,7 +660,7 @@
 <!-- Compare Setup Modal -->
 <div id="compareModal" class="modal-backdrop" role="dialog" aria-modal="true">
     <div class="modal-content" style="max-width:600px">
-        <button id="closeCompare" class="modal-close">&times;</button>
+        <button id="closeCompare" class="modal-close" aria-label="Close modal">&times;</button>
         
         <div class="mb-6">
             <h2 style="font-size:1.8rem; margin-bottom:0.5rem">Compare Setup</h2>
