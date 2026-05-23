@@ -579,13 +579,14 @@
                 <label for="llmProvider" style="display:block;font-weight:700;font-size:.8rem;text-transform:uppercase;margin-bottom:.35rem">Execution Engine</label>
                 <select id="llmProvider" class="field-input">
                     <option value="free" selected>Free insights (2/hr)</option>
+                    <option value="cloudflare">Cloudflare Workers AI</option>
                     <option value="openrouter">OpenRouter (Bring your own key)</option>
                     <option value="openai">OpenAI (GPT-4o)</option>
                     <option value="anthropic">Anthropic (Claude 3.5)</option>
                     <option value="gemini">Google (Gemini 2.5 Flash)</option>
                     <option value="grok">xAI (Grok-2)</option>
-                    <option value="cohere">Cohere</option>
                     <option value="mistral">Mistral AI</option>
+                    <option value="cohere">Cohere</option>
                 </select>
                 <p id="providerSelectionStatus" class="provider-selection-status" aria-live="polite"></p>
             </div>

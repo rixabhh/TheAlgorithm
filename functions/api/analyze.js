@@ -1,11 +1,12 @@
 import { makeLLMCall } from './llm_helper.js';
 
-export async function onRequestPost(context) {
-    const { request, env } = context;
+export async function onRequestPost(ctx) {
+    const { request, env } = ctx;
     const ip = request.headers.get('cf-connecting-ip') || 'unknown';
+    let data; // Declare data outside try block to access in catch
 
     try {
-        const data = await request.json();
+        data = await request.json();
         const { stats, my_name, partner_name, connection_type, language, context, compare_data, provider = 'free', api_key = '', evidence_pack = null, source_quality = null, privacy_mode = 'stats_only', raw_excerpt_pack = null } = data;
         const tone = data.tone || 'balanced';
 
@@ -255,6 +256,7 @@ CRITICAL RULES:
 
         const PROVIDER_SYSTEM_PROMPTS = {
             "anthropic": `<role>\n${baseSystemPrompt}\n</role>`,
+            "gemini": `${baseSystemPrompt}\n\nIMPORTANT: You must return ONLY a raw JSON object. Do NOT wrap the response in markdown blocks (e.g. \`\`\`json). Start directly with { and end with }.`,
             "default": baseSystemPrompt
         };
         const systemPrompt = PROVIDER_SYSTEM_PROMPTS[provider] || PROVIDER_SYSTEM_PROMPTS["default"];
@@ -375,6 +377,11 @@ CRITICAL RULES:
         let errorMsg = e.message || "Analysis failed. Check your API key and try again.";
         // Mask any API keys that might have leaked in the error message
         errorMsg = errorMsg.replace(/sk-[a-zA-Z0-9_-]+/g, 'sk-...');
+        errorMsg = errorMsg.replace(/xai-[a-zA-Z0-9_-]+/g, 'xai-...');
+        // Strictly redact the exact api_key used, but do not re-read from stream
+        if (typeof data !== 'undefined' && data?.api_key && data.api_key.length > 5) {
+            errorMsg = errorMsg.split(data.api_key).join(data.api_key.substring(0, 4) + '...');
+        }
         return new Response(JSON.stringify({ error: errorMsg }), { status: 500 });
     }
 }
