@@ -3,9 +3,10 @@ import { makeChatLLMCall } from './llm_helper.js';
 export async function onRequestPost(context) {
     const { request, env } = context;
     const ip = request.headers.get('cf-connecting-ip') || 'unknown';
+    let data;
 
     try {
-        const data = await request.json();
+        data = await request.json();
         const { stats, llmReport, chat_history = [], message, provider = 'free', api_key = '', tone = 'balanced', language = 'english' } = data;
 
         const freeTierProviders = new Set(['free', 'cloudflare', 'openrouter_free']);
@@ -77,6 +78,11 @@ ${JSON.stringify(llmReport)}
         let errorMsg = e.message || "Chat failed. Check your API key and try again.";
         // Mask any API keys that might have leaked in the error message
         errorMsg = errorMsg.replace(/sk-[a-zA-Z0-9_-]+/g, 'sk-...');
+        errorMsg = errorMsg.replace(/xai-[a-zA-Z0-9_-]+/g, 'xai-...');
+        // Strictly redact the exact api_key used, but do not re-read from stream
+        if (typeof data !== 'undefined' && data?.api_key && data.api_key.length > 5) {
+            errorMsg = errorMsg.split(data.api_key).join(data.api_key.substring(0, 4) + '...');
+        }
         return new Response(JSON.stringify({ error: errorMsg }), { status: 500 });
     }
 }

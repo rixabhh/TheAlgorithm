@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
         openai: 'OpenAI keys usually start with sk-.',
         anthropic: 'Anthropic keys usually start with sk-ant-.',
         gemini: 'Paste a Google AI Studio API key.',
-        grok: 'Paste an xAI API key.',
+        grok: 'xAI API Key starts with xai-.',
         groq: 'Paste a Groq API key.',
         mistral: 'Paste a Mistral API key.',
         cohere: 'Paste a Cohere API key.'

@@ -528,7 +528,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const hfContainer = document.getElementById('hfUrlContainer');
         const apiKeyContainer = document.getElementById('apiKeyContainer');
         if (!hintEl) return;
-        const hints = { 'free': 'Free insights are rate-limited and need no setup.', 'cloudflare': 'Free insights fallback (2 reports/hr)', 'openrouter_free': 'Legacy free insights route.', 'openai': 'sk-...', 'anthropic': 'sk-ant-...', 'gemini': '39-char API Key', 'mistral': 'API Key', 'grok': 'xAI API Key', 'openrouter': 'OpenRouter API Key', 'cohere': 'Cohere API Key' };
+        const hints = { 'free': 'Free insights are rate-limited and need no setup.', 'cloudflare': 'Free insights fallback (2 reports/hr)', 'openrouter_free': 'Legacy free insights route.', 'openai': 'sk-...', 'anthropic': 'sk-ant-...', 'gemini': '39-char API Key', 'mistral': 'Mistral API Key', 'grok': 'xai-...', 'openrouter': 'OpenRouter API Key', 'cohere': 'Cohere API Key' };
         hintEl.textContent = hints[provider] || '';
         if (selectionStatus) {
             const isReady = isFreeProvider(provider);
@@ -815,6 +815,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else if (provider === 'gemini' && rawKey.length !== 39) {
                     isKeyValid = false;
                     keyError = 'Gemini keys must be exactly 39 characters';
+                } else if (provider === 'grok' && !rawKey.startsWith('xai-')) {
+                    isKeyValid = false;
+                    keyError = 'Grok (xAI) keys must start with "xai-"';
                 } else if (provider === 'openrouter' && rawKey.length < 20) {
                     isKeyValid = false;
                     keyError = 'OpenRouter keys look too short';
