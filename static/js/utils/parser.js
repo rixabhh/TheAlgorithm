@@ -40,6 +40,7 @@ class ChatParser {
             // Defaulting to JSON platform based on what app.js handles
             if (content.includes('"author":') && content.includes('"timestamp":')) return 'Discord';
             if (content.includes('"sender_name":') && content.includes('"timestamp_ms":')) return 'Instagram';
+            if (content.includes('"ts":')) return 'Slack';
             return 'JSON';
         }
 
@@ -200,6 +201,38 @@ class ChatParser {
 
                 if (tsMs && text) {
                     const timestamp = new Date(tsMs);
+                    if (isNaN(timestamp.getTime())) continue;
+                    messages.push({
+                        timestamp,
+                        sender: sender,
+                        text: text
+                    });
+                }
+            }
+        }
+        return messages;
+    }
+
+    /**
+     * Parses Slack (.json)
+     */
+    parseSlack(jsonData) {
+        const messages = [];
+        const data = typeof jsonData === 'string' ? JSON.parse(jsonData) : jsonData;
+
+        // Slack exports can be a list of messages directly
+        const msgArray = Array.isArray(data) ? data : (data.messages || []);
+
+        if (msgArray && Array.isArray(msgArray)) {
+            for (const msg of msgArray) {
+                if (messages.length >= 50000) break;
+                // Sometimes Slack has user profiles or real names attached, fallback to user ID
+                const sender = msg.user_profile?.real_name || msg.user_profile?.name || msg.user || "UNKNOWN";
+                const text = msg.text || "";
+                const tsStr = msg.ts;
+
+                if (tsStr && text) {
+                    const timestamp = new Date(parseFloat(tsStr) * 1000);
                     if (isNaN(timestamp.getTime())) continue;
                     messages.push({
                         timestamp,
