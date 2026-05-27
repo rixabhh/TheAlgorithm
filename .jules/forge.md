@@ -1,0 +1,4 @@
+## 2024-05-27 — Stack Mismatch & CI/CD Preview Environments
+**Discovery:** The initial developer experience prompts assumed a Python/Docker and HuggingFace Spaces architecture, but the project is actually a Cloudflare Pages Node.js application. Additionally, CI/CD was lacking formatters and pull request preview deployments.
+**Impact:** Misleading setup instructions and missing configuration led to unnecessary friction for contributors trying to run the app or format code, and prevented automated preview deployments on PRs.
+**Action:** Created `CONTRIBUTING.md` to accurately describe the JS/Cloudflare stack. Implemented `prettier` with a `Makefile` `format` command. Updated GitHub Actions to run on PRs, including conditional preview deployments using Wrangler, handling PR forks cleanly by checking for secrets.

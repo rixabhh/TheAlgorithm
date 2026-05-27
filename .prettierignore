@@ -1,0 +1,9 @@
+# Strictly exclude core logic files from automatic formatting.
+# The `functions/` directory contains strict Zero-Knowledge API logic
+# and `.html` / `static/` files contain customized Neo-Brutalist inline
+# styles and native animations. Formatting these can inadvertently alter
+# logic boundaries or styling intent.
+functions/
+static/
+*.html
+.jules/
