@@ -1,4 +1,4 @@
-.PHONY: dev preview test deploy
+.PHONY: dev preview test deploy format
 
 dev:
 	npm run dev
@@ -8,6 +8,9 @@ preview:
 
 test:
 	npm test
+
+format:
+	npm run format
 
 deploy:
 	npm run deploy
