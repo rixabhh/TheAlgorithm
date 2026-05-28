@@ -1,0 +1,5 @@
+## YYYY-MM-DD — Security Header Missing & Weak Rate Limiting
+**Vulnerability/Gap:** The application was missing basic security headers (CSP, X-Frame-Options, X-Content-Type-Options) globally, lacked rate limiting for BYOK configurations, leaked API keys in error catch blocks if the input caused a specific JSON failure, and did not scrub deeper PII structures (Credit Cards, SSN, IBAN) from raw evidence mode prior to LLM submission.
+**Root Cause:** Security headers were not attached to static Cloudflare pages or API endpoints, and there was no separate Cloudflare KV rate limiting configuration for BYOK API models compared to free tiers. PII scrubbing focused purely on emails/phones/links.
+**Fix Applied:** Added a `_headers` file and `_middleware.js` to enforce strict response headers. Added custom KV rate-limiting limits for BYOK (30/hr for analyze, 50/hr for chat). Prevented API Key leaks in Cloudflare API functions. Upgraded client-side string `replace()` filtering to scrub expanded PII patterns.
+**Remaining Risk:** Memory exhaustion through excessive file input lengths still needs better limits, and file chunk parsing could be further tightened.

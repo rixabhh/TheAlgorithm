@@ -347,6 +347,10 @@ class ConversationIntelligence {
             .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, '[email]')
             .replace(/\+?\d[\d\s().-]{7,}\d/g, '[phone]')
             .replace(/https?:\/\/\S+/gi, '[link]')
+            .replace(/\b(?:\d[ -]*?){13,16}\b/g, '[card]') // Basic credit card matching
+            .replace(/\b\d{3}-\d{2}-\d{4}\b/g, '[ssn]') // US SSN
+            .replace(/[a-zA-Z]{2}[0-9]{2}[a-zA-Z0-9]{4}[0-9]{7}([a-zA-Z0-9]?){0,16}/gi, '[iban]') // Basic IBAN
+            .replace(/\b(?:[A-Z]{1,2}\d{6,9})\b/g, '[id]') // Generic Passport/ID
             .slice(0, 240);
         return {
             version: 1,
