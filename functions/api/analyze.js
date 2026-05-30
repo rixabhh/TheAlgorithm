@@ -4,8 +4,14 @@ export async function onRequestPost(context) {
     const { request, env } = context;
     const ip = request.headers.get('cf-connecting-ip') || 'unknown';
 
+    let data;
     try {
-        const data = await request.json();
+        data = await request.json();
+    } catch (e) {
+        return new Response(JSON.stringify({ error: "Invalid JSON body" }), { status: 400 });
+    }
+
+    try {
         const { stats, my_name, partner_name, connection_type, language, context, compare_data, provider = 'free', api_key = '', evidence_pack = null, source_quality = null, privacy_mode = 'stats_only', raw_excerpt_pack = null } = data;
         const tone = data.tone || 'balanced';
 
@@ -155,6 +161,21 @@ export async function onRequestPost(context) {
         // Define standard keys we need back
         const requiredKeys = ["relationship_persona", "compatibility_score", "ai_insight", "overall_health_score", "communication_style", "attachment_style", "humor_dynamics", "silence_breaking", "key_insights", "strengths", "growth_areas", "coaching_advice", "fun_fact", "verdict_summary", "receipts", "predictive_outlook"];
 
+        const validateAnalysisResponse = (parsed) => {
+            if (!parsed) return false;
+            // Check top level
+            if (!requiredKeys.every(k => Object.hasOwn(parsed, k))) return false;
+
+            // Check essential nested fields (at minimum these should exist)
+            if (!parsed.communication_style || typeof parsed.communication_style !== 'object' || !('dominant_pattern' in parsed.communication_style)) return false;
+            if (!parsed.attachment_style || typeof parsed.attachment_style !== 'object' || !('person_1' in parsed.attachment_style)) return false;
+            if (!parsed.verdict_summary || typeof parsed.verdict_summary !== 'object' || !('headline' in parsed.verdict_summary)) return false;
+            if (!Array.isArray(parsed.key_insights) || !Array.isArray(parsed.receipts)) return false;
+            if (!parsed.ai_insight || typeof parsed.ai_insight !== 'object' || !('dynamic_title' in parsed.ai_insight)) return false;
+
+            return true;
+        };
+
         const toneGuidance = {
             playful: "Playful: witty, meme-aware, light on its feet, but still useful. Use short punchy lines and one tasteful social-native phrase when it fits the data.",
             balanced: "Balanced: warm, clear, emotionally intelligent, and specific. Sound like a friend who can read patterns without being dramatic.",
@@ -166,7 +187,7 @@ export async function onRequestPost(context) {
             hindi: "Use Hindi wording if requested, but keep labels and JSON keys unchanged."
         }[String(language || 'english').toLowerCase()] || "Use the requested language naturally and keep JSON keys unchanged.";
 
-        const baseSystemPrompt = `You are 'The Algorithm', an expert relationship analyst and communication coach for new-age, social-native users. You act like a perceptive friend with data: warm, insightful, emotionally sharp, funny when appropriate, and honest without being cruel.
+        const baseSystemPrompt = `You are 'The Algorithm', an expert relationship analyst and communication coach for new-age, social-native users. You act like a brilliant friend who happens to be a therapist (warm, insightful, empathetic, but brutally honest).
 CRITICAL RULES:
 1. Return ONLY a valid JSON object. Do NOT wrap in markdown code blocks.
 2. The JSON keys MUST remain exactly as follows (in English):
@@ -255,6 +276,7 @@ CRITICAL RULES:
 
         const PROVIDER_SYSTEM_PROMPTS = {
             "anthropic": `<role>\n${baseSystemPrompt}\n</role>`,
+            "gemini": `${baseSystemPrompt}\n\nWARNING: You must return ONLY a valid JSON object matching the requested schema. Do NOT wrap your response in markdown code blocks (\`\`\`json). Return the raw JSON directly.`,
             "default": baseSystemPrompt
         };
         const systemPrompt = PROVIDER_SYSTEM_PROMPTS[provider] || PROVIDER_SYSTEM_PROMPTS["default"];
@@ -313,8 +335,7 @@ CRITICAL RULES:
                 if (match) {
                     try {
                         const parsed = JSON.parse(match[0]);
-                        const isValid = requiredKeys.every(k => Object.hasOwn(parsed, k));
-                        if (isValid || Object.hasOwn(parsed, 'compatibility_score')) {
+                        if (validateAnalysisResponse(parsed) || Object.hasOwn(parsed, 'compatibility_score')) {
                             return normalizeReport(parsed);
                         }
                     } catch (e) {
@@ -374,7 +395,12 @@ CRITICAL RULES:
     } catch (e) {
         let errorMsg = e.message || "Analysis failed. Check your API key and try again.";
         // Mask any API keys that might have leaked in the error message
-        errorMsg = errorMsg.replace(/sk-[a-zA-Z0-9_-]+/g, 'sk-...');
+        errorMsg = errorMsg.replace(/sk-[a-zA-Z0-9_-]+/g, 'sk-...')
+                         .replace(/sk-ant-[a-zA-Z0-9_-]+/g, 'sk-ant-...')
+                         .replace(/xai-[a-zA-Z0-9_-]+/g, 'xai-...');
+        if (data?.api_key && data.api_key.trim().length > 10) {
+            errorMsg = errorMsg.split(data.api_key).join('[REDACTED_API_KEY]');
+        }
         return new Response(JSON.stringify({ error: errorMsg }), { status: 500 });
     }
 }

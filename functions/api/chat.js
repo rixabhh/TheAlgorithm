@@ -4,8 +4,14 @@ export async function onRequestPost(context) {
     const { request, env } = context;
     const ip = request.headers.get('cf-connecting-ip') || 'unknown';
 
+    let data;
     try {
-        const data = await request.json();
+        data = await request.json();
+    } catch (e) {
+        return new Response(JSON.stringify({ error: "Invalid JSON body" }), { status: 400 });
+    }
+
+    try {
         const { stats, llmReport, chat_history = [], message, provider = 'free', api_key = '', tone = 'balanced', language = 'english' } = data;
 
         const freeTierProviders = new Set(['free', 'cloudflare', 'openrouter_free']);
@@ -76,7 +82,12 @@ ${JSON.stringify(llmReport)}
     } catch (e) {
         let errorMsg = e.message || "Chat failed. Check your API key and try again.";
         // Mask any API keys that might have leaked in the error message
-        errorMsg = errorMsg.replace(/sk-[a-zA-Z0-9_-]+/g, 'sk-...');
+        errorMsg = errorMsg.replace(/sk-[a-zA-Z0-9_-]+/g, 'sk-...')
+                         .replace(/sk-ant-[a-zA-Z0-9_-]+/g, 'sk-ant-...')
+                         .replace(/xai-[a-zA-Z0-9_-]+/g, 'xai-...');
+        if (data?.api_key && data.api_key.trim().length > 10) {
+            errorMsg = errorMsg.split(data.api_key).join('[REDACTED_API_KEY]');
+        }
         return new Response(JSON.stringify({ error: errorMsg }), { status: 500 });
     }
 }

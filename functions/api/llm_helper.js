@@ -15,7 +15,7 @@ export async function makeChatLLMCall(provider, api_key, systemPrompt, chat_hist
     }
 
     if (provider === 'cloudflare' && env.AI) {
-        return makeCloudflareChatCall(systemPrompt, chat_history, message, env);
+        return makeCloudflareChatCall(systemPrompt, chat_history, message, env, signal);
     }
 
     api_key = resolveProviderApiKey(provider, api_key, env);
@@ -104,7 +104,7 @@ export async function makeLLMCall(provider, api_key, systemPrompt, userPrompt, e
     }
 
     if (provider === 'cloudflare' && env.AI) {
-        return makeCloudflareAnalysisCall(systemPrompt, userPrompt, env);
+        return makeCloudflareAnalysisCall(systemPrompt, userPrompt, env, signal);
     }
 
     api_key = resolveProviderApiKey(provider, api_key, env);
@@ -185,7 +185,7 @@ async function makeFreeChatCall(apiKey, systemPrompt, chatHistory, message, env,
         }
     }
 
-    if (env.AI) return makeCloudflareChatCall(systemPrompt, chatHistory, message, env);
+    if (env.AI) return makeCloudflareChatCall(systemPrompt, chatHistory, message, env, signal);
     return null;
 }
 
@@ -202,23 +202,53 @@ async function makeFreeAnalysisCall(apiKey, systemPrompt, userPrompt, env, signa
         }
     }
 
-    if (env.AI) return makeCloudflareAnalysisCall(systemPrompt, userPrompt, env);
+    if (env.AI) return makeCloudflareAnalysisCall(systemPrompt, userPrompt, env, signal);
     return null;
 }
 
-async function makeCloudflareChatCall(systemPrompt, chatHistory, message, env) {
+async function makeCloudflareChatCall(systemPrompt, chatHistory, message, env, signal) {
     const messages = [{ role: 'system', content: systemPrompt }];
     chatHistory.forEach(msg => messages.push({ role: msg.role, content: msg.content }));
     messages.push({ role: 'user', content: message });
-    const aiResult = await env.AI.run('@cf/meta/llama-3-8b-instruct', { messages });
-    return aiResult.response;
+
+    const callPromise = env.AI.run('@cf/meta/llama-3-8b-instruct', { messages });
+    if (!signal) return (await callPromise).response;
+
+    return new Promise((resolve, reject) => {
+        const onAbort = () => reject(new DOMException("Aborted", "AbortError"));
+        if (signal.aborted) return onAbort();
+        signal.addEventListener("abort", onAbort, { once: true });
+
+        callPromise.then(res => {
+            signal.removeEventListener("abort", onAbort);
+            resolve(res.response);
+        }).catch(err => {
+            signal.removeEventListener("abort", onAbort);
+            reject(err);
+        });
+    });
 }
 
-async function makeCloudflareAnalysisCall(systemPrompt, userPrompt, env) {
-    const aiResult = await env.AI.run('@cf/meta/llama-3-8b-instruct', {
+async function makeCloudflareAnalysisCall(systemPrompt, userPrompt, env, signal) {
+    const callPromise = env.AI.run('@cf/meta/llama-3-8b-instruct', {
         messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }]
     });
-    return aiResult.response;
+
+    if (!signal) return (await callPromise).response;
+
+    return new Promise((resolve, reject) => {
+        const onAbort = () => reject(new DOMException("Aborted", "AbortError"));
+        if (signal.aborted) return onAbort();
+        signal.addEventListener("abort", onAbort, { once: true });
+
+        callPromise.then(res => {
+            signal.removeEventListener("abort", onAbort);
+            resolve(res.response);
+        }).catch(err => {
+            signal.removeEventListener("abort", onAbort);
+            reject(err);
+        });
+    });
 }
 
 async function callOpenAICompatible(provider, apiKey, messages, env, signal, options = {}) {
