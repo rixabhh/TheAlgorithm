@@ -40,6 +40,7 @@ class ChatParser {
             // Defaulting to JSON platform based on what app.js handles
             if (content.includes('"author":') && content.includes('"timestamp":')) return 'Discord';
             if (content.includes('"sender_name":') && content.includes('"timestamp_ms":')) return 'Instagram';
+            if (content.includes('"user":') && content.includes('"ts":')) return 'Slack';
             return 'JSON';
         }
 
@@ -231,6 +232,40 @@ class ChatParser {
 
                 if (ts && text) {
                     const timestamp = new Date(ts);
+                    if (isNaN(timestamp.getTime())) continue;
+                    messages.push({
+                        timestamp,
+                        sender: sender,
+                        text: text
+                    });
+                }
+            }
+        }
+        return messages;
+    }
+
+    /**
+     * Parses Slack (.json)
+     */
+    parseSlack(jsonData) {
+        const messages = [];
+        const data = typeof jsonData === 'string' ? JSON.parse(jsonData) : jsonData;
+
+        const msgArray = Array.isArray(data) ? data : (data.messages || []);
+
+        if (msgArray && Array.isArray(msgArray)) {
+            for (const msg of msgArray) {
+                if (messages.length >= 50000) break;
+
+                // Skip system messages or channel join/leave messages if they don't have text
+                if (msg.subtype && !msg.text) continue;
+
+                const sender = msg.user_profile?.real_name || msg.user || msg.username || "UNKNOWN";
+                const text = msg.text || "";
+                const ts = msg.ts;
+
+                if (ts && text) {
+                    const timestamp = new Date(parseFloat(ts) * 1000);
                     if (isNaN(timestamp.getTime())) continue;
                     messages.push({
                         timestamp,

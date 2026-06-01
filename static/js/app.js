@@ -528,7 +528,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const hfContainer = document.getElementById('hfUrlContainer');
         const apiKeyContainer = document.getElementById('apiKeyContainer');
         if (!hintEl) return;
-        const hints = { 'free': 'Free insights are rate-limited and need no setup.', 'cloudflare': 'Free insights fallback (2 reports/hr)', 'openrouter_free': 'Legacy free insights route.', 'openai': 'sk-...', 'anthropic': 'sk-ant-...', 'gemini': '39-char API Key', 'mistral': 'API Key', 'grok': 'xAI API Key', 'openrouter': 'OpenRouter API Key', 'cohere': 'Cohere API Key' };
+        const hints = { 'free': 'Free insights are rate-limited and need no setup.', 'cloudflare': 'Free insights fallback (2 reports/hr)', 'openrouter_free': 'Legacy free insights route.', 'openai': 'sk-...', 'anthropic': 'sk-ant-...', 'gemini': '39-char API Key', 'mistral': 'API Key', 'grok': 'xAI API Key', 'openrouter': 'OpenRouter API Key', 'cohere': 'Cohere API Key', 'groq': 'Groq API Key' };
         hintEl.textContent = hints[provider] || '';
         if (selectionStatus) {
             const isReady = isFreeProvider(provider);
@@ -893,6 +893,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     else if (detectedPlatform === 'Discord') rawMessages = parser.parseDiscord(content);
                     else if (detectedPlatform === 'Instagram') rawMessages = parser.parseInstagram(content);
                     else if (detectedPlatform === 'Signal') rawMessages = parser.parseSignal(content);
+                    else if (detectedPlatform === 'Slack') rawMessages = parser.parseSlack(content);
                     else rawMessages = parser.parseWhatsApp(content);
                     sourceExtra = { warnings: [] };
                 } else if (inputMode === 'paste') {
