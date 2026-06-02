@@ -162,6 +162,8 @@ document.addEventListener('DOMContentLoaded', () => {
         renderHumorAndEnergy(stats);
         renderSilenceBreakers(stats);
         renderLinks(stats);
+        renderTimingProfile(stats);
+        renderConflictRepair(stats);
 
         if (window.Chart) {
             initRatioChart(stats);
@@ -266,14 +268,42 @@ document.addEventListener('DOMContentLoaded', () => {
         const starter = init.me_initiations === init.partner_initiations
             ? 'Balanced'
             : (init.me_initiations > init.partner_initiations ? activeData.my_name : activeData.partner_name);
+        const doubleTexts = stats.double_texts || { ME: 0, PARTNER: 0 };
         el.innerHTML = `
             <div class="flex justify-between"><span>Chat Starter</span><span class="pill-label pill-label--purple">${escapeHTML(starter)}</span></div>
             <div class="flex justify-between"><span>Threads Started</span><span class="font-black">${init.me_initiations} / ${init.partner_initiations}</span></div>
             <div class="flex justify-between"><span>Mirroring</span><span class="font-black">${scoreText(stats.mirroring || 0)}</span></div>
             <div class="flex justify-between"><span>Symmetry</span><span class="font-black">${escapeHTML(stats.symmetry?.label || 'Unknown')} (${stats.symmetry?.score !== undefined ? scoreText(stats.symmetry.score) : '--'})</span></div>
+            <div class="flex justify-between"><span>Double Texts (${escapeHTML(activeData.my_name)})</span><span class="font-black">${escapeHTML(String(doubleTexts.ME))}</span></div>
+            <div class="flex justify-between"><span>Double Texts (${escapeHTML(activeData.partner_name)})</span><span class="font-black">${escapeHTML(String(doubleTexts.PARTNER))}</span></div>
             <div class="flex justify-between"><span>Max Inactivity</span><span class="font-black">${stats.max_inactivity || "N/A"} days</span></div>
             <div class="flex justify-between"><span>Avg Response (${escapeHTML(activeData.my_name)})</span><span class="font-black">${formatTime(init.me_latency_avg)}</span></div>
             <div class="flex justify-between"><span>Avg Response (${escapeHTML(activeData.partner_name)})</span><span class="font-black">${formatTime(init.partner_latency_avg)}</span></div>
+        `;
+    };
+
+    const renderTimingProfile = (stats) => {
+        const container = document.getElementById('time-profile-container');
+        if (!container) return;
+        const tp = stats.time_patterns || { peak_day: "Unknown", peak_hour: "Unknown" };
+        container.innerHTML = `
+            <div class="flex justify-between"><span>Peak Activity Day</span><span class="font-black">${escapeHTML(tp.peak_day)}</span></div>
+            <div class="flex justify-between mt-2"><span>Peak Activity Hour</span><span class="font-black">${escapeHTML(tp.peak_hour)}</span></div>
+            <div class="flex justify-between mt-2"><span>Estimated Sleep Time</span><span class="font-black">${escapeHTML(stats.sleep_time || "Unknown")}</span></div>
+        `;
+    };
+
+    const renderConflictRepair = (stats) => {
+        const container = document.getElementById('conflict-repair-container');
+        if (!container) return;
+        const apologies = stats.apologies || { ME: 0, PARTNER: 0 };
+        const myName = escapeHTML(activeData.my_name);
+        const partnerName = escapeHTML(activeData.partner_name);
+
+        container.innerHTML = `
+            <div class="flex justify-between"><span>Apologies (${myName})</span><span class="font-black">${escapeHTML(String(apologies.ME))}</span></div>
+            <div class="flex justify-between mt-2"><span>Apologies (${partnerName})</span><span class="font-black">${escapeHTML(String(apologies.PARTNER))}</span></div>
+            <p class="text-xs color-gray-500 mt-4 text-center">Frequency of 'sorry', 'my bad', and other repair language.</p>
         `;
     };
 
