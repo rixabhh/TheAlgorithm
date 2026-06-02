@@ -69,6 +69,8 @@ class AnalyticsEngine {
         const lexicalDiversity = this.calculateLexicalDiversity(processed);
         const links = this.extractLinks(processed);
         const symmetry = this.calculateSymmetryScore(initiatorInfo, powerInfo);
+        const apologies = this.calculateApologies(processed);
+        const timePatterns = this.calculateTimePatterns(processed);
         
         // --- MSG DISTRIBUTION FOR CHARTS ---
         const msgDist = { ME: 0, PARTNER: 0 };
@@ -107,6 +109,8 @@ class AnalyticsEngine {
             lexical_diversity: lexicalDiversity,
             links: links,
             symmetry: symmetry,
+            apologies: apologies,
+            time_patterns: timePatterns,
             sentiment_summary: {
                 partner_mean: sentimentInfo.partnerMean,
                 me_mean: sentimentInfo.meMean,
@@ -153,8 +157,15 @@ class AnalyticsEngine {
         for (let i = 1; i < messages.length; i++) {
             const current = messages[i];
             const prev = messages[i - 1];
-            if (current.sender === prev.sender && current.gapMins >= DOUBLE_TEXT_THRESHOLD) {
-                doubleTexts[current.sender]++;
+            // Fix double text calculation to correctly detect consecutive messages
+            // under the threshold instead of over it, or when replying to self with a gap.
+            // A double text is generally sending a message before they reply.
+            if (current.sender === prev.sender) {
+                // If it's less than 60 mins apart, it counts as a double text
+                // Also ignore 0 latency (split messages sent at same time)
+                if (current.gapMins > 1 && current.gapMins <= DOUBLE_TEXT_THRESHOLD) {
+                    doubleTexts[current.sender]++;
+                }
             }
         }
         return doubleTexts;
@@ -277,6 +288,49 @@ class AnalyticsEngine {
             }
         }
         return caps;
+    }
+
+    calculateApologies(messages) {
+        const apologies = { ME: 0, PARTNER: 0 };
+        const APOLOGY_RE = /\b(sorry|my bad|apologize|apologies|forgive|maaf|galti)\b/i;
+        for (const m of messages) {
+            if (APOLOGY_RE.test(m.text || '')) {
+                apologies[m.sender]++;
+            }
+        }
+        return apologies;
+    }
+
+    calculateTimePatterns(messages) {
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const dayCounts = new Array(7).fill(0);
+        const hourCounts = new Array(24).fill(0);
+
+        let validMessages = 0;
+        for (const m of messages) {
+            const d = new Date(m.timestamp);
+            if (!isNaN(d.getTime())) {
+                dayCounts[d.getDay()]++;
+                hourCounts[d.getHours()]++;
+                validMessages++;
+            }
+        }
+
+        if (validMessages === 0) return { peak_day: "Unknown", peak_hour: "Unknown" };
+
+        let peakDayIdx = 0;
+        let peakHourIdx = 0;
+        for (let i = 1; i < 7; i++) {
+            if (dayCounts[i] > dayCounts[peakDayIdx]) peakDayIdx = i;
+        }
+        for (let i = 1; i < 24; i++) {
+            if (hourCounts[i] > hourCounts[peakHourIdx]) peakHourIdx = i;
+        }
+
+        return {
+            peak_day: days[peakDayIdx],
+            peak_hour: `${peakHourIdx.toString().padStart(2, '0')}:00`
+        };
     }
 
     calculateLexicalDiversity(messages) {
