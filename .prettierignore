@@ -1,0 +1,11 @@
+# Exclude Cloudflare Pages API functions to protect zero-knowledge core logic
+functions/
+
+# Exclude static assets to preserve neobrutalist inline styles and animations
+static/
+
+# Exclude HTML files to preserve neobrutalist styling
+*.html
+
+# Exclude Jules journals
+.jules/

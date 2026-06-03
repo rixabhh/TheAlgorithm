@@ -1,0 +1,4 @@
+## 2024-06-03 — Architecture Discrepancy (Node vs Python)
+**Discovery:** The prompt instructions indicated a Python/Flask/Docker stack deployed on Hugging Face Spaces. However, inspecting the repository revealed a pure static Cloudflare Pages app with Vanilla JS on the frontend and Cloudflare Pages Functions (`functions/api/`) for serverless endpoints. There is no Python, no Dockerfile, and no standard backend.
+**Impact:** It means we don't need multi-stage Docker builds or Python CI linting. Instead, developer experience relies on tools like Node, Wrangler, and Prettier.
+**Action:** When resolving discrepancies between generic boilerplate instructions in a prompt and the actual repository architecture, strictly prioritize and build for the verified local repository state. All future Forge work will focus on JS/Cloudflare CI/CD and DX.
