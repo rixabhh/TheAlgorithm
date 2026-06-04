@@ -346,6 +346,10 @@ class ConversationIntelligence {
         const scrub = text => String(text || '')
             .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, '[email]')
             .replace(/\+?\d[\d\s().-]{7,}\d/g, '[phone]')
+            .replace(/\b(?:\d[ -]*?){13,16}\b/g, '[credit-card]') // Very basic CC regex
+            .replace(/\b[A-Z]{2}[0-9]{2}(?:[ ]?[0-9a-zA-Z]){11,28}\b/gi, '[iban]') // Basic IBAN regex
+            .replace(/\b(?!(000|666|9))\d{3}-(?!00)\d{2}-(?!0000)\d{4}\b/g, '[ssn]') // Basic SSN regex
+            .replace(/(?!^)\b[A-Z][0-9]{7}\b/g, '[passport]') // More specific US Passport regex instead of generic alphanumeric
             .replace(/https?:\/\/\S+/gi, '[link]')
             .slice(0, 240);
         return {
