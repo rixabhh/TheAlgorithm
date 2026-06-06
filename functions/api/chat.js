@@ -4,8 +4,9 @@ export async function onRequestPost(context) {
     const { request, env } = context;
     const ip = request.headers.get('cf-connecting-ip') || 'unknown';
 
+    let data;
     try {
-        const data = await request.json();
+        data = await request.json();
         const { stats, llmReport, chat_history = [], message, provider = 'free', api_key = '', tone = 'balanced', language = 'english' } = data;
 
         const freeTierProviders = new Set(['free', 'cloudflare', 'openrouter_free']);
@@ -29,12 +30,12 @@ export async function onRequestPost(context) {
         const languageGuidance = String(language).toLowerCase() === 'hinglish'
             ? "Reply in neutral conversational Hinglish written in English letters. Do not use bhai, behen, bro, sis, or gendered placeholders unless the user/source used them."
             : `Reply naturally in ${language || 'english'} while keeping any relationship advice grounded in the report.`;
-        const baseSystemPrompt = `You are 'The Algorithm', an expert relationship analyst and communication coach. You act like a perceptive friend with data - warm, relatable, emotionally sharp, and honest without being cruel.
+        const baseSystemPrompt = `You are 'The Algorithm', an expert relationship analyst and communication coach. You act like a brilliant friend who happens to be a therapist (warm, insightful, empathetic, but brutally honest).
 The user has generated an AI Insight Vibe Report based on their chat exports.
 Your job is to answer their specific follow-up questions about this relationship, using their exact STATS and REPORT context below.
 Tone: ${toneGuidance}
 Language: ${languageGuidance}
-Be specific and people-friendly. Reference their data explicitly when it supports a point: message split, reply timing, source confidence, receipt pattern, or risk signal.
+Be specific and people-friendly. Reference their data explicitly when it supports a point: message split, reply timing, source confidence, receipt pattern, or risk signal. Explicitly interpret behavioral signals, apologies, and temporal rhythms if they exist in the stats, otherwise do not force them.
 Avoid generic therapy lines and repeated catchphrases. Give one clear interpretation and one next move.
 Keep responses concise: no more than 3 short paragraphs. DO NOT format your response as JSON, return raw conversational text.
 
@@ -76,7 +77,11 @@ ${JSON.stringify(llmReport)}
     } catch (e) {
         let errorMsg = e.message || "Chat failed. Check your API key and try again.";
         // Mask any API keys that might have leaked in the error message
+        if (data && data.api_key) {
+            errorMsg = errorMsg.split(data.api_key).join('[REDACTED]');
+        }
         errorMsg = errorMsg.replace(/sk-[a-zA-Z0-9_-]+/g, 'sk-...');
+        errorMsg = errorMsg.replace(/xai-[a-zA-Z0-9_-]+/g, 'xai-...');
         return new Response(JSON.stringify({ error: errorMsg }), { status: 500 });
     }
 }
