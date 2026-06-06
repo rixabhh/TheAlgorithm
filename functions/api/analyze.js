@@ -4,14 +4,11 @@ export async function onRequestPost(context) {
     const { request, env } = context;
     const ip = request.headers.get('cf-connecting-ip') || 'unknown';
 
+    let data;
     try {
-        const data = await request.json();
-        const { stats, my_name, partner_name, connection_type, language, context, compare_data, provider = 'free', api_key = '', evidence_pack = null, source_quality = null, privacy_mode = 'stats_only', raw_excerpt_pack = null } = data;
+        data = await request.json();
+        const { stats, my_name, partner_name, connection_type, language, context: userContext, compare_data, provider = 'free', api_key = '', evidence_pack = null, source_quality = null, privacy_mode = 'stats_only' } = data;
         const tone = data.tone || 'balanced';
-
-        if (raw_excerpt_pack && privacy_mode !== 'opt_in_raw') {
-            return new Response(JSON.stringify({ error: "Raw excerpts require opt-in raw evidence mode." }), { status: 400 });
-        }
 
         const clampHeuristic = (value, fallback = 70) => {
             const num = Number(value);
@@ -166,7 +163,7 @@ export async function onRequestPost(context) {
             hindi: "Use Hindi wording if requested, but keep labels and JSON keys unchanged."
         }[String(language || 'english').toLowerCase()] || "Use the requested language naturally and keep JSON keys unchanged.";
 
-        const baseSystemPrompt = `You are 'The Algorithm', an expert relationship analyst and communication coach for new-age, social-native users. You act like a perceptive friend with data: warm, insightful, emotionally sharp, funny when appropriate, and honest without being cruel.
+        const baseSystemPrompt = `You are 'The Algorithm', an expert relationship analyst and communication coach for new-age, social-native users. You act like a brilliant friend who happens to be a therapist (warm, insightful, empathetic, but brutally honest).
 CRITICAL RULES:
 1. Return ONLY a valid JSON object. Do NOT wrap in markdown code blocks.
 2. The JSON keys MUST remain exactly as follows (in English):
@@ -237,7 +234,7 @@ CRITICAL RULES:
 7. Make every report feel different. Anchor the copy to the unique fingerprint of this chat: names, message counts, message split, response timing, source quality, strongest receipt, pattern counts, and any user context.
 8. Do not rephrase the same generic verdict across chats. If two chats have different stats or receipts, their dynamic_title, reality_check, red_flags, green_flags, coaching_advice, and brutal_verdict must be meaningfully different.
 9. Each major field should include at least one concrete signal when possible: a count, percentage, timing pattern, trend, source-quality warning, or named receipt pattern.
-10. Every serious claim must point to a concrete signal from Statistics, Source Quality, Local Evidence Pack, or Opt-In Raw Evidence Excerpts.
+10. Every serious claim must point to a concrete signal from Statistics, Source Quality, or Local Evidence Pack.
 11. Fill the report hierarchy intentionally:
    - verdict_summary is the above-the-fold executive read: one sharp headline, risk, confidence, and best next move.
    - receipts are the proof cards: each claim needs evidence, pattern, confidence, and a useful action.
@@ -249,13 +246,18 @@ CRITICAL RULES:
 15. Predictions must include confidence and should never claim certainty. Avoid diagnosis language. Use evidence-based wording like "suggests", "appears", or "risk".
 16. Do NOT output uniform high scores. If the stats do not support a strong signal, lower the score and explain the uncertainty.
 17. Personalize the read with the provided names, message counts, source quality, symmetry, response timing, and the strongest receipt pattern.
-18. If behavioral trait scores are close together, call that out as low differentiation instead of pretending every trait is 95+.
+18. If behavioral trait scores are close together, call that out as low differentiation instead of pretending every trait is 95+. Explicitly interpret behavioral signals, apologies, and temporal rhythms if they exist in the stats, otherwise do not force them.
 19. Never use "not enough data" as the main insight when Statistics or Local Evidence Pack exists. Say which signals are strong and which parts are lower-confidence.
 20. Make the dashboard copy readable on mobile: short headlines, one idea per sentence, no giant paragraph blocks.`;
 
+        let systemPromptForProvider = baseSystemPrompt;
+        if (provider === 'gemini') {
+            systemPromptForProvider += "\n\nCRITICAL: Respond ONLY with valid JSON. Do NOT wrap your response in ```json ``` or any other markdown blocks. Return the raw JSON object directly.";
+        }
+
         const PROVIDER_SYSTEM_PROMPTS = {
-            "anthropic": `<role>\n${baseSystemPrompt}\n</role>`,
-            "default": baseSystemPrompt
+            "anthropic": `<role>\n${systemPromptForProvider}\n</role>`,
+            "default": systemPromptForProvider
         };
         const systemPrompt = PROVIDER_SYSTEM_PROMPTS[provider] || PROVIDER_SYSTEM_PROMPTS["default"];
         
@@ -266,7 +268,7 @@ CRITICAL RULES:
 - Output Language: ${language || 'english'}
 - Tone: ${tone}
 `;
-        if (context) userPrompt += `- User Context/Background: ${context}\n`;
+        if (userContext) userPrompt += `- User Context/Background: ${userContext}\n`;
         userPrompt += `\n## Output Quality Bar
 - Make the verdict feel useful in 5 seconds.
 - Write 3-6 receipts when evidence exists; avoid generic claims.
@@ -282,9 +284,6 @@ CRITICAL RULES:
         userPrompt += `\n## Statistics\n${JSON.stringify(stats)}`;
         if (source_quality) userPrompt += `\n\n## Source Quality\n${JSON.stringify(source_quality)}`;
         if (evidence_pack) userPrompt += `\n\n## Local Evidence Pack\n${JSON.stringify(evidence_pack)}`;
-        if (raw_excerpt_pack && privacy_mode === 'opt_in_raw') {
-            userPrompt += `\n\n## Opt-In Raw Evidence Excerpts\nThe user explicitly enabled raw evidence mode. Use only these short scrubbed excerpts as supporting evidence; do not quote more than needed.\n${JSON.stringify(raw_excerpt_pack)}`;
-        }
         
         if (compare_data) {
             userPrompt = `COMPARE two anonymous chat statistics for ${my_name}.
@@ -374,7 +373,11 @@ CRITICAL RULES:
     } catch (e) {
         let errorMsg = e.message || "Analysis failed. Check your API key and try again.";
         // Mask any API keys that might have leaked in the error message
+        if (data && data.api_key) {
+            errorMsg = errorMsg.split(data.api_key).join('[REDACTED]');
+        }
         errorMsg = errorMsg.replace(/sk-[a-zA-Z0-9_-]+/g, 'sk-...');
+        errorMsg = errorMsg.replace(/xai-[a-zA-Z0-9_-]+/g, 'xai-...');
         return new Response(JSON.stringify({ error: errorMsg }), { status: 500 });
     }
 }

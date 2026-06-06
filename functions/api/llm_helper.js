@@ -163,7 +163,7 @@ export async function makeLLMCall(provider, api_key, systemPrompt, userPrompt, e
     }
 
     const requestOptions = {};
-    if (provider === 'openai' || provider === 'mistral' || provider === 'openrouter') {
+    if (provider === 'openai' || provider === 'mistral' || provider === 'openrouter' || provider === 'grok' || provider === 'groq') {
         requestOptions.response_format = { type: 'json_object' };
     }
     return callOpenAICompatible(provider, api_key, [
