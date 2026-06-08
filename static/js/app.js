@@ -405,6 +405,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     'Signal': '🔒',
                     'Instagram': '📷',
                     'Discord': '🎮',
+                    'Slack': '🏢',
                     'JSON': '📄'
                 };
 
@@ -892,6 +893,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (detectedPlatform === 'Telegram') rawMessages = parser.parseTelegram(content);
                     else if (detectedPlatform === 'Discord') rawMessages = parser.parseDiscord(content);
                     else if (detectedPlatform === 'Instagram') rawMessages = parser.parseInstagram(content);
+                    else if (detectedPlatform === 'Slack') rawMessages = parser.parseSlack(content);
                     else if (detectedPlatform === 'Signal') rawMessages = parser.parseSignal(content);
                     else rawMessages = parser.parseWhatsApp(content);
                     sourceExtra = { warnings: [] };
