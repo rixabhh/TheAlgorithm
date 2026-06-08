@@ -1,0 +1,4 @@
+## 2026-10-24 — Client-Side Parsing Discrepancy
+**Discovery:** The initial context and prompt suggested a Python Flask stack (`core/parsers.py`), but the project relies entirely on client-side vanilla JavaScript for parsing (`static/js/utils/parser.js`) as a Cloudflare Pages static app. Slack exports output UNIX timestamps as strings with floating points (e.g. "1618210000.000100"), which require special coercion in JS before creating `Date` objects.
+**Impact:** Any new parsers added must be written in Vanilla JS using native `String` methods, and tests must use Node's `assert` instead of `pytest`.
+**Action:** Implemented the `parseSlack` parser natively in `static/js/utils/parser.js` handling the string epoch to JS Date conversion correctly, skipping Python entirely, and added the requisite native Node tests.

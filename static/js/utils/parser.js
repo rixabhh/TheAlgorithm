@@ -40,6 +40,7 @@ class ChatParser {
             // Defaulting to JSON platform based on what app.js handles
             if (content.includes('"author":') && content.includes('"timestamp":')) return 'Discord';
             if (content.includes('"sender_name":') && content.includes('"timestamp_ms":')) return 'Instagram';
+            if (content.includes('"user":') && content.includes('"ts":')) return 'Slack';
             return 'JSON';
         }
 
@@ -200,6 +201,40 @@ class ChatParser {
 
                 if (tsMs && text) {
                     const timestamp = new Date(tsMs);
+                    if (isNaN(timestamp.getTime())) continue;
+                    messages.push({
+                        timestamp,
+                        sender: sender,
+                        text: text
+                    });
+                }
+            }
+        }
+        return messages;
+    }
+
+    /**
+     * Parses Slack (.json)
+     */
+    parseSlack(jsonData) {
+        const messages = [];
+        const data = typeof jsonData === 'string' ? JSON.parse(jsonData) : jsonData;
+
+        const msgArray = Array.isArray(data) ? data : [];
+
+        if (msgArray && Array.isArray(msgArray)) {
+            for (const msg of msgArray) {
+                if (messages.length >= 50000) break;
+                // Slack uses 'user', 'user_profile.real_name', 'username' depending on if it's a bot or user.
+                const sender = msg.user_profile?.real_name || msg.username || msg.user || "UNKNOWN";
+                const text = msg.text || "";
+                const tsStr = msg.ts; // e.g. "1618210000.000100"
+
+                if (tsStr && text && msg.type === 'message') {
+                    const tsNumber = parseFloat(tsStr);
+                    if (isNaN(tsNumber)) continue;
+
+                    const timestamp = new Date(tsNumber * 1000);
                     if (isNaN(timestamp.getTime())) continue;
                     messages.push({
                         timestamp,
