@@ -9,6 +9,7 @@ class AnalyticsEngine {
         this.STRESS_RE = /work|tired|sad|stressed|deadline|exhausted|unhappy|worry|anxious|sick|hard time|presure|dukh|pareshan|tension|thak|beemar|tension|dard|rona|pareshani|mushkil|gadbad/i;
         this.AFFIRMATIVE_RE = /love|thanks|happy|we|miss|appreciate|glad|proud|beautiful|care|pyaar|shukriya|accha|theek|badhiya|jaan|sona|shona|dil|dhanyawad|sundar|mast|swagat|namaste/i;
         this.DISMISSIVE_RE = /whatever|fine|okay|sure|k|ok|busy|idk|anyway|thik h|hmmm|hmm|okey|theek hai|achha hai|thik hai|chal|hat|pata nahi|pata nhi|ignore|bye/i;
+        this.APOLOGY_RE = /sorry|apologize|apologies|my bad|maaf|kshama|galti|apologise/i;
         
         // Topic Mix Regexes
         this.LOGISTICS_RE = /dinner|lunch|bill|home|work|done|todo|buy|shop|cleaning|khana|ghar|paisa|office|market|sabzi|payment|dukan|dukaan/i;
@@ -104,9 +105,12 @@ class AnalyticsEngine {
             silence_breakers: silenceBreakers,
             caps_lock: capsLock,
             streaks: { longest: streakInfo.max_streak, current: streakInfo.current_streak || 0, active_pct: streakInfo.active_pct },
-            lexical_diversity: lexicalDiversity,
+                        lexical_diversity: lexicalDiversity,
             links: links,
             symmetry: symmetry,
+            questions: this.calculateQuestionRatio(processed),
+            apologies: this.calculateApologyRate(processed),
+            peak_hours: this.calculatePeakHours(processed),
             sentiment_summary: {
                 partner_mean: sentimentInfo.partnerMean,
                 me_mean: sentimentInfo.meMean,
@@ -540,6 +544,60 @@ class AnalyticsEngine {
             for (const word of m.words) freq[word] = (freq[word] || 0) + 1;
         }
         return Object.entries(freq).sort((a,b) => b[1] - a[1]).slice(0, 50).map(e => ({ word: e[0], count: e[1] }));
+    }
+
+
+    calculateQuestionRatio(messages) {
+        let meQuestions = 0, partnerQuestions = 0;
+        for (const m of messages) {
+            if ((m.text || '').includes('?')) {
+                if (m.sender === 'ME') meQuestions++;
+                else partnerQuestions++;
+            }
+        }
+        const total = meQuestions + partnerQuestions;
+        return {
+            me_questions: meQuestions,
+            partner_questions: partnerQuestions,
+            me_ratio: total > 0 ? meQuestions / total : 0.5
+        };
+    }
+
+    calculateApologyRate(messages) {
+        let meApologies = 0, partnerApologies = 0;
+        for (const m of messages) {
+            if (this.APOLOGY_RE.test(m.text || '')) {
+                if (m.sender === 'ME') meApologies++;
+                else partnerApologies++;
+            }
+        }
+        const total = meApologies + partnerApologies;
+        return {
+            me_apologies: meApologies,
+            partner_apologies: partnerApologies,
+            me_ratio: total > 0 ? meApologies / total : 0.5
+        };
+    }
+
+    calculatePeakHours(messages) {
+        const hours = new Array(24).fill(0);
+        for (const m of messages) {
+            if (m.timestamp) {
+                const date = new Date(m.timestamp);
+                if (!isNaN(date.getTime())) {
+                    hours[date.getHours()]++;
+                }
+            }
+        }
+        let maxIdx = 0;
+        for (let i = 1; i < 24; i++) {
+            if (hours[i] > hours[maxIdx]) maxIdx = i;
+        }
+        return {
+            peak_hour: maxIdx,
+            peak_volume: hours[maxIdx],
+            hourly_distribution: hours
+        };
     }
 
     aggregateWeekly(messages) {
