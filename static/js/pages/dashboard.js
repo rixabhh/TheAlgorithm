@@ -184,6 +184,25 @@ document.addEventListener('DOMContentLoaded', () => {
         const avgReply = replyValues.length ? replyValues.reduce((a, b) => a + b, 0) / replyValues.length : 0;
         setText('stat-total-messages', totalMessages(stats).toLocaleString());
         setText('stat-duration', stats.duration || '--');
+
+        // Rhythm & Style updates
+        if (stats.peak_hours && stats.peak_hours.peak_hour !== undefined) {
+            const ampm = stats.peak_hours.peak_hour >= 12 ? 'PM' : 'AM';
+            const hr12 = stats.peak_hours.peak_hour % 12 || 12;
+            setText('stat-peak-hour', hr12 + ' ' + ampm);
+        }
+        if (stats.questions) {
+            const meQ = stats.questions.me_questions || 0;
+            const pQ = stats.questions.partner_questions || 0;
+            const winnerQ = meQ === pQ ? 'Balanced' : (meQ > pQ ? (window.my_name || 'Me') : (window.partner_name || 'Them'));
+            setText('stat-questions', meQ === 0 && pQ === 0 ? '--' : winnerQ);
+        }
+        if (stats.apologies) {
+            const meA = stats.apologies.me_apologies || 0;
+            const pA = stats.apologies.partner_apologies || 0;
+            const winnerA = meA === pA ? 'Balanced' : (meA > pA ? (window.my_name || 'Me') : (window.partner_name || 'Them'));
+            setText('stat-apologies', meA === 0 && pA === 0 ? '--' : winnerA);
+        }
         setText('stat-reply-speed', avgReply ? formatTime(avgReply) : '--');
         setText('stat-symmetry', stats.symmetry?.score !== undefined ? scoreText(stats.symmetry.score) : '--');
     };
