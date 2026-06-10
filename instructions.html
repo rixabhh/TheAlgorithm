@@ -1,191 +1,590 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
     <title>Export Guide — The Algorithm</title>
-    <link rel="stylesheet" href="static/css/style.css">
-    <link rel="stylesheet" href="static/css/revamp.css?v=15">
-    <link rel="icon" type="image/png" href="static/favicon.png">
+    <link rel="stylesheet" href="static/css/style.css" />
+    <link rel="stylesheet" href="static/css/revamp.css?v=15" />
+    <link rel="icon" type="image/png" href="static/favicon.png" />
 
     <!-- Open Graph / Twitter Card tags -->
-    <meta property="og:title" content="The Algorithm — AI Relationship Analyzer" />
-    <meta property="og:description" content="Find out what your chats really say about your relationship. Privacy-first, BYOK, zero data stored." />
-    <meta property="og:image" content="https://thealgorithm.rixabh.workers.dev/static/og-image.png" />
-    <meta property="og:url" content="https://thealgorithm.rixabh.workers.dev/" />
+    <meta
+      property="og:title"
+      content="The Algorithm — AI Relationship Analyzer"
+    />
+    <meta
+      property="og:description"
+      content="Find out what your chats really say about your relationship. Privacy-first, BYOK, zero data stored."
+    />
+    <meta
+      property="og:image"
+      content="https://thealgorithm.rixabh.workers.dev/static/og-image.png"
+    />
+    <meta
+      property="og:url"
+      content="https://thealgorithm.rixabh.workers.dev/"
+    />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="The Algorithm" />
-    <meta name="twitter:description" content="What do your chats say about your relationship? Find out — your data never leaves your device." />
-    <meta name="twitter:image" content="https://thealgorithm.rixabh.workers.dev/static/og-image.png" />
-
-</head>
-<body class="comic-dots">
+    <meta
+      name="twitter:description"
+      content="What do your chats say about your relationship? Find out — your data never leaves your device."
+    />
+    <meta
+      name="twitter:image"
+      content="https://thealgorithm.rixabh.workers.dev/static/og-image.png"
+    />
+  </head>
+  <body class="comic-dots">
     <!-- ═══ NAV ═══ -->
     <header class="nav">
-        <div class="container">
-            <a href="/" class="nav-logo">
-                <span style="font-size:1.3rem;line-height:1;letter-spacing:-0.03em">The Algorithm</span>
-                <span style="font-size:.55rem;font-family:var(--font-body);font-weight:500;color:var(--gray-400);font-style:italic;letter-spacing:0.02em;text-transform:none">decode your chats</span>
-            </a>
-            <button class="nav-hamburger" aria-label="Toggle Menu" aria-expanded="false">
-                <span class="material-symbols-outlined">menu</span>
-            </button>
-            <nav class="nav-links">
-                <a href="history.html" class="nav-link" style="padding:.25rem .7rem;border:1.5px solid var(--gray-600);border-radius:var(--r-pill);font-size:.62rem">Reports</a>
-                <a href="instructions.html" class="nav-link" style="padding:.25rem .7rem;border:1.5px solid var(--gray-600);border-radius:var(--r-pill);font-size:.62rem;background:var(--cream);color:var(--black);font-weight:900">How to Export</a>
-                <a href="privacy.html" class="nav-link" style="padding:.25rem .7rem;border:1.5px solid var(--gray-600);border-radius:var(--r-pill);font-size:.62rem">Privacy</a>
-                <a href="/#upload" class="btn btn--yellow" style="font-size:.62rem;padding:.28rem .85rem;box-shadow:2px 2px 0 0 rgba(255,255,255,0.15);border-color:var(--yellow)">Analyse Now</a>
-            </nav>
-        </div>
+      <div class="container">
+        <a href="/" class="nav-logo">
+          <span
+            style="font-size: 1.3rem; line-height: 1; letter-spacing: -0.03em"
+            >The Algorithm</span
+          >
+          <span
+            style="
+              font-size: 0.55rem;
+              font-family: var(--font-body);
+              font-weight: 500;
+              color: var(--gray-400);
+              font-style: italic;
+              letter-spacing: 0.02em;
+              text-transform: none;
+            "
+            >decode your chats</span
+          >
+        </a>
+        <button
+          class="nav-hamburger"
+          aria-label="Toggle Menu"
+          aria-expanded="false"
+        >
+          <span class="material-symbols-outlined">menu</span>
+        </button>
+        <nav class="nav-links">
+          <a
+            href="history.html"
+            class="nav-link"
+            style="
+              padding: 0.25rem 0.7rem;
+              border: 1.5px solid var(--gray-600);
+              border-radius: var(--r-pill);
+              font-size: 0.62rem;
+            "
+            >Reports</a
+          >
+          <a
+            href="instructions.html"
+            class="nav-link"
+            style="
+              padding: 0.25rem 0.7rem;
+              border: 1.5px solid var(--gray-600);
+              border-radius: var(--r-pill);
+              font-size: 0.62rem;
+              background: var(--cream);
+              color: var(--black);
+              font-weight: 900;
+            "
+            >How to Export</a
+          >
+          <a
+            href="privacy.html"
+            class="nav-link"
+            style="
+              padding: 0.25rem 0.7rem;
+              border: 1.5px solid var(--gray-600);
+              border-radius: var(--r-pill);
+              font-size: 0.62rem;
+            "
+            >Privacy</a
+          >
+          <a
+            href="/#upload"
+            class="btn btn--yellow"
+            style="
+              font-size: 0.62rem;
+              padding: 0.28rem 0.85rem;
+              box-shadow: 2px 2px 0 0 rgba(255, 255, 255, 0.15);
+              border-color: var(--yellow);
+            "
+            >Analyse Now</a
+          >
+        </nav>
+      </div>
     </header>
 
     <div class="container section-py">
-        <div class="text-center mb-8">
-            <h1 style="color:var(--black)">How to Extract Your Data</h1>
-            <p style="color:var(--gray-600); max-width:500px; margin:0 auto; font-weight:500">Pick your platform and follow the steps to retrieve your `.txt`, `.json`, or `.html` structured archives cleanly.</p>
+      <div class="text-center mb-8">
+        <h1 style="color: var(--black)">How to Extract Your Data</h1>
+        <p
+          style="
+            color: var(--gray-600);
+            max-width: 500px;
+            margin: 0 auto;
+            font-weight: 500;
+          "
+        >
+          Pick your platform and follow the steps to retrieve your `.txt`,
+          `.json`, or `.html` structured archives cleanly.
+        </p>
+      </div>
+
+      <div
+        class="grid gap-6 grid-2"
+        style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr))"
+      >
+        <div class="card p-6" style="border-left: 6px solid var(--green)">
+          <h3 class="mb-3" style="color: var(--green)">WhatsApp</h3>
+          <ol
+            class="font-weight-500"
+            style="
+              color: var(--gray-600);
+              padding-left: 1.5rem;
+              line-height: 1.7;
+            "
+          >
+            <li>Open WhatsApp and locate the chat.</li>
+            <li>Tap the Contact Name / Group Name at the top.</li>
+            <li>Scroll down and select "Export Chat".</li>
+            <li>Choose "Without Media" to accelerate parsing.</li>
+            <li>Save the ending `.txt` file locally.</li>
+          </ol>
         </div>
 
-        <div class="grid gap-6 grid-2" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr))">
-            
-            <div class="card p-6" style="border-left:6px solid var(--green)">
-                <h3 class="mb-3" style="color:var(--green)">WhatsApp</h3>
-                <ol class="font-weight-500" style="color:var(--gray-600); padding-left:1.5rem; line-height:1.7">
-                    <li>Open WhatsApp and locate the chat.</li>
-                    <li>Tap the Contact Name / Group Name at the top.</li>
-                    <li>Scroll down and select "Export Chat".</li>
-                    <li>Choose "Without Media" to accelerate parsing.</li>
-                    <li>Save the ending `.txt` file locally.</li>
-                </ol>
-            </div>
-
-            <div class="card p-6" style="border-left:6px solid var(--blue)">
-                <h3 class="mb-3" style="color:var(--blue)">Telegram</h3>
-                <ol class="font-weight-500" style="color:var(--gray-600); padding-left:1.5rem; line-height:1.7">
-                    <li>Download Telegram Desktop (PC or Mac).</li>
-                    <li>Open the desired chat.</li>
-                    <li>Click the three dots in the top right -> `Export Chat History`.</li>
-                    <li>Ensure formats like stickers are unchecked.</li>
-                    <li>Ensure the export type is `HTML`.</li>
-                </ol>
-            </div>
-            
-            <div class="card p-6" style="border-left:6px solid var(--pink)">
-                <h3 class="mb-3" style="color:var(--pink)">Instagram</h3>
-                <ol class="font-weight-500" style="color:var(--gray-600); padding-left:1.5rem; line-height:1.7">
-                    <li>Go to Your Activity -> Download Your Information.</li>
-                    <li>Select "Specific Types of Information".</li>
-                    <li>Choose "Messages" ONLY.</li>
-                    <li>Select "JSON" for formatting instead of HTML.</li>
-                    <li>Unzip the archive and extract `message_1.json`.</li>
-                </ol>
-            </div>
-
-            <div class="card p-6" style="border-left:6px solid var(--purple)">
-                <h3 class="mb-3" style="color:var(--purple)">Discord</h3>
-                <ol class="font-weight-500" style="color:var(--gray-600); padding-left:1.5rem; line-height:1.7">
-                    <li>Use a trusted data exporter like DiscordChatExporter.</li>
-                    <li>Select the DM or Server channel you want to analyze.</li>
-                    <li>Choose "JSON" as the export format.</li>
-                    <li>Save the generated `.json` file locally.</li>
-                </ol>
-            </div>
-
+        <div class="card p-6" style="border-left: 6px solid var(--blue)">
+          <h3 class="mb-3" style="color: var(--blue)">Telegram</h3>
+          <ol
+            class="font-weight-500"
+            style="
+              color: var(--gray-600);
+              padding-left: 1.5rem;
+              line-height: 1.7;
+            "
+          >
+            <li>Download Telegram Desktop (PC or Mac).</li>
+            <li>Open the desired chat.</li>
+            <li>
+              Click the three dots in the top right -> `Export Chat History`.
+            </li>
+            <li>Ensure formats like stickers are unchecked.</li>
+            <li>Ensure the export type is `HTML`.</li>
+          </ol>
         </div>
 
-        <!-- ═══ API KEYS SECTION ═══ -->
-        <div id="api-keys" class="text-center mt-12 mb-8 pt-8" style="border-top:3px dashed var(--gray-300)">
-            <h2 style="color:var(--black)">How to Get Your Own API Key</h2>
-            <p style="color:var(--gray-600); max-width:650px; margin:0 auto; font-weight:500">If you want to skip the Cloudflare free-tier limits, you can easily generate a safe, low-cost API key from these providers. Your key never leaves your browser.</p>
+        <div class="card p-6" style="border-left: 6px solid var(--pink)">
+          <h3 class="mb-3" style="color: var(--pink)">Instagram</h3>
+          <ol
+            class="font-weight-500"
+            style="
+              color: var(--gray-600);
+              padding-left: 1.5rem;
+              line-height: 1.7;
+            "
+          >
+            <li>Go to Your Activity -> Download Your Information.</li>
+            <li>Select "Specific Types of Information".</li>
+            <li>Choose "Messages" ONLY.</li>
+            <li>Select "JSON" for formatting instead of HTML.</li>
+            <li>Unzip the archive and extract `message_1.json`.</li>
+          </ol>
         </div>
 
-        <div class="grid gap-6 grid-2" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr))">
-            
-            <div class="card p-6" style="border-left:6px solid var(--black)">
-                <h3 class="mb-3" style="color:var(--black)">OpenAI (GPT-4o)</h3>
-                <ol class="font-weight-500" style="color:var(--gray-600); padding-left:1.5rem; line-height:1.7">
-                    <li>Go to <a href="https://platform.openai.com/api-keys" target="_blank" style="color:var(--pink);text-decoration:underline">platform.openai.com/api-keys</a>.</li>
-                    <li>Sign in to your account.</li>
-                    <li>Click <strong>"Create new secret key"</strong>.</li>
-                    <li>Copy the key (starts with <code>sk-</code>) and paste it into our Settings.</li>
-                </ol>
-            </div>
-
-            <div class="card p-6" style="border-left:6px solid var(--orange)">
-                <h3 class="mb-3" style="color:var(--orange)">Anthropic (Claude)</h3>
-                <ol class="font-weight-500" style="color:var(--gray-600); padding-left:1.5rem; line-height:1.7">
-                    <li>Go to <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:var(--pink);text-decoration:underline">console.anthropic.com</a> and sign in.</li>
-                    <li>Navigate to the <strong>Get API Keys</strong> menu.</li>
-                    <li>Click <strong>"Create Key"</strong>.</li>
-                    <li>Copy the key and paste it into our Settings.</li>
-                </ol>
-            </div>
-
-            <div class="card p-6" style="border-left:6px solid var(--blue)">
-                <h3 class="mb-3" style="color:var(--blue)">xAI (Grok-2)</h3>
-                <ol class="font-weight-500" style="color:var(--gray-600); padding-left:1.5rem; line-height:1.7">
-                    <li>Go to <a href="https://console.x.ai/" target="_blank" style="color:var(--pink);text-decoration:underline">console.x.ai</a> and sign in with X/Twitter.</li>
-                    <li>Navigate to the <strong>API Keys</strong> section.</li>
-                    <li>Click <strong>"Create API Key"</strong>.</li>
-                    <li>Copy the key and paste it into our Settings.</li>
-                </ol>
-            </div>
-
-            <div class="card p-6" style="border-left:6px solid var(--green)">
-                <h3 class="mb-3" style="color:var(--green)">Google (Gemini)</h3>
-                <ol class="font-weight-500" style="color:var(--gray-600); padding-left:1.5rem; line-height:1.7">
-                    <li>Go to <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--pink);text-decoration:underline">Google AI Studio</a>.</li>
-                    <li>Sign in with your Google account.</li>
-                    <li>Click <strong>"Create API Key"</strong> in a new project.</li>
-                    <li>Copy the key and paste it into our Settings.</li>
-                </ol>
-            </div>
+        <div class="card p-6" style="border-left: 6px solid var(--purple)">
+          <h3 class="mb-3" style="color: var(--purple)">Discord</h3>
+          <ol
+            class="font-weight-500"
+            style="
+              color: var(--gray-600);
+              padding-left: 1.5rem;
+              line-height: 1.7;
+            "
+          >
+            <li>Use a trusted data exporter like DiscordChatExporter.</li>
+            <li>Select the DM or Server channel you want to analyze.</li>
+            <li>Choose "JSON" as the export format.</li>
+            <li>Save the generated `.json` file locally.</li>
+          </ol>
         </div>
+      </div>
+
+      <!-- ═══ API KEYS SECTION ═══ -->
+      <div
+        id="api-keys"
+        class="text-center mt-12 mb-8 pt-8"
+        style="border-top: 3px dashed var(--gray-300)"
+      >
+        <h2 style="color: var(--black)">How to Get Your Own API Key</h2>
+        <p
+          style="
+            color: var(--gray-600);
+            max-width: 650px;
+            margin: 0 auto;
+            font-weight: 500;
+          "
+        >
+          If you want to skip the Cloudflare free-tier limits, you can easily
+          generate a safe, low-cost API key from these providers. Your key never
+          leaves your browser.
+        </p>
+      </div>
+
+      <div
+        class="grid gap-6 grid-2"
+        style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr))"
+      >
+        <div class="card p-6" style="border-left: 6px solid var(--black)">
+          <h3 class="mb-3" style="color: var(--black)">OpenAI (GPT-4o)</h3>
+          <ol
+            class="font-weight-500"
+            style="
+              color: var(--gray-600);
+              padding-left: 1.5rem;
+              line-height: 1.7;
+            "
+          >
+            <li>
+              Go to
+              <a
+                href="https://platform.openai.com/api-keys"
+                target="_blank"
+                style="color: var(--pink); text-decoration: underline"
+                >platform.openai.com/api-keys</a
+              >.
+            </li>
+            <li>Sign in to your account.</li>
+            <li>Click <strong>"Create new secret key"</strong>.</li>
+            <li>
+              Copy the key (starts with <code>sk-</code>) and paste it into our
+              Settings.
+            </li>
+          </ol>
+        </div>
+
+        <div class="card p-6" style="border-left: 6px solid var(--orange)">
+          <h3 class="mb-3" style="color: var(--orange)">Anthropic (Claude)</h3>
+          <ol
+            class="font-weight-500"
+            style="
+              color: var(--gray-600);
+              padding-left: 1.5rem;
+              line-height: 1.7;
+            "
+          >
+            <li>
+              Go to
+              <a
+                href="https://console.anthropic.com/settings/keys"
+                target="_blank"
+                style="color: var(--pink); text-decoration: underline"
+                >console.anthropic.com</a
+              >
+              and sign in.
+            </li>
+            <li>Navigate to the <strong>Get API Keys</strong> menu.</li>
+            <li>Click <strong>"Create Key"</strong>.</li>
+            <li>Copy the key and paste it into our Settings.</li>
+          </ol>
+        </div>
+
+        <div class="card p-6" style="border-left: 6px solid var(--blue)">
+          <h3 class="mb-3" style="color: var(--blue)">xAI (Grok-2)</h3>
+          <ol
+            class="font-weight-500"
+            style="
+              color: var(--gray-600);
+              padding-left: 1.5rem;
+              line-height: 1.7;
+            "
+          >
+            <li>
+              Go to
+              <a
+                href="https://console.x.ai/"
+                target="_blank"
+                style="color: var(--pink); text-decoration: underline"
+                >console.x.ai</a
+              >
+              and sign in with X/Twitter.
+            </li>
+            <li>Navigate to the <strong>API Keys</strong> section.</li>
+            <li>Click <strong>"Create API Key"</strong>.</li>
+            <li>Copy the key and paste it into our Settings.</li>
+          </ol>
+        </div>
+
+        <div class="card p-6" style="border-left: 6px solid var(--green)">
+          <h3 class="mb-3" style="color: var(--green)">Google (Gemini)</h3>
+          <ol
+            class="font-weight-500"
+            style="
+              color: var(--gray-600);
+              padding-left: 1.5rem;
+              line-height: 1.7;
+            "
+          >
+            <li>
+              Go to
+              <a
+                href="https://aistudio.google.com/app/apikey"
+                target="_blank"
+                style="color: var(--pink); text-decoration: underline"
+                >Google AI Studio</a
+              >.
+            </li>
+            <li>Sign in with your Google account.</li>
+            <li>Click <strong>"Create API Key"</strong> in a new project.</li>
+            <li>Copy the key and paste it into our Settings.</li>
+          </ol>
+        </div>
+      </div>
     </div>
 
     <!-- ═══ FOOTER ═══ -->
-    <footer style="background:var(--black);color:var(--white);padding:4rem 0 2.5rem;position:relative;overflow:hidden">
-        <svg style="position:absolute;top:0;left:0;width:100%;transform:translateY(-98%)" preserveAspectRatio="none" viewBox="0 0 1440 64"><path fill="var(--black)" d="M0,32L120,37.3C240,43,480,53,720,48C960,43,1200,37,1320,34.7L1440,32L1440,64L0,64Z"/></svg>
-        <div style="position:absolute;top:2rem;left:2rem;display:flex;gap:6px;opacity:0.15">
-            <span style="width:8px;height:8px;border-radius:50%;background:var(--pink)"></span>
-            <span style="width:8px;height:8px;border-radius:50%;background:var(--yellow)"></span>
-            <span style="width:8px;height:8px;border-radius:50%;background:var(--green)"></span>
-        </div>
-        <div style="position:absolute;bottom:2rem;right:2rem;display:flex;gap:6px;opacity:0.15">
-            <span style="width:8px;height:8px;border-radius:50%;background:var(--orange)"></span>
-            <span style="width:8px;height:8px;border-radius:50%;background:var(--purple)"></span>
-            <span style="width:8px;height:8px;border-radius:50%;background:var(--blue)"></span>
+    <footer
+      style="
+        background: var(--black);
+        color: var(--white);
+        padding: 4rem 0 2.5rem;
+        position: relative;
+        overflow: hidden;
+      "
+    >
+      <svg
+        style="
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          transform: translateY(-98%);
+        "
+        preserveAspectRatio="none"
+        viewBox="0 0 1440 64"
+      >
+        <path
+          fill="var(--black)"
+          d="M0,32L120,37.3C240,43,480,53,720,48C960,43,1200,37,1320,34.7L1440,32L1440,64L0,64Z"
+        />
+      </svg>
+      <div
+        style="
+          position: absolute;
+          top: 2rem;
+          left: 2rem;
+          display: flex;
+          gap: 6px;
+          opacity: 0.15;
+        "
+      >
+        <span
+          style="
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--pink);
+          "
+        ></span>
+        <span
+          style="
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--yellow);
+          "
+        ></span>
+        <span
+          style="
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--green);
+          "
+        ></span>
+      </div>
+      <div
+        style="
+          position: absolute;
+          bottom: 2rem;
+          right: 2rem;
+          display: flex;
+          gap: 6px;
+          opacity: 0.15;
+        "
+      >
+        <span
+          style="
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--orange);
+          "
+        ></span>
+        <span
+          style="
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--purple);
+          "
+        ></span>
+        <span
+          style="
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--blue);
+          "
+        ></span>
+      </div>
+
+      <div class="container text-center" style="position: relative; z-index: 1">
+        <p
+          style="
+            font-family: var(--font-heading);
+            font-weight: 900;
+            font-size: 2rem;
+            color: var(--yellow);
+            text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.4);
+            margin-bottom: 0.25rem;
+            letter-spacing: -0.03em;
+          "
+        >
+          The Algorithm
+        </p>
+        <p
+          style="
+            font-family: var(--font-heading);
+            font-style: italic;
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: var(--gray-400);
+            margin-bottom: 2rem;
+          "
+        >
+          Decode your digital relationships
+        </p>
+
+        <div
+          style="
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+          "
+        >
+          <a
+            href="/#upload"
+            style="
+              font-size: 0.65rem;
+              font-weight: 700;
+              text-transform: uppercase;
+              letter-spacing: 0.08em;
+              color: var(--black);
+              background: var(--yellow);
+              padding: 0.35rem 0.9rem;
+              border-radius: var(--r-pill);
+              border: 2px solid var(--black);
+              box-shadow: 2px 2px 0 0 rgba(255, 255, 255, 0.1);
+              text-decoration: none;
+              transition: all 0.15s;
+            "
+            >Analyse</a
+          >
+          <a
+            href="instructions.html"
+            style="
+              font-size: 0.65rem;
+              font-weight: 700;
+              text-transform: uppercase;
+              letter-spacing: 0.08em;
+              color: var(--white);
+              background: transparent;
+              padding: 0.35rem 0.9rem;
+              border-radius: var(--r-pill);
+              border: 1.5px solid var(--gray-600);
+              text-decoration: none;
+              transition: all 0.15s;
+              background: rgba(255, 255, 255, 0.1);
+            "
+            >How to Export</a
+          >
+          <a
+            href="privacy.html"
+            style="
+              font-size: 0.65rem;
+              font-weight: 700;
+              text-transform: uppercase;
+              letter-spacing: 0.08em;
+              color: var(--white);
+              background: transparent;
+              padding: 0.35rem 0.9rem;
+              border-radius: var(--r-pill);
+              border: 1.5px solid var(--gray-600);
+              text-decoration: none;
+              transition: all 0.15s;
+            "
+            >Privacy</a
+          >
         </div>
 
-        <div class="container text-center" style="position:relative;z-index:1">
-            <p style="font-family:var(--font-heading);font-weight:900;font-size:2rem;color:var(--yellow);text-shadow:3px 3px 0 rgba(0,0,0,0.4);margin-bottom:.25rem;letter-spacing:-0.03em">The Algorithm</p>
-            <p style="font-family:var(--font-heading);font-style:italic;font-weight:700;font-size:.85rem;color:var(--gray-400);margin-bottom:2rem">Decode your digital relationships</p>
-
-            <div style="display:flex;justify-content:center;flex-wrap:wrap;gap:.5rem;margin-bottom:2rem">
-                <a href="/#upload" style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--black);background:var(--yellow);padding:.35rem .9rem;border-radius:var(--r-pill);border:2px solid var(--black);box-shadow:2px 2px 0 0 rgba(255,255,255,0.1);text-decoration:none;transition:all .15s">Analyse</a>
-                <a href="instructions.html" style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--white);background:transparent;padding:.35rem .9rem;border-radius:var(--r-pill);border:1.5px solid var(--gray-600);text-decoration:none;transition:all .15s;background:rgba(255,255,255,0.1)">How to Export</a>
-                <a href="privacy.html" style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--white);background:transparent;padding:.35rem .9rem;border-radius:var(--r-pill);border:1.5px solid var(--gray-600);text-decoration:none;transition:all .15s">Privacy</a>
-            </div>
-
-            <div style="width:60px;height:3px;background:var(--purple);margin:0 auto 1.5rem;border-radius:2px"></div>
-            <p style="font-size:.7rem;color:var(--gray-600);font-weight:500;margin:0">Privacy-first AI analysis. &copy; 2026 The Algorithm.</p>
-        </div>
+        <div
+          style="
+            width: 60px;
+            height: 3px;
+            background: var(--purple);
+            margin: 0 auto 1.5rem;
+            border-radius: 2px;
+          "
+        ></div>
+        <p
+          style="
+            font-size: 0.7rem;
+            color: var(--gray-600);
+            font-weight: 500;
+            margin: 0;
+          "
+        >
+          Privacy-first AI analysis. &copy; 2026 The Algorithm.
+        </p>
+      </div>
     </footer>
     <nav class="revamp-bottom-nav" aria-label="Primary">
-        <a href="/#upload"><span class="material-symbols-outlined">analytics</span><span>Analyze</span></a>
-        <a href="index.html#quick-paste"><span class="material-symbols-outlined">psychology</span><span>Vibe Check</span></a>
-        <a href="history.html"><span class="material-symbols-outlined">folder_open</span><span>Archives</span></a>
-        <a href="privacy.html"><span class="material-symbols-outlined">lock</span><span>Privacy</span></a>
+      <a href="/#upload"
+        ><span class="material-symbols-outlined">analytics</span
+        ><span>Analyze</span></a
+      >
+      <a href="index.html#quick-paste"
+        ><span class="material-symbols-outlined">psychology</span
+        ><span>Vibe Check</span></a
+      >
+      <a href="history.html"
+        ><span class="material-symbols-outlined">folder_open</span
+        ><span>Archives</span></a
+      >
+      <a href="privacy.html"
+        ><span class="material-symbols-outlined">lock</span
+        ><span>Privacy</span></a
+      >
     </nav>
 
     <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const hamburger = document.querySelector('.nav-hamburger');
-        const navLinks = document.querySelector('.nav-links');
+      document.addEventListener("DOMContentLoaded", () => {
+        const hamburger = document.querySelector(".nav-hamburger");
+        const navLinks = document.querySelector(".nav-links");
         if (hamburger && navLinks) {
-            hamburger.addEventListener('click', () => navLinks.classList.toggle('active'));
+          hamburger.addEventListener("click", () =>
+            navLinks.classList.toggle("active"),
+          );
         }
-    });
-</script>
-</body>
+      });
+    </script>
+  </body>
 </html>
