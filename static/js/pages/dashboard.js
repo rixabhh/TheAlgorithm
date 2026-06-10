@@ -361,12 +361,12 @@ document.addEventListener("DOMContentLoaded", () => {
           : activeData.partner_name;
     el.innerHTML = `
             <div class="flex justify-between"><span>Chat Starter</span><span class="pill-label pill-label--purple">${escapeHTML(starter)}</span></div>
-            <div class="flex justify-between"><span>Threads Started</span><span class="font-black">${init.me_initiations} / ${init.partner_initiations}</span></div>
-            <div class="flex justify-between"><span>Mirroring</span><span class="font-black">${scoreText(stats.mirroring || 0)}</span></div>
-            <div class="flex justify-between"><span>Symmetry</span><span class="font-black">${escapeHTML(stats.symmetry?.label || "Unknown")} (${stats.symmetry?.score !== undefined ? scoreText(stats.symmetry.score) : "--"})</span></div>
-            <div class="flex justify-between"><span>Max Inactivity</span><span class="font-black">${stats.max_inactivity || "N/A"} days</span></div>
-            <div class="flex justify-between"><span>Avg Response (${escapeHTML(activeData.my_name)})</span><span class="font-black">${formatTime(init.me_latency_avg)}</span></div>
-            <div class="flex justify-between"><span>Avg Response (${escapeHTML(activeData.partner_name)})</span><span class="font-black">${formatTime(init.partner_latency_avg)}</span></div>
+            <div class="flex justify-between"><span>Threads Started</span><span class="font-black">${escapeHTML(init.me_initiations)} / ${escapeHTML(init.partner_initiations)}</span></div>
+            <div class="flex justify-between"><span>Mirroring</span><span class="font-black">${escapeHTML(scoreText(stats.mirroring || 0))}</span></div>
+            <div class="flex justify-between"><span>Symmetry</span><span class="font-black">${escapeHTML(stats.symmetry?.label || "Unknown")} (${stats.symmetry?.score !== undefined ? escapeHTML(scoreText(stats.symmetry.score)) : "--"})</span></div>
+            <div class="flex justify-between"><span>Max Inactivity</span><span class="font-black">${escapeHTML(stats.max_inactivity || "N/A")} days</span></div>
+            <div class="flex justify-between"><span>Avg Response (${escapeHTML(activeData.my_name)})</span><span class="font-black">${escapeHTML(formatTime(init.me_latency_avg))}</span></div>
+            <div class="flex justify-between"><span>Avg Response (${escapeHTML(activeData.partner_name)})</span><span class="font-black">${escapeHTML(formatTime(init.partner_latency_avg))}</span></div>
         `;
   };
 
@@ -428,9 +428,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!container) return;
     const s = stats.streaks || { longest: 0, current: 0 };
     container.innerHTML = `
-            <div class="card p-4 bg-cream text-center"><p class="text-xs uppercase op-50">Longest Streak</p><p class="text-xl font-black">${s.longest} days</p></div>
-            <div class="card p-4 bg-cream text-center"><p class="text-xs uppercase op-50">Ending Streak</p><p class="text-xl font-black">${s.current} days</p></div>
-            <div class="card p-4 bg-cream text-center"><p class="text-xs uppercase op-50">Active Days</p><p class="text-xl font-black">${formatDeterministicShare(s.active_pct ?? 0, s.days_active || 0)}</p></div>
+            <div class="card p-4 bg-cream text-center"><p class="text-xs uppercase op-50">Longest Streak</p><p class="text-xl font-black">${escapeHTML(s.longest)} days</p></div>
+            <div class="card p-4 bg-cream text-center"><p class="text-xs uppercase op-50">Ending Streak</p><p class="text-xl font-black">${escapeHTML(s.current)} days</p></div>
+            <div class="card p-4 bg-cream text-center"><p class="text-xs uppercase op-50">Active Days</p><p class="text-xl font-black">${escapeHTML(formatDeterministicShare(s.active_pct ?? 0, s.days_active || 0))}</p></div>
         `;
   };
 
@@ -461,13 +461,13 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     container.innerHTML = `
-            <p class="text-xs font-black mb-2">${links.total} links shared</p>
+            <p class="text-xs font-black mb-2">${escapeHTML(links.total)} links shared</p>
             ${links.top
               .map(
                 (l) => `
                 <div class="flex justify-between text-xs">
                     <span class="truncate">${escapeHTML(l.domain)}</span>
-                    <span class="font-black ml-2">${l.count}</span>
+                    <span class="font-black ml-2">${escapeHTML(l.count)}</span>
                 </div>
             `,
               )
