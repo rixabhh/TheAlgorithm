@@ -1,374 +1,457 @@
-document.addEventListener('DOMContentLoaded', () => {
-    if (!document.querySelector('.ambient-floaters')) {
-        const ambient = document.createElement('div');
-        ambient.className = 'ambient-floaters';
-        ambient.setAttribute('aria-hidden', 'true');
-        ambient.innerHTML = ['♡', '?!', 'msg', '✓', '✦'].map(item => `<span>${item}</span>`).join('');
-        document.body.prepend(ambient);
-    }
+document.addEventListener("DOMContentLoaded", () => {
+  if (!document.querySelector(".ambient-floaters")) {
+    const ambient = document.createElement("div");
+    ambient.className = "ambient-floaters";
+    ambient.setAttribute("aria-hidden", "true");
+    ambient.innerHTML = ["♡", "?!", "msg", "✓", "✦"]
+      .map((item) => `<span>${item}</span>`)
+      .join("");
+    document.body.prepend(ambient);
+  }
 
-    const escapeHTML = (str) => {
-        if (str === null || str === undefined) return "";
-        return String(str)
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
+  const escapeHTML = (str) => {
+    if (str === null || str === undefined) return "";
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  };
+
+  // --- Element References ---
+  const dropZone = document.getElementById("dropZone");
+  const fileInput = document.getElementById("chatFile");
+  const uploadForm = document.getElementById("uploadForm");
+  const settingsBtn = document.getElementById("settingsBtn");
+  const settingsModal = document.getElementById("settingsModal");
+  const closeSettings = document.getElementById("closeSettings");
+  const saveSettingsBtn = document.getElementById("saveSettingsBtn");
+  const fileList = document.getElementById("fileList");
+  const trustCenterBtn = document.getElementById("trustCenterBtn");
+  const trustCenterModal = document.getElementById("trustCenterModal");
+  const closeTrustCenter = document.getElementById("closeTrustCenter");
+  const understoodBtn = document.getElementById("understoodBtn");
+  const intelligence =
+    typeof ConversationIntelligence !== "undefined"
+      ? new ConversationIntelligence()
+      : null;
+  const inputModeEl = document.getElementById("inputMode");
+  const pasteChatText = document.getElementById("pasteChatText");
+  const screenshotFiles = document.getElementById("screenshotFiles");
+  const screenshotText = document.getElementById("screenshotText");
+  const transcriptFile = document.getElementById("transcriptFile");
+  const transcriptText = document.getElementById("transcriptText");
+  const rawAiConsent = document.getElementById("rawAiConsent");
+  let latestOcrMeta = { confidence: null, warnings: [] };
+  const capSignalScore = (value) => {
+    const num = Number(value);
+    if (!Number.isFinite(num)) return 0;
+    return Math.max(5, Math.min(95, Math.round(num)));
+  };
+  const FREE_PROVIDERS = new Set(["free", "cloudflare", "openrouter_free"]);
+  const isFreeProvider = (provider) => FREE_PROVIDERS.has(provider);
+  const normalizeProvider = (provider) =>
+    isFreeProvider(provider || "free") ? "free" : provider;
+  const getStoredProvider = () =>
+    normalizeProvider(localStorage.getItem("llm_provider"));
+
+  const getInputMode = () => inputModeEl?.value || "export";
+  const hasSourceInput = () => {
+    const mode = getInputMode();
+    if (mode === "export") return !!(fileInput && fileInput.files.length > 0);
+    if (mode === "paste")
+      return (pasteChatText?.value.trim().length || 0) >= 20;
+    if (mode === "screenshots")
+      return (
+        (screenshotText?.value.trim().length || 0) >= 20 ||
+        !!(screenshotFiles && screenshotFiles.files.length > 0)
+      );
+    if (mode === "transcript")
+      return (
+        (transcriptText?.value.trim().length || 0) >= 20 ||
+        !!(transcriptFile && transcriptFile.files.length > 0)
+      );
+    return false;
+  };
+
+  // --- Tone Selector ---
+  const toneDescriptions = {
+    playful: "Fun, witty insights with personality.",
+    balanced: "Clear, helpful insights with context.",
+    direct: "Straight facts, no fluff.",
+  };
+  const toneSelector = document.getElementById("toneSelector");
+  const toneInput = document.getElementById("analysisTone");
+  const toneDesc = document.getElementById("toneDesc");
+  if (toneSelector) {
+    toneSelector.querySelectorAll(".tone-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        toneSelector
+          .querySelectorAll(".tone-btn")
+          .forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        const tone = btn.dataset.tone;
+        if (toneInput) toneInput.value = tone;
+        if (toneDesc) toneDesc.textContent = toneDescriptions[tone] || "";
+      });
+    });
+  }
+
+  // U-01: Wire hamburger nav toggle
+  const hamburger = document.querySelector(".nav-hamburger");
+  const navLinks = document.querySelector(".nav-links");
+  if (hamburger && navLinks && !hamburger.dataset.navBound) {
+    hamburger.dataset.navBound = "true";
+    const setNavOpen = (open) => {
+      navLinks.classList.toggle("active", open);
+      document.body.classList.toggle("nav-open", open);
+      hamburger.setAttribute("aria-expanded", open ? "true" : "false");
     };
+    hamburger.addEventListener("click", () => {
+      setNavOpen(!navLinks.classList.contains("active"));
+    });
+    navLinks.querySelectorAll("a").forEach((link) => {
+      link.addEventListener("click", () => setNavOpen(false));
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") setNavOpen(false);
+    });
+  }
 
-    // --- Element References ---
-    const dropZone = document.getElementById('dropZone');
-    const fileInput = document.getElementById('chatFile');
-    const uploadForm = document.getElementById('uploadForm');
-    const settingsBtn = document.getElementById('settingsBtn');
-    const settingsModal = document.getElementById('settingsModal');
-    const closeSettings = document.getElementById('closeSettings');
-    const saveSettingsBtn = document.getElementById('saveSettingsBtn');
-    const fileList = document.getElementById('fileList');
-    const trustCenterBtn = document.getElementById('trustCenterBtn');
-    const trustCenterModal = document.getElementById('trustCenterModal');
-    const closeTrustCenter = document.getElementById('closeTrustCenter');
-    const understoodBtn = document.getElementById('understoodBtn');
-    const intelligence = typeof ConversationIntelligence !== 'undefined' ? new ConversationIntelligence() : null;
-    const inputModeEl = document.getElementById('inputMode');
-    const pasteChatText = document.getElementById('pasteChatText');
-    const screenshotFiles = document.getElementById('screenshotFiles');
-    const screenshotText = document.getElementById('screenshotText');
-    const transcriptFile = document.getElementById('transcriptFile');
-    const transcriptText = document.getElementById('transcriptText');
-    const rawAiConsent = document.getElementById('rawAiConsent');
-    let latestOcrMeta = { confidence: null, warnings: [] };
-    const capSignalScore = (value) => {
-        const num = Number(value);
-        if (!Number.isFinite(num)) return 0;
-        return Math.max(5, Math.min(95, Math.round(num)));
-    };
-    const FREE_PROVIDERS = new Set(['free', 'cloudflare', 'openrouter_free']);
-    const isFreeProvider = (provider) => FREE_PROVIDERS.has(provider);
-    const normalizeProvider = (provider) => isFreeProvider(provider || 'free') ? 'free' : provider;
-    const getStoredProvider = () => normalizeProvider(localStorage.getItem('llm_provider'));
+  const uploadSection = document.getElementById("upload");
+  const heroSection = document.querySelector(".hero-main");
+  if (
+    uploadSection &&
+    heroSection &&
+    uploadSection.previousElementSibling !== heroSection
+  ) {
+    heroSection.insertAdjacentElement("afterend", uploadSection);
+  }
+  const heroReportGrid = document.querySelector(".hero-report-grid");
+  if (
+    heroReportGrid &&
+    uploadSection &&
+    !heroSection.contains(heroReportGrid) &&
+    heroReportGrid.compareDocumentPosition(uploadSection) &
+      Node.DOCUMENT_POSITION_FOLLOWING
+  ) {
+    uploadSection.insertAdjacentElement("afterend", heroReportGrid);
+    heroReportGrid.setAttribute("aria-label", "Sample report cards");
+  }
 
-    const getInputMode = () => inputModeEl?.value || 'export';
-    const hasSourceInput = () => {
-        const mode = getInputMode();
-        if (mode === 'export') return !!(fileInput && fileInput.files.length > 0);
-        if (mode === 'paste') return (pasteChatText?.value.trim().length || 0) >= 20;
-        if (mode === 'screenshots') return (screenshotText?.value.trim().length || 0) >= 20 || !!(screenshotFiles && screenshotFiles.files.length > 0);
-        if (mode === 'transcript') return (transcriptText?.value.trim().length || 0) >= 20 || !!(transcriptFile && transcriptFile.files.length > 0);
-        return false;
-    };
+  if (
+    window.location.hash === "#quick-paste" ||
+    window.location.hash === "#vibe-check"
+  ) {
+    requestAnimationFrame(() => {
+      document.querySelector("[data-mode=paste]")?.click();
+      uploadSection?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
 
-    // --- Tone Selector ---
-    const toneDescriptions = {
-        playful: 'Fun, witty insights with personality.',
-        balanced: 'Clear, helpful insights with context.',
-        direct: 'Straight facts, no fluff.'
-    };
-    const toneSelector = document.getElementById('toneSelector');
-    const toneInput = document.getElementById('analysisTone');
-    const toneDesc = document.getElementById('toneDesc');
-    if (toneSelector) {
-        toneSelector.querySelectorAll('.tone-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                toneSelector.querySelectorAll('.tone-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                const tone = btn.dataset.tone;
-                if (toneInput) toneInput.value = tone;
-                if (toneDesc) toneDesc.textContent = toneDescriptions[tone] || '';
-            });
-        });
-    }
+  const faqItems = document.querySelectorAll(".faq-item");
+  faqItems.forEach((item, index) => {
+    const question = item.querySelector(".faq-question");
+    const answer = item.querySelector(".faq-answer");
+    if (!question || !answer) return;
+    const answerId = answer.id || `faq-answer-${index + 1}`;
+    answer.id = answerId;
+    question.setAttribute(
+      "aria-expanded",
+      item.classList.contains("open") ? "true" : "false",
+    );
+    question.setAttribute("aria-controls", answerId);
+    answer.setAttribute("role", "region");
+    question.addEventListener("click", () => {
+      const isOpen = item.classList.contains("open");
+      faqItems.forEach((other) => {
+        other.classList.remove("open");
+        other
+          .querySelector(".faq-question")
+          ?.setAttribute("aria-expanded", "false");
+      });
+      if (!isOpen) {
+        item.classList.add("open");
+        question.setAttribute("aria-expanded", "true");
+      }
+    });
+  });
 
-    // U-01: Wire hamburger nav toggle
-    const hamburger = document.querySelector('.nav-hamburger');
-    const navLinks = document.querySelector('.nav-links');
-    if (hamburger && navLinks && !hamburger.dataset.navBound) {
-        hamburger.dataset.navBound = 'true';
-        const setNavOpen = (open) => {
-            navLinks.classList.toggle('active', open);
-            document.body.classList.toggle('nav-open', open);
-            hamburger.setAttribute('aria-expanded', open ? 'true' : 'false');
-        };
-        hamburger.addEventListener('click', () => {
-            setNavOpen(!navLinks.classList.contains('active'));
-        });
-        navLinks.querySelectorAll('a').forEach(link => {
-            link.addEventListener('click', () => setNavOpen(false));
-        });
-        document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape') setNavOpen(false);
-        });
-    }
+  // --- Custom Select Dropdowns ---
+  document.querySelectorAll(".custom-select").forEach((wrapper) => {
+    const trigger = wrapper.querySelector(".custom-select-trigger");
+    const label = wrapper.querySelector(".custom-select-label");
+    const options = wrapper.querySelectorAll(".custom-select-option");
+    const targetId = wrapper.dataset.target;
+    const hiddenSelect = document.getElementById(targetId);
 
-    const uploadSection = document.getElementById('upload');
-    const heroSection = document.querySelector('.hero-main');
-    if (uploadSection && heroSection && uploadSection.previousElementSibling !== heroSection) {
-        heroSection.insertAdjacentElement('afterend', uploadSection);
-    }
-    const heroReportGrid = document.querySelector('.hero-report-grid');
-    if (heroReportGrid && uploadSection && !heroSection.contains(heroReportGrid) && (heroReportGrid.compareDocumentPosition(uploadSection) & Node.DOCUMENT_POSITION_FOLLOWING)) {
-        uploadSection.insertAdjacentElement('afterend', heroReportGrid);
-        heroReportGrid.setAttribute('aria-label', 'Sample report cards');
-    }
-
-    if (window.location.hash === '#quick-paste' || window.location.hash === '#vibe-check') {
-        requestAnimationFrame(() => {
-            document.querySelector('[data-mode=paste]')?.click();
-            uploadSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        });
-    }
-
-    const faqItems = document.querySelectorAll('.faq-item');
-    faqItems.forEach((item, index) => {
-        const question = item.querySelector('.faq-question');
-        const answer = item.querySelector('.faq-answer');
-        if (!question || !answer) return;
-        const answerId = answer.id || `faq-answer-${index + 1}`;
-        answer.id = answerId;
-        question.setAttribute('aria-expanded', item.classList.contains('open') ? 'true' : 'false');
-        question.setAttribute('aria-controls', answerId);
-        answer.setAttribute('role', 'region');
-        question.addEventListener('click', () => {
-            const isOpen = item.classList.contains('open');
-            faqItems.forEach(other => {
-                other.classList.remove('open');
-                other.querySelector('.faq-question')?.setAttribute('aria-expanded', 'false');
-            });
-            if (!isOpen) {
-                item.classList.add('open');
-                question.setAttribute('aria-expanded', 'true');
-            }
-        });
+    trigger?.addEventListener("click", (e) => {
+      e.preventDefault();
+      const isOpen = wrapper.classList.contains("open");
+      document
+        .querySelectorAll(".custom-select.open")
+        .forEach((s) => s.classList.remove("open"));
+      if (!isOpen) wrapper.classList.add("open");
+      trigger.setAttribute("aria-expanded", !isOpen);
     });
 
-    // --- Custom Select Dropdowns ---
-    document.querySelectorAll('.custom-select').forEach(wrapper => {
-        const trigger = wrapper.querySelector('.custom-select-trigger');
-        const label = wrapper.querySelector('.custom-select-label');
-        const options = wrapper.querySelectorAll('.custom-select-option');
-        const targetId = wrapper.dataset.target;
-        const hiddenSelect = document.getElementById(targetId);
-
-        trigger?.addEventListener('click', (e) => {
-            e.preventDefault();
-            const isOpen = wrapper.classList.contains('open');
-            document.querySelectorAll('.custom-select.open').forEach(s => s.classList.remove('open'));
-            if (!isOpen) wrapper.classList.add('open');
-            trigger.setAttribute('aria-expanded', !isOpen);
-        });
-
-        options.forEach(opt => {
-            opt.addEventListener('click', () => {
-                options.forEach(o => o.classList.remove('selected'));
-                opt.classList.add('selected');
-                label.textContent = opt.textContent;
-                if (hiddenSelect) hiddenSelect.value = opt.dataset.value;
-                wrapper.classList.remove('open');
-                trigger.setAttribute('aria-expanded', 'false');
-            });
-        });
+    options.forEach((opt) => {
+      opt.addEventListener("click", () => {
+        options.forEach((o) => o.classList.remove("selected"));
+        opt.classList.add("selected");
+        label.textContent = opt.textContent;
+        if (hiddenSelect) hiddenSelect.value = opt.dataset.value;
+        wrapper.classList.remove("open");
+        trigger.setAttribute("aria-expanded", "false");
+      });
     });
+  });
 
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('.custom-select')) {
-            document.querySelectorAll('.custom-select.open').forEach(s => {
-                s.classList.remove('open');
-                s.querySelector('.custom-select-trigger')?.setAttribute('aria-expanded', 'false');
-            });
-        }
-    });
-
-    const analyzeBtn = document.getElementById('analyzeBtn');
-    let activeAbortController = null; // C-05: Track in-flight requests
-
-    const updateSubmitState = () => {
-        if (!analyzeBtn) return;
-        const hasInput = hasSourceInput();
-        const hasNames = document.getElementById('myName')?.value.trim() &&
-                         document.getElementById('partnerName')?.value.trim();
-        const provider = getStoredProvider();
-        const keyRaw = sessionStorage.getItem('_llm_token');
-        const hasValidKey = isFreeProvider(provider) || (keyRaw && keyRaw.trim() !== '' && keyRaw !== btoa(''));
-        
-        analyzeBtn.disabled = !(hasInput && hasNames && hasValidKey);
-        
-        if (!hasValidKey) {
-            analyzeBtn.textContent = 'Configure API Key First →';
-            analyzeBtn.style.opacity = '0.5';
-        } else if (!hasInput) {
-            analyzeBtn.textContent = 'Add Conversation Source ->';
-            analyzeBtn.style.opacity = '0.5';
-        } else if (!hasNames) {
-            analyzeBtn.textContent = 'Enter Both Names →';
-            analyzeBtn.style.opacity = '0.5';
-        } else {
-            analyzeBtn.textContent = 'Decode My Chat →';
-            analyzeBtn.style.opacity = '1';
-        }
-    };
-
-    // U-03: Re-evaluate submit state when name fields change
-    document.getElementById('myName')?.addEventListener('input', updateSubmitState);
-    document.getElementById('partnerName')?.addEventListener('input', updateSubmitState);
-    [pasteChatText, screenshotText, transcriptText].forEach(el => el?.addEventListener('input', updateSubmitState));
-
-    document.querySelectorAll('.input-mode-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const mode = btn.dataset.mode || 'export';
-            if (inputModeEl) inputModeEl.value = mode;
-            document.querySelectorAll('.input-mode-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.input-mode-panel').forEach(panel => {
-                panel.classList.add('hidden');
-                panel.classList.remove('active');
-            });
-            btn.classList.add('active');
-            const panel = document.getElementById(`panel-${mode}`);
-            panel?.classList.remove('hidden');
-            panel?.classList.add('active');
-            const jsonSelector = document.getElementById('jsonPlatformSelector');
-            if (jsonSelector) jsonSelector.classList.toggle('hidden', mode !== 'export' || !(fileInput?.files?.[0]?.name || '').toLowerCase().endsWith('.json'));
-            updateSubmitState();
-        });
-    });
-
-    // --- API Key Status ---
-    const updateApiKeyUI = () => {
-        const icon = document.getElementById('apiKeyStatusIcon');
-        const text = document.getElementById('apiKeyStatusText');
-        const statusCard = document.getElementById('providerStatusCard');
-        const provider = getStoredProvider();
-        if (!icon || !text) return;
-        const key = sessionStorage.getItem('_llm_token');
-        statusCard?.classList.remove('provider-status-ready');
-        if (isFreeProvider(provider)) {
-            icon.textContent = 'OK';
-            text.textContent = 'Free insights selected';
-            statusCard?.classList.add('provider-status-ready');
-        } else if (provider === 'openrouter_free') {
-            icon.textContent = 'OR';
-            text.textContent = 'Free insights';
-        } else if (key && key.trim() !== "" && key !== btoa("")) {
-            icon.textContent = '✅';
-            text.textContent = 'API Key Configured';
-            statusCard?.classList.add('provider-status-ready');
-        } else {
-            icon.textContent = '🔑';
-            text.textContent = 'API Key Required';
-        }
-        updateSubmitState();
-    };
-    updateApiKeyUI();
-    const apiKeyInput = document.getElementById('apiKey');
-
-    if (apiKeyInput) {
-        apiKeyInput.addEventListener('input', () => {
-            const val = apiKeyInput.value.trim();
-            if (val === '') {
-                apiKeyInput.style.borderColor = '';
-            } else if (val.startsWith('sk-') || val.length > 20) {
-                apiKeyInput.style.borderColor = 'var(--green)';
-            } else {
-                apiKeyInput.style.borderColor = 'var(--red)';
-            }
-        });
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest(".custom-select")) {
+      document.querySelectorAll(".custom-select.open").forEach((s) => {
+        s.classList.remove("open");
+        s.querySelector(".custom-select-trigger")?.setAttribute(
+          "aria-expanded",
+          "false",
+        );
+      });
     }
+  });
 
-    updateSubmitState(); // C-02: Disable button on page load if no file
+  const analyzeBtn = document.getElementById("analyzeBtn");
+  let activeAbortController = null; // C-05: Track in-flight requests
 
-    // --- Modal Helpers ---
-    const showModal = (modal) => {
-        if (!modal) return;
-        modal.classList.add('active');
-        modal.classList.remove('hidden');
-    };
-    const hideModal = (modal, focusEl) => {
-        if (!modal) return;
-        modal.classList.remove('active');
-        setTimeout(() => {
-            modal.classList.add('hidden');
-            if (focusEl) focusEl.focus();
-        }, 250);
-    };
+  const updateSubmitState = () => {
+    if (!analyzeBtn) return;
+    const hasInput = hasSourceInput();
+    const hasNames =
+      document.getElementById("myName")?.value.trim() &&
+      document.getElementById("partnerName")?.value.trim();
+    const provider = getStoredProvider();
+    const keyRaw = sessionStorage.getItem("_llm_token");
+    const hasValidKey =
+      isFreeProvider(provider) ||
+      (keyRaw && keyRaw.trim() !== "" && keyRaw !== btoa(""));
 
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            [trustCenterModal, settingsModal, document.getElementById('compareModal')].forEach(m => {
-                if (m && m.classList.contains('active')) hideModal(m);
-            });
-        }
+    analyzeBtn.disabled = !(hasInput && hasNames && hasValidKey);
+
+    if (!hasValidKey) {
+      analyzeBtn.textContent = "Configure API Key First →";
+      analyzeBtn.style.opacity = "0.5";
+    } else if (!hasInput) {
+      analyzeBtn.textContent = "Add Conversation Source ->";
+      analyzeBtn.style.opacity = "0.5";
+    } else if (!hasNames) {
+      analyzeBtn.textContent = "Enter Both Names →";
+      analyzeBtn.style.opacity = "0.5";
+    } else {
+      analyzeBtn.textContent = "Decode My Chat →";
+      analyzeBtn.style.opacity = "1";
+    }
+  };
+
+  // U-03: Re-evaluate submit state when name fields change
+  document
+    .getElementById("myName")
+    ?.addEventListener("input", updateSubmitState);
+  document
+    .getElementById("partnerName")
+    ?.addEventListener("input", updateSubmitState);
+  [pasteChatText, screenshotText, transcriptText].forEach((el) =>
+    el?.addEventListener("input", updateSubmitState),
+  );
+
+  document.querySelectorAll(".input-mode-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const mode = btn.dataset.mode || "export";
+      if (inputModeEl) inputModeEl.value = mode;
+      document
+        .querySelectorAll(".input-mode-btn")
+        .forEach((b) => b.classList.remove("active"));
+      document.querySelectorAll(".input-mode-panel").forEach((panel) => {
+        panel.classList.add("hidden");
+        panel.classList.remove("active");
+      });
+      btn.classList.add("active");
+      const panel = document.getElementById(`panel-${mode}`);
+      panel?.classList.remove("hidden");
+      panel?.classList.add("active");
+      const jsonSelector = document.getElementById("jsonPlatformSelector");
+      if (jsonSelector)
+        jsonSelector.classList.toggle(
+          "hidden",
+          mode !== "export" ||
+            !(fileInput?.files?.[0]?.name || "")
+              .toLowerCase()
+              .endsWith(".json"),
+        );
+      updateSubmitState();
     });
+  });
 
-    [trustCenterModal, settingsModal, document.getElementById('compareModal')].forEach(modal => {
-        if (modal) modal.addEventListener('click', (e) => { if (e.target === modal) hideModal(modal); });
+  // --- API Key Status ---
+  const updateApiKeyUI = () => {
+    const icon = document.getElementById("apiKeyStatusIcon");
+    const text = document.getElementById("apiKeyStatusText");
+    const statusCard = document.getElementById("providerStatusCard");
+    const provider = getStoredProvider();
+    if (!icon || !text) return;
+    const key = sessionStorage.getItem("_llm_token");
+    statusCard?.classList.remove("provider-status-ready");
+    if (isFreeProvider(provider)) {
+      icon.textContent = "OK";
+      text.textContent = "Free insights selected";
+      statusCard?.classList.add("provider-status-ready");
+    } else if (provider === "openrouter_free") {
+      icon.textContent = "OR";
+      text.textContent = "Free insights";
+    } else if (key && key.trim() !== "" && key !== btoa("")) {
+      icon.textContent = "✅";
+      text.textContent = "API Key Configured";
+      statusCard?.classList.add("provider-status-ready");
+    } else {
+      icon.textContent = "🔑";
+      text.textContent = "API Key Required";
+    }
+    updateSubmitState();
+  };
+  updateApiKeyUI();
+  const apiKeyInput = document.getElementById("apiKey");
+
+  if (apiKeyInput) {
+    apiKeyInput.addEventListener("input", () => {
+      const val = apiKeyInput.value.trim();
+      if (val === "") {
+        apiKeyInput.style.borderColor = "";
+      } else if (val.startsWith("sk-") || val.length > 20) {
+        apiKeyInput.style.borderColor = "var(--green)";
+      } else {
+        apiKeyInput.style.borderColor = "var(--red)";
+      }
     });
+  }
 
-    // C-06: Register trust center handlers independently to avoid one null element blocking others
-    if (trustCenterBtn && trustCenterModal) {
-        trustCenterBtn.addEventListener('click', () => showModal(trustCenterModal));
+  updateSubmitState(); // C-02: Disable button on page load if no file
+
+  // --- Modal Helpers ---
+  const showModal = (modal) => {
+    if (!modal) return;
+    modal.classList.add("active");
+    modal.classList.remove("hidden");
+  };
+  const hideModal = (modal, focusEl) => {
+    if (!modal) return;
+    modal.classList.remove("active");
+    setTimeout(() => {
+      modal.classList.add("hidden");
+      if (focusEl) focusEl.focus();
+    }, 250);
+  };
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      [
+        trustCenterModal,
+        settingsModal,
+        document.getElementById("compareModal"),
+      ].forEach((m) => {
+        if (m && m.classList.contains("active")) hideModal(m);
+      });
     }
-    if (closeTrustCenter && trustCenterModal) {
-        closeTrustCenter.addEventListener('click', () => hideModal(trustCenterModal));
-    }
-    if (understoodBtn && trustCenterModal) {
-        understoodBtn.addEventListener('click', () => hideModal(trustCenterModal));
-    }
+  });
 
-    if (settingsBtn && settingsModal) {
-        const apiKeyEl = document.getElementById('apiKey');
-        const hfUrlEl = document.getElementById('hfUrl');
-        const llmProviderEl = document.getElementById('llmProvider');
+  [
+    trustCenterModal,
+    settingsModal,
+    document.getElementById("compareModal"),
+  ].forEach((modal) => {
+    if (modal)
+      modal.addEventListener("click", (e) => {
+        if (e.target === modal) hideModal(modal);
+      });
+  });
 
-        // C-01: Populate modal from storage on open, not just once on load
-        settingsBtn.addEventListener('click', () => {
-            // Re-read stored values every time modal opens
-            const savedProvider = getStoredProvider();
-            if (llmProviderEl) llmProviderEl.value = savedProvider;
-            if (apiKeyEl) {
-                const storedToken = sessionStorage.getItem('_llm_token');
-                apiKeyEl.value = (storedToken && storedToken !== btoa('')) ? decodeURIComponent(escape(atob(storedToken))) : '';
-            }
-            if (hfUrlEl) hfUrlEl.value = localStorage.getItem('hf_url') || '';
-            updateProviderHint(savedProvider);
-            showModal(settingsModal);
-            if (llmProviderEl) llmProviderEl.focus();
-        });
-        closeSettings?.addEventListener('click', () => hideModal(settingsModal));
+  // C-06: Register trust center handlers independently to avoid one null element blocking others
+  if (trustCenterBtn && trustCenterModal) {
+    trustCenterBtn.addEventListener("click", () => showModal(trustCenterModal));
+  }
+  if (closeTrustCenter && trustCenterModal) {
+    closeTrustCenter.addEventListener("click", () =>
+      hideModal(trustCenterModal),
+    );
+  }
+  if (understoodBtn && trustCenterModal) {
+    understoodBtn.addEventListener("click", () => hideModal(trustCenterModal));
+  }
 
-        llmProviderEl?.addEventListener('change', (e) => updateProviderHint(e.target.value));
+  if (settingsBtn && settingsModal) {
+    const apiKeyEl = document.getElementById("apiKey");
+    const hfUrlEl = document.getElementById("hfUrl");
+    const llmProviderEl = document.getElementById("llmProvider");
 
-        saveSettingsBtn?.addEventListener('click', () => {
-            const key = apiKeyEl ? apiKeyEl.value.trim() : '';
-            sessionStorage.setItem('_llm_token', btoa(unescape(encodeURIComponent(key))));
-            localStorage.setItem('hf_url', hfUrlEl ? hfUrlEl.value.trim() : '');
-            localStorage.setItem('llm_provider', llmProviderEl ? llmProviderEl.value : 'free');
-            updateApiKeyUI();
-            hideModal(settingsModal);
-        });
-    }
-
-    // --- UI Utilities ---
-    const toggleBtn = document.getElementById('toggleApiKey');
-    // apiKeyInput is already defined above
-    toggleBtn?.addEventListener('click', () => {
-        if (!apiKeyInput) return;
-        const isPassword = apiKeyInput.type === 'password';
-        apiKeyInput.type = isPassword ? 'text' : 'password';
+    // C-01: Populate modal from storage on open, not just once on load
+    settingsBtn.addEventListener("click", () => {
+      // Re-read stored values every time modal opens
+      const savedProvider = getStoredProvider();
+      if (llmProviderEl) llmProviderEl.value = savedProvider;
+      if (apiKeyEl) {
+        const storedToken = sessionStorage.getItem("_llm_token");
+        apiKeyEl.value =
+          storedToken && storedToken !== btoa("")
+            ? decodeURIComponent(escape(atob(storedToken)))
+            : "";
+      }
+      if (hfUrlEl) hfUrlEl.value = localStorage.getItem("hf_url") || "";
+      updateProviderHint(savedProvider);
+      showModal(settingsModal);
+      if (llmProviderEl) llmProviderEl.focus();
     });
+    closeSettings?.addEventListener("click", () => hideModal(settingsModal));
 
-    const handleFileSelection = async () => {
-        if (!fileInput || fileInput.files.length === 0) return;
-        const file = fileInput.files[0];
-        const fileName = file.name;
-        const fileSize = (file.size / 1024).toFixed(1);
+    llmProviderEl?.addEventListener("change", (e) =>
+      updateProviderHint(e.target.value),
+    );
 
-        // Hide old list
-        if (fileList) fileList.classList.add('hidden');
+    saveSettingsBtn?.addEventListener("click", () => {
+      const key = apiKeyEl ? apiKeyEl.value.trim() : "";
+      sessionStorage.setItem(
+        "_llm_token",
+        btoa(unescape(encodeURIComponent(key))),
+      );
+      localStorage.setItem("hf_url", hfUrlEl ? hfUrlEl.value.trim() : "");
+      localStorage.setItem(
+        "llm_provider",
+        llmProviderEl ? llmProviderEl.value : "free",
+      );
+      updateApiKeyUI();
+      hideModal(settingsModal);
+    });
+  }
 
-        const detectionCard = document.getElementById('detectionCard');
-        if (detectionCard) {
-            // Show loading state first
-            detectionCard.innerHTML = `
+  // --- UI Utilities ---
+  const toggleBtn = document.getElementById("toggleApiKey");
+  // apiKeyInput is already defined above
+  toggleBtn?.addEventListener("click", () => {
+    if (!apiKeyInput) return;
+    const isPassword = apiKeyInput.type === "password";
+    apiKeyInput.type = isPassword ? "text" : "password";
+  });
+
+  const handleFileSelection = async () => {
+    if (!fileInput || fileInput.files.length === 0) return;
+    const file = fileInput.files[0];
+    const fileName = file.name;
+    const fileSize = (file.size / 1024).toFixed(1);
+
+    // Hide old list
+    if (fileList) fileList.classList.add("hidden");
+
+    const detectionCard = document.getElementById("detectionCard");
+    if (detectionCard) {
+      // Show loading state first
+      detectionCard.innerHTML = `
                 <div class="flex items-center gap-3 p-4 bg-white/10 rounded-lg border border-white/20">
                     <span class="text-2xl animate-spin">⟳</span>
                     <div>
@@ -376,52 +459,51 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>
             `;
-            detectionCard.classList.remove('hidden');
+      detectionCard.classList.remove("hidden");
 
-            try {
-                // Read a small chunk for detection to be fast
-                const chunk = file.slice(0, 500000);
-                const content = await chunk.text();
-                const parser = new ChatParser();
-                const platform = parser.detect(content, fileName);
+      try {
+        // Read a small chunk for detection to be fast
+        const chunk = file.slice(0, 500000);
+        const content = await chunk.text();
+        const parser = new ChatParser();
+        const platform = parser.detect(content, fileName);
 
-                // Estimate message count roughly (newlines for txt, divs for html)
-                let messageCountStr = '...';
-                const ratio = file.size > 500000 ? (file.size / 500000) : 1;
+        // Estimate message count roughly (newlines for txt, divs for html)
+        let messageCountStr = "...";
+        const ratio = file.size > 500000 ? file.size / 500000 : 1;
 
-                if (fileName.toLowerCase().endsWith('.txt')) {
-                    const lines = content.split('\n').length;
-                    messageCountStr = `~${Math.floor(lines / 2 * ratio || lines)} messages`;
-                } else if (fileName.toLowerCase().endsWith('.html')) {
-                    const divs = (content.match(/<div class="message /g) || []).length;
-                    messageCountStr = `~${Math.floor(divs * ratio || divs)} messages`;
-                } else {
-                    messageCountStr = `${fileSize} KB`;
-                }
+        if (fileName.toLowerCase().endsWith(".txt")) {
+          const lines = content.split("\n").length;
+          messageCountStr = `~${Math.floor((lines / 2) * ratio || lines)} messages`;
+        } else if (fileName.toLowerCase().endsWith(".html")) {
+          const divs = (content.match(/<div class="message /g) || []).length;
+          messageCountStr = `~${Math.floor(divs * ratio || divs)} messages`;
+        } else {
+          messageCountStr = `${fileSize} KB`;
+        }
 
-                const PLATFORM_ICONS = {
-                    'WhatsApp': '💬',
-                    'Telegram': '✈️',
-                    'Signal': '🔒',
-                    'Instagram': '📷',
-                    'Discord': '🎮',
-                    'JSON': '📄'
-                };
+        const PLATFORM_ICONS = {
+          WhatsApp: "💬",
+          Telegram: "✈️",
+          Signal: "🔒",
+          Instagram: "📷",
+          Discord: "🎮",
+          JSON: "📄",
+        };
 
-
-                // Use textContent for user input to prevent XSS
-                detectionCard.innerHTML = `
+        // Use textContent for user input to prevent XSS
+        detectionCard.innerHTML = `
                     <div class="flex items-center gap-3 p-4 bg-white/10 rounded-lg border border-white/20">
-                        <span class="text-2xl">${PLATFORM_ICONS[platform] || '📄'}</span>
+                        <span class="text-2xl">${PLATFORM_ICONS[platform] || "📄"}</span>
                         <div>
                             <p class="font-medium text-white">Detected: ${platform}</p>
                             <p class="text-sm text-white/60"><span id="previewFileName"></span> • ${messageCountStr}</p>
                         </div>
                     </div>
                 `;
-                document.getElementById('previewFileName').textContent = fileName;
-            } catch (err) {
-                 detectionCard.innerHTML = `
+        document.getElementById("previewFileName").textContent = fileName;
+      } catch (err) {
+        detectionCard.innerHTML = `
                     <div class="flex items-center gap-3 p-4 bg-white/10 rounded-lg border border-white/20">
                         <span class="text-2xl">📄</span>
                         <div>
@@ -430,223 +512,271 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>
                 `;
-                document.getElementById('fallbackPreviewFileName').textContent = fileName;
-            }
-        }
+        document.getElementById("fallbackPreviewFileName").textContent =
+          fileName;
+      }
+    }
 
-        // C-03: Show/hide JSON platform selector based on file type
-        const jsonSelector = document.getElementById('jsonPlatformSelector');
-        if (jsonSelector) {
-            if (fileName.toLowerCase().endsWith('.json')) {
-                jsonSelector.classList.remove('hidden');
-            } else {
-                jsonSelector.classList.add('hidden');
-            }
-        }
-        updateSubmitState();
+    // C-03: Show/hide JSON platform selector based on file type
+    const jsonSelector = document.getElementById("jsonPlatformSelector");
+    if (jsonSelector) {
+      if (fileName.toLowerCase().endsWith(".json")) {
+        jsonSelector.classList.remove("hidden");
+      } else {
+        jsonSelector.classList.add("hidden");
+      }
+    }
+    updateSubmitState();
+  };
+
+  // H-01: Add drag/drop visual feedback
+  if (dropZone) {
+    ["dragenter", "dragover", "dragleave", "drop"].forEach((evt) =>
+      dropZone.addEventListener(evt, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }),
+    );
+    dropZone.addEventListener("dragenter", () => {
+      dropZone.classList.add("drag-over");
+    });
+    dropZone.addEventListener("dragover", () => {
+      dropZone.classList.add("drag-over");
+    });
+    dropZone.addEventListener("dragleave", () => {
+      dropZone.classList.remove("drag-over");
+    });
+    dropZone.addEventListener("drop", (e) => {
+      dropZone.classList.remove("drag-over");
+      fileInput.files = e.dataTransfer.files;
+      handleFileSelection();
+    });
+  }
+  fileInput?.addEventListener("change", async (e) => {
+    await handleFileSelection();
+  });
+
+  screenshotFiles?.addEventListener("change", async () => {
+    const status = document.getElementById("ocrStatus");
+    latestOcrMeta = { confidence: null, warnings: [] };
+    if (!screenshotFiles.files.length) {
+      updateSubmitState();
+      return;
+    }
+    try {
+      if (status) {
+        status.classList.remove("hidden");
+        status.textContent = "Loading local OCR engine...";
+      }
+      const result = await intelligence.readScreenshots(
+        screenshotFiles.files,
+        (message, pct) => {
+          if (status) status.textContent = `${message} ${pct || 0}%`;
+        },
+      );
+      latestOcrMeta = {
+        confidence: result.confidence,
+        warnings: result.warnings || [],
+      };
+      if (screenshotText) screenshotText.value = result.text;
+      if (status) {
+        status.innerHTML = `<strong>OCR confidence: ${capSignalScore(result.confidence || 0)}%</strong><br>${escapeHTML((result.warnings || ["Review the text before analysing."]).join(" "))}`;
+      }
+    } catch (err) {
+      latestOcrMeta = { confidence: 0, warnings: [err.message] };
+      if (status) {
+        status.classList.remove("hidden");
+        status.textContent = `${err.message} You can still paste corrected screenshot text below.`;
+      }
+    } finally {
+      updateSubmitState();
+    }
+  });
+
+  transcriptFile?.addEventListener("change", async () => {
+    if (!transcriptFile.files.length) {
+      updateSubmitState();
+      return;
+    }
+    const file = transcriptFile.files[0];
+    if (file.size > 10 * 1024 * 1024) {
+      showError("Transcript too large. Max 10MB for transcript mode.");
+      transcriptFile.value = "";
+      updateSubmitState();
+      return;
+    }
+    if (transcriptText) transcriptText.value = await file.text();
+    updateSubmitState();
+  });
+
+  function updateFileList() {
+    // Kept for backward compatibility if needed by other parts,
+    // but main logic moved to async event listener above
+    if (fileList && fileInput.files.length > 0) {
+      const file = fileInput.files[0];
+      const fileName = file.name;
+      const fileSize = (file.size / 1024).toFixed(1);
+      fileList.classList.remove("hidden");
+      fileList.textContent = `✅ ${fileName} (${fileSize} KB)`;
+    }
+    updateSubmitState();
+  }
+
+  function updateProviderHint(provider) {
+    const hintEl = document.getElementById("providerHint");
+    const selectionStatus = document.getElementById("providerSelectionStatus");
+    const hfContainer = document.getElementById("hfUrlContainer");
+    const apiKeyContainer = document.getElementById("apiKeyContainer");
+    if (!hintEl) return;
+    const hints = {
+      free: "Free insights are rate-limited and need no setup.",
+      cloudflare: "Free insights fallback (2 reports/hr)",
+      openrouter_free: "Legacy free insights route.",
+      openai: "sk-...",
+      anthropic: "sk-ant-...",
+      gemini: "39-char API Key",
+      mistral: "API Key",
+      grok: "xAI API Key",
+      openrouter: "OpenRouter API Key",
+      cohere: "Cohere API Key",
     };
+    hintEl.textContent = hints[provider] || "";
+    if (selectionStatus) {
+      const isReady = isFreeProvider(provider);
+      selectionStatus.textContent = isReady
+        ? "Selected: Free insights is ready. No API key needed."
+        : "Selected: Bring your own key to enable this provider.";
+      selectionStatus.classList.toggle("is-ready", isReady);
+      selectionStatus.classList.toggle("is-required", !isReady);
+    }
 
-    // H-01: Add drag/drop visual feedback
-    if (dropZone) {
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(evt => dropZone.addEventListener(evt, (e) => { e.preventDefault(); e.stopPropagation(); }));
-        dropZone.addEventListener('dragenter', () => { dropZone.classList.add('drag-over'); });
-        dropZone.addEventListener('dragover', () => { dropZone.classList.add('drag-over'); });
-        dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('drag-over'); });
-        dropZone.addEventListener('drop', (e) => {
-            dropZone.classList.remove('drag-over');
-            fileInput.files = e.dataTransfer.files;
-            handleFileSelection();
+    if (hfContainer)
+      hfContainer.classList.toggle("hidden", provider !== "huggingface");
+    if (apiKeyContainer)
+      apiKeyContainer.classList.toggle("hidden", isFreeProvider(provider));
+    updateSubmitState();
+  }
+
+  const showError = (message) => {
+    const container = document.getElementById("errorContainer");
+    if (container) {
+      const p = document.createElement("p");
+      p.textContent = message;
+      container.innerHTML = "";
+      container.appendChild(p);
+      container.classList.remove("hidden");
+    } else alert(message);
+  };
+  const hideError = () =>
+    document.getElementById("errorContainer")?.classList.add("hidden");
+
+  // --- ═══ DASHBOARD & HISTORY LOGIC ═══ ---
+
+  class HistoryManager {
+    constructor() {
+      this.STORAGE_KEY = "algo_history";
+    }
+    save(data) {
+      let history = this.getAll();
+      const entry = {
+        id: data.id || Date.now().toString(),
+        my_name: data.my_name,
+        partner_name: data.partner_name,
+        msg_count: data.msg_count || 0,
+        date: new Date().toLocaleDateString(),
+        timestamp: Date.now(),
+        platform: data.platform || "WhatsApp",
+        stats: data.stats,
+        input_mode: data.input_mode || "export",
+        privacy_mode: data.privacy_mode || "stats_only",
+        source_quality: data.source_quality,
+        evidence_pack: data.evidence_pack,
+        llmReport: data.llmReport || null,
+        raw_excerpt_pack: undefined,
+        highlights: data.highlights,
+        flashbacks: data.flashbacks,
+        connection_type: data.connection_type,
+      };
+      history = history.filter((item) => item.id !== entry.id);
+      history.unshift(entry);
+      if (history.length > 20) history.pop();
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(history));
+      return entry;
+    }
+    getAll() {
+      try {
+        const raw = localStorage.getItem(this.STORAGE_KEY);
+        const parsed = raw ? JSON.parse(raw) : [];
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (err) {
+        console.warn("Could not read saved analysis history:", err);
+        return [];
+      }
+    }
+    delete(id) {
+      let history = this.getAll().filter((item) => item.id !== id);
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(history));
+      renderHistory();
+    }
+    clear() {
+      localStorage.removeItem(this.STORAGE_KEY);
+      renderHistory();
+    }
+  }
+
+  const historyManager = new HistoryManager();
+
+  const tabBtns = document.querySelectorAll(".tab-btn");
+  const tabContents = document.querySelectorAll(".tab-content");
+  tabBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      tabBtns.forEach((b) => b.classList.remove("active"));
+      tabContents.forEach((c) => {
+        c.classList.add("hidden");
+        c.classList.remove("active");
+      });
+      btn.classList.add("active");
+      const target = document.getElementById(`tab-${btn.dataset.tab}`);
+      if (target) {
+        target.classList.remove("hidden");
+        target.classList.add("active");
+      }
+    });
+  });
+
+  const renderHistory = () => {
+    const history = historyManager.getAll();
+    const list = document.getElementById("history-list");
+    const counter = document.getElementById("stats-chats-count");
+
+    // Setup local counter display, overriding with global when available
+    if (counter && history.length > 0 && counter.innerText === "0") {
+      counter.textContent = history.length;
+    }
+
+    // Fetch global stats from the newly created backend endpoint
+    if (counter) {
+      fetch("/api/stats")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data && data.count !== undefined && data.count > 0) {
+            counter.textContent = data.count.toLocaleString();
+          }
+        })
+        .catch((err) => {
+          /* fail silently for stats */
         });
     }
-    fileInput?.addEventListener('change', async (e) => {
-        await handleFileSelection();
-    });
 
-    screenshotFiles?.addEventListener('change', async () => {
-        const status = document.getElementById('ocrStatus');
-        latestOcrMeta = { confidence: null, warnings: [] };
-        if (!screenshotFiles.files.length) {
-            updateSubmitState();
-            return;
-        }
-        try {
-            if (status) {
-                status.classList.remove('hidden');
-                status.textContent = 'Loading local OCR engine...';
-            }
-            const result = await intelligence.readScreenshots(screenshotFiles.files, (message, pct) => {
-                if (status) status.textContent = `${message} ${pct || 0}%`;
-            });
-            latestOcrMeta = { confidence: result.confidence, warnings: result.warnings || [] };
-            if (screenshotText) screenshotText.value = result.text;
-            if (status) {
-                status.innerHTML = `<strong>OCR confidence: ${capSignalScore(result.confidence || 0)}%</strong><br>${escapeHTML((result.warnings || ['Review the text before analysing.']).join(' '))}`;
-            }
-        } catch (err) {
-            latestOcrMeta = { confidence: 0, warnings: [err.message] };
-            if (status) {
-                status.classList.remove('hidden');
-                status.textContent = `${err.message} You can still paste corrected screenshot text below.`;
-            }
-        } finally {
-            updateSubmitState();
-        }
-    });
-
-    transcriptFile?.addEventListener('change', async () => {
-        if (!transcriptFile.files.length) {
-            updateSubmitState();
-            return;
-        }
-        const file = transcriptFile.files[0];
-        if (file.size > 10 * 1024 * 1024) {
-            showError('Transcript too large. Max 10MB for transcript mode.');
-            transcriptFile.value = '';
-            updateSubmitState();
-            return;
-        }
-        if (transcriptText) transcriptText.value = await file.text();
-        updateSubmitState();
-    });
-
-    function updateFileList() {
-        // Kept for backward compatibility if needed by other parts,
-        // but main logic moved to async event listener above
-        if (fileList && fileInput.files.length > 0) {
-            const file = fileInput.files[0];
-            const fileName = file.name;
-            const fileSize = (file.size / 1024).toFixed(1);
-            fileList.classList.remove('hidden');
-            fileList.textContent = `✅ ${fileName} (${fileSize} KB)`;
-        }
-        updateSubmitState();
-    }
-
-    function updateProviderHint(provider) {
-        const hintEl = document.getElementById('providerHint');
-        const selectionStatus = document.getElementById('providerSelectionStatus');
-        const hfContainer = document.getElementById('hfUrlContainer');
-        const apiKeyContainer = document.getElementById('apiKeyContainer');
-        if (!hintEl) return;
-        const hints = { 'free': 'Free insights are rate-limited and need no setup.', 'cloudflare': 'Free insights fallback (2 reports/hr)', 'openrouter_free': 'Legacy free insights route.', 'openai': 'sk-...', 'anthropic': 'sk-ant-...', 'gemini': '39-char API Key', 'mistral': 'API Key', 'grok': 'xAI API Key', 'openrouter': 'OpenRouter API Key', 'cohere': 'Cohere API Key' };
-        hintEl.textContent = hints[provider] || '';
-        if (selectionStatus) {
-            const isReady = isFreeProvider(provider);
-            selectionStatus.textContent = isReady
-                ? 'Selected: Free insights is ready. No API key needed.'
-                : 'Selected: Bring your own key to enable this provider.';
-            selectionStatus.classList.toggle('is-ready', isReady);
-            selectionStatus.classList.toggle('is-required', !isReady);
-        }
-        
-        if (hfContainer) hfContainer.classList.toggle('hidden', provider !== 'huggingface');
-        if (apiKeyContainer) apiKeyContainer.classList.toggle('hidden', isFreeProvider(provider));
-        updateSubmitState();
-    }
-
-    const showError = (message) => {
-        const container = document.getElementById('errorContainer');
-        if (container) {
-            const p = document.createElement('p');
-            p.textContent = message;
-            container.innerHTML = '';
-            container.appendChild(p);
-            container.classList.remove('hidden');
-        } else alert(message);
-    };
-    const hideError = () => document.getElementById('errorContainer')?.classList.add('hidden');
-
-    // --- ═══ DASHBOARD & HISTORY LOGIC ═══ ---
-    
-    class HistoryManager {
-        constructor() { this.STORAGE_KEY = 'algo_history'; }
-        save(data) {
-            let history = this.getAll();
-            const entry = {
-                id: data.id || Date.now().toString(),
-                my_name: data.my_name,
-                partner_name: data.partner_name,
-                msg_count: data.msg_count || 0,
-                date: new Date().toLocaleDateString(),
-                timestamp: Date.now(),
-                platform: data.platform || 'WhatsApp',
-                stats: data.stats,
-                input_mode: data.input_mode || 'export',
-                privacy_mode: data.privacy_mode || 'stats_only',
-                source_quality: data.source_quality,
-                evidence_pack: data.evidence_pack,
-                llmReport: data.llmReport || null,
-                raw_excerpt_pack: undefined,
-                highlights: data.highlights,
-                flashbacks: data.flashbacks,
-                connection_type: data.connection_type
-            };
-            history = history.filter(item => item.id !== entry.id);
-            history.unshift(entry);
-            if (history.length > 20) history.pop();
-            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(history));
-            return entry;
-        }
-        getAll() {
-            try {
-                const raw = localStorage.getItem(this.STORAGE_KEY);
-                const parsed = raw ? JSON.parse(raw) : [];
-                return Array.isArray(parsed) ? parsed : [];
-            } catch (err) {
-                console.warn('Could not read saved analysis history:', err);
-                return [];
-            }
-        }
-        delete(id) {
-            let history = this.getAll().filter(item => item.id !== id);
-            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(history));
-            renderHistory();
-        }
-        clear() { localStorage.removeItem(this.STORAGE_KEY); renderHistory(); }
-    }
-
-    const historyManager = new HistoryManager();
-
-    const tabBtns = document.querySelectorAll('.tab-btn');
-    const tabContents = document.querySelectorAll('.tab-content');
-    tabBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            tabBtns.forEach(b => b.classList.remove('active'));
-            tabContents.forEach(c => { c.classList.add('hidden'); c.classList.remove('active'); });
-            btn.classList.add('active');
-            const target = document.getElementById(`tab-${btn.dataset.tab}`);
-            if (target) { target.classList.remove('hidden'); target.classList.add('active'); }
-        });
-    });
-
-    const renderHistory = () => {
-        const history = historyManager.getAll();
-        const list = document.getElementById('history-list');
-        const counter = document.getElementById('stats-chats-count');
-        
-        // Setup local counter display, overriding with global when available
-        if (counter && history.length > 0 && counter.innerText === "0") {
-            counter.textContent = history.length;
-        }
-
-        // Fetch global stats from the newly created backend endpoint
-        if (counter) {
-            fetch('/api/stats')
-                .then(res => res.json())
-                .then(data => {
-                    if (data && data.count !== undefined && data.count > 0) {
-                        counter.textContent = data.count.toLocaleString();
-                    }
-                }).catch(err => { /* fail silently for stats */ });
-        }
-
-        if (!list) return;
-        list.innerHTML = '';
-        document.getElementById('history-empty-state')?.classList.toggle('hidden', history.length > 0);
-        history.forEach(item => {
-            const card = document.createElement('div');
-            card.className = 'history-card';
-            card.innerHTML = `
+    if (!list) return;
+    list.innerHTML = "";
+    document
+      .getElementById("history-empty-state")
+      ?.classList.toggle("hidden", history.length > 0);
+    history.forEach((item) => {
+      const card = document.createElement("div");
+      card.className = "history-card";
+      card.innerHTML = `
                 <div class="history-card__info">
                     <h4 class="m-0">${escapeHTML(item.my_name)} & ${escapeHTML(item.partner_name)}</h4>
                     <div class="history-card__meta mt-1">
@@ -661,326 +791,429 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button class="btn btn--white btn--sm delete-history-btn" data-id="${item.id}" style="padding: 0.5rem">×</button>
                 </div>
             `;
-            list.appendChild(card);
-        });
-        list.querySelectorAll('.open-history-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const item = history.find(h => h.id === btn.dataset.id);
-                if (item) { sessionStorage.setItem('dashboard_data', JSON.stringify(item)); window.location.href = '/dashboard.html'; }
-            });
-        });
-        list.querySelectorAll('.delete-history-btn').forEach(btn => {
-            btn.addEventListener('click', () => historyManager.delete(btn.dataset.id));
-        });
-    };
-    document.getElementById('clearHistoryBtn')?.addEventListener('click', () => historyManager.clear());
-    renderHistory();
-
-    // --- Compare Controller ---
-    const compareModal = document.getElementById('compareModal');
-    const compareTriggers = document.querySelectorAll('.compare-trigger'); 
-    let compareSelection = { a: null, b: null, activeSlot: 'a' };
-
-    // C-04: Fix compare UI to populate picker from localStorage
-    const updateCompareUI = () => {
-        const history = historyManager.getAll();
-        const picker = document.getElementById('compare-history-picker');
-        if (!picker) return;
-        
-        const pickerStatus = document.getElementById('picker-status');
-        const pickerCount = document.getElementById('picker-count');
-        if (pickerStatus) pickerStatus.textContent = `Picking for Chat ${compareSelection.activeSlot.toUpperCase()}`;
-        if (pickerCount) pickerCount.textContent = `${history.length} available`;
-        
-        const slotA = document.getElementById('slot-a');
-        const slotB = document.getElementById('slot-b');
-        const slotAName = document.getElementById('slot-a-name');
-        const slotBName = document.getElementById('slot-b-name');
-        
-        if (slotA) slotA.classList.toggle('active', compareSelection.activeSlot === 'a');
-        if (slotB) slotB.classList.toggle('active', compareSelection.activeSlot === 'b');
-        if (slotAName) slotAName.textContent = compareSelection.a ? `${compareSelection.a.my_name} & ${compareSelection.a.partner_name}` : 'Click to pick';
-        if (slotBName) slotBName.textContent = compareSelection.b ? `${compareSelection.b.my_name} & ${compareSelection.b.partner_name}` : 'Click to pick';
-        
-        picker.innerHTML = '';
-        if (history.length === 0) {
-            picker.innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--gray-500);font-weight:500">No analyses found. Analyse a chat first.</div>';
+      list.appendChild(card);
+    });
+    list.querySelectorAll(".open-history-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const item = history.find((h) => h.id === btn.dataset.id);
+        if (item) {
+          sessionStorage.setItem("dashboard_data", JSON.stringify(item));
+          window.location.href = "/dashboard.html";
         }
-        history.forEach(item => {
-            const el = document.createElement('div');
-            el.className = `picker-item ${ (compareSelection.a?.id === item.id || compareSelection.b?.id === item.id) ? 'selected' : '' }`;
-            el.innerHTML = `<div style="font-weight:900">${escapeHTML(item.my_name)} & ${escapeHTML(item.partner_name)}</div><div style="font-size:0.65rem">${escapeHTML(item.date)} • ${escapeHTML(item.platform || 'Unknown')}</div>`;
-            el.addEventListener('click', () => {
-                if (compareSelection.activeSlot === 'a') { compareSelection.a = item; compareSelection.activeSlot = 'b'; }
-                else compareSelection.b = item;
-                updateCompareUI();
-            });
-            picker.appendChild(el);
-        });
-        const execBtn = document.getElementById('executeCompareBtn');
-        if (execBtn) execBtn.disabled = !(compareSelection.a && compareSelection.b);
-    };
+      });
+    });
+    list.querySelectorAll(".delete-history-btn").forEach((btn) => {
+      btn.addEventListener("click", () =>
+        historyManager.delete(btn.dataset.id),
+      );
+    });
+  };
+  document
+    .getElementById("clearHistoryBtn")
+    ?.addEventListener("click", () => historyManager.clear());
+  renderHistory();
 
-    compareTriggers.forEach(btn => btn.addEventListener('click', () => { showModal(compareModal); compareSelection = { a: null, b: null, activeSlot: 'a' }; updateCompareUI(); }));
-    document.getElementById('closeCompare')?.addEventListener('click', () => hideModal(compareModal));
-    document.getElementById('cancelCompareBtn')?.addEventListener('click', () => hideModal(compareModal));
-    document.getElementById('executeCompareBtn')?.addEventListener('click', () => {
-        sessionStorage.setItem('compare_a', JSON.stringify(compareSelection.a));
-        sessionStorage.setItem('compare_b', JSON.stringify(compareSelection.b));
-        window.location.href = '/dashboard.html?mode=compare';
+  // --- Compare Controller ---
+  const compareModal = document.getElementById("compareModal");
+  const compareTriggers = document.querySelectorAll(".compare-trigger");
+  let compareSelection = { a: null, b: null, activeSlot: "a" };
+
+  // C-04: Fix compare UI to populate picker from localStorage
+  const updateCompareUI = () => {
+    const history = historyManager.getAll();
+    const picker = document.getElementById("compare-history-picker");
+    if (!picker) return;
+
+    const pickerStatus = document.getElementById("picker-status");
+    const pickerCount = document.getElementById("picker-count");
+    if (pickerStatus)
+      pickerStatus.textContent = `Picking for Chat ${compareSelection.activeSlot.toUpperCase()}`;
+    if (pickerCount) pickerCount.textContent = `${history.length} available`;
+
+    const slotA = document.getElementById("slot-a");
+    const slotB = document.getElementById("slot-b");
+    const slotAName = document.getElementById("slot-a-name");
+    const slotBName = document.getElementById("slot-b-name");
+
+    if (slotA)
+      slotA.classList.toggle("active", compareSelection.activeSlot === "a");
+    if (slotB)
+      slotB.classList.toggle("active", compareSelection.activeSlot === "b");
+    if (slotAName)
+      slotAName.textContent = compareSelection.a
+        ? `${compareSelection.a.my_name} & ${compareSelection.a.partner_name}`
+        : "Click to pick";
+    if (slotBName)
+      slotBName.textContent = compareSelection.b
+        ? `${compareSelection.b.my_name} & ${compareSelection.b.partner_name}`
+        : "Click to pick";
+
+    picker.innerHTML = "";
+    if (history.length === 0) {
+      picker.innerHTML =
+        '<div style="text-align:center;padding:1.5rem;color:var(--gray-500);font-weight:500">No analyses found. Analyse a chat first.</div>';
+    }
+    history.forEach((item) => {
+      const el = document.createElement("div");
+      el.className = `picker-item ${compareSelection.a?.id === item.id || compareSelection.b?.id === item.id ? "selected" : ""}`;
+      el.innerHTML = `<div style="font-weight:900">${escapeHTML(item.my_name)} & ${escapeHTML(item.partner_name)}</div><div style="font-size:0.65rem">${escapeHTML(item.date)} • ${escapeHTML(item.platform || "Unknown")}</div>`;
+      el.addEventListener("click", () => {
+        if (compareSelection.activeSlot === "a") {
+          compareSelection.a = item;
+          compareSelection.activeSlot = "b";
+        } else compareSelection.b = item;
+        updateCompareUI();
+      });
+      picker.appendChild(el);
+    });
+    const execBtn = document.getElementById("executeCompareBtn");
+    if (execBtn) execBtn.disabled = !(compareSelection.a && compareSelection.b);
+  };
+
+  compareTriggers.forEach((btn) =>
+    btn.addEventListener("click", () => {
+      showModal(compareModal);
+      compareSelection = { a: null, b: null, activeSlot: "a" };
+      updateCompareUI();
+    }),
+  );
+  document
+    .getElementById("closeCompare")
+    ?.addEventListener("click", () => hideModal(compareModal));
+  document
+    .getElementById("cancelCompareBtn")
+    ?.addEventListener("click", () => hideModal(compareModal));
+  document
+    .getElementById("executeCompareBtn")
+    ?.addEventListener("click", () => {
+      sessionStorage.setItem("compare_a", JSON.stringify(compareSelection.a));
+      sessionStorage.setItem("compare_b", JSON.stringify(compareSelection.b));
+      window.location.href = "/dashboard.html?mode=compare";
     });
 
-    // C-05: Reset form state helper
-    const resetFormState = () => {
-        if (activeAbortController) {
-            activeAbortController.abort();
-            activeAbortController = null;
-        }
-        const loadingOverlay = document.getElementById('loading-overlay');
-        if (loadingOverlay) loadingOverlay.classList.add('hidden');
-        if (analyzeBtn) {
+  // C-05: Reset form state helper
+  const resetFormState = () => {
+    if (activeAbortController) {
+      activeAbortController.abort();
+      activeAbortController = null;
+    }
+    const loadingOverlay = document.getElementById("loading-overlay");
+    if (loadingOverlay) loadingOverlay.classList.add("hidden");
+    if (analyzeBtn) {
+      analyzeBtn.disabled = false;
+      analyzeBtn.textContent = "Decode My Chat →";
+      analyzeBtn.style.opacity = "1";
+    }
+    updateSubmitState();
+  };
+
+  // C-05: Wire loading overlay dismiss button
+  const loadingOverlayDismiss = document.getElementById(
+    "loading-overlay-close",
+  );
+  if (loadingOverlayDismiss) {
+    loadingOverlayDismiss.addEventListener("click", () => {
+      resetFormState();
+    });
+  }
+
+  // M-02: Context textarea character counter
+  const userContextEl = document.getElementById("userContext");
+  const userContextCount = document.getElementById("userContextCharCount");
+  if (userContextEl && userContextCount) {
+    userContextEl.addEventListener("input", () => {
+      userContextCount.textContent = `${userContextEl.value.length} / 2000`;
+    });
+  }
+
+  let progressInterval = null;
+  const setProgressText = (message) => {
+    const progressText = document.getElementById("progress-text");
+    if (progressText) progressText.textContent = message;
+  };
+
+  // --- Form Submission ---
+  if (uploadForm) {
+    uploadForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      hideError();
+
+      const inputMode = getInputMode();
+      if (!hasSourceInput()) {
+        showError("Please add a conversation source first.");
+        return;
+      }
+
+      // M-05: Validate connection type is selected
+      const connectionTypeVal =
+        document.getElementById("connectionType")?.value;
+      if (!connectionTypeVal) {
+        showError("Please select a relationship type before analysing.");
+        document
+          .querySelector(
+            '[data-target="connectionType"] .custom-select-trigger',
+          )
+          ?.style.setProperty("border-color", "var(--red)");
+        return;
+      }
+
+      const provider = getStoredProvider();
+      const apiKeyB64 = sessionStorage.getItem("_llm_token");
+      if (!isFreeProvider(provider)) {
+        if (!apiKeyB64 || apiKeyB64.trim() === "" || apiKeyB64 === btoa("")) {
+          showError(
+            `An API Key is required for ${document.querySelector("#llmProvider option:checked")?.text || provider}. Configure it first.`,
+          );
+          if (analyzeBtn) {
             analyzeBtn.disabled = false;
-            analyzeBtn.textContent = 'Decode My Chat →';
-            analyzeBtn.style.opacity = '1';
+            analyzeBtn.textContent = "Configure API Key First →";
+          }
+          return;
         }
-        updateSubmitState();
-    };
 
-    // C-05: Wire loading overlay dismiss button
-    const loadingOverlayDismiss = document.getElementById('loading-overlay-close');
-    if (loadingOverlayDismiss) {
-        loadingOverlayDismiss.addEventListener('click', () => {
+        const rawKey = decodeURIComponent(escape(atob(apiKeyB64))).trim();
+        let isKeyValid = true;
+        let keyError = "";
+
+        if (provider === "openai" && !rawKey.startsWith("sk-")) {
+          isKeyValid = false;
+          keyError = 'OpenAI keys must start with "sk-"';
+        } else if (provider === "anthropic" && !rawKey.startsWith("sk-ant-")) {
+          isKeyValid = false;
+          keyError = 'Anthropic keys must start with "sk-ant-"';
+        } else if (provider === "gemini" && rawKey.length !== 39) {
+          isKeyValid = false;
+          keyError = "Gemini keys must be exactly 39 characters";
+        } else if (provider === "openrouter" && rawKey.length < 20) {
+          isKeyValid = false;
+          keyError = "OpenRouter keys look too short";
+        }
+
+        if (!isKeyValid) {
+          showError(`Invalid API Key format: ${keyError}.`);
+          if (analyzeBtn) {
+            analyzeBtn.disabled = false;
+            analyzeBtn.textContent = "Fix API Key First →";
+          }
+          return;
+        }
+      }
+
+      // C-05: Create abort controller for this request
+      activeAbortController = new AbortController();
+
+      const loadingOverlay = document.getElementById("loading-overlay");
+      const progressText = document.getElementById("progress-text");
+      if (loadingOverlay) {
+        loadingOverlay.classList.remove("hidden");
+        if (progressText) {
+          const steps = [
+            "Reading source...",
+            "Normalizing messages...",
+            "Extracting evidence...",
+            "Calculating statistics...",
+            "Preparing dashboard...",
+          ];
+          let stepIndex = 0;
+          progressText.textContent = steps[stepIndex++];
+          progressInterval = setInterval(() => {
+            if (stepIndex < steps.length) {
+              progressText.textContent = steps[stepIndex++];
+            }
+          }, 2500);
+        }
+      }
+
+      const parser = new ChatParser();
+      const analytics = new AnalyticsEngine();
+
+      if (analyzeBtn) {
+        analyzeBtn.disabled = true;
+        analyzeBtn.setAttribute("aria-busy", "true");
+        analyzeBtn.innerHTML =
+          '<span class="animate-spin inline-block mr-2">⟳</span> Analyzing...';
+      }
+
+      try {
+        // Check if aborted
+        if (activeAbortController?.signal.aborted)
+          throw new Error("Analysis cancelled.");
+        if (!intelligence)
+          throw new Error(
+            "Conversation intelligence module failed to load. Please refresh and try again.",
+          );
+
+        const myName = document.getElementById("myName").value;
+        const partnerName = document.getElementById("partnerName").value;
+        const connectionType = document.getElementById("connectionType").value;
+        const outputLanguage = document.getElementById("outputLanguage")
+          ? document.getElementById("outputLanguage").value
+          : "english";
+        const userContext = document.getElementById("userContext")
+          ? document.getElementById("userContext").value.trim()
+          : "";
+        const analysisTone = document.getElementById("analysisTone")
+          ? document.getElementById("analysisTone").value
+          : "balanced";
+        const privacyMode = rawAiConsent?.checked ? "opt_in_raw" : "stats_only";
+
+        let rawMessages = [];
+        let detectedPlatform = intelligence.getInputModeLabel(inputMode);
+        let sourceExtra = {};
+
+        if (inputMode === "export") {
+          const file = fileInput.files[0];
+          if (file.size > 20 * 1024 * 1024) {
+            showError(
+              "File too large. Max 20MB. Try exporting a shorter date range.",
+            );
             resetFormState();
-        });
-    }
+            return;
+          }
+          setProgressText("Reading export...");
+          const content = await file.text();
+          const jsonPlat = document.getElementById("jsonPlatform")
+            ? document.getElementById("jsonPlatform").value
+            : "Instagram";
+          setProgressText("Detecting chat platform...");
+          detectedPlatform = parser.detect(content, file.name);
+          if (detectedPlatform === "JSON") detectedPlatform = jsonPlat;
+          setProgressText(`Parsing ${detectedPlatform} messages...`);
+          if (detectedPlatform === "Telegram")
+            rawMessages = parser.parseTelegram(content);
+          else if (detectedPlatform === "Discord")
+            rawMessages = parser.parseDiscord(content);
+          else if (detectedPlatform === "Instagram")
+            rawMessages = parser.parseInstagram(content);
+          else if (detectedPlatform === "Signal")
+            rawMessages = parser.parseSignal(content);
+          else rawMessages = parser.parseWhatsApp(content);
+          sourceExtra = { warnings: [] };
+        } else if (inputMode === "paste") {
+          setProgressText("Parsing pasted conversation...");
+          detectedPlatform =
+            document.getElementById("pastePlatformHint")?.value ||
+            "Pasted Chat";
+          rawMessages = intelligence.parsePaste(
+            pasteChatText.value,
+            detectedPlatform,
+          );
+          sourceExtra = { warnings: [] };
+        } else if (inputMode === "screenshots") {
+          setProgressText("Parsing OCR text...");
+          detectedPlatform = "Screenshots";
+          rawMessages = intelligence.parsePaste(
+            screenshotText.value,
+            "Screenshots",
+          );
+          sourceExtra = {
+            warnings: latestOcrMeta.warnings || [],
+            ocr_confidence: latestOcrMeta.confidence,
+          };
+        } else if (inputMode === "transcript") {
+          setProgressText("Parsing transcript...");
+          detectedPlatform = "Transcript";
+          rawMessages = intelligence.parseTranscript(transcriptText.value);
+          sourceExtra = { warnings: [] };
+        }
 
-    // M-02: Context textarea character counter
-    const userContextEl = document.getElementById('userContext');
-    const userContextCount = document.getElementById('userContextCharCount');
-    if (userContextEl && userContextCount) {
-        userContextEl.addEventListener('input', () => {
-            userContextCount.textContent = `${userContextEl.value.length} / 2000`;
-        });
-    }
+        if (!rawMessages || !rawMessages.length)
+          throw new Error("No readable messages found in this source.");
+        if (activeAbortController?.signal.aborted)
+          throw new Error("Analysis cancelled.");
 
-    let progressInterval = null;
-    const setProgressText = (message) => {
-        const progressText = document.getElementById('progress-text');
-        if (progressText) progressText.textContent = message;
-    };
+        setProgressText("Normalizing sender names...");
+        const filteredMessages = intelligence.standardize(
+          rawMessages,
+          myName,
+          partnerName,
+          inputMode,
+          detectedPlatform,
+        );
+        if (!filteredMessages.length)
+          throw new Error(
+            "Sender names not mapped correctly. Check the names or correct the source text.",
+          );
 
-    // --- Form Submission ---
-    if (uploadForm) {
-        uploadForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            hideError();
-            
-            const inputMode = getInputMode();
-            if (!hasSourceInput()) {
-                showError('Please add a conversation source first.');
-                return;
-            }
-            
-            // M-05: Validate connection type is selected
-            const connectionTypeVal = document.getElementById('connectionType')?.value;
-            if (!connectionTypeVal) {
-                showError('Please select a relationship type before analysing.');
-                document.querySelector('[data-target="connectionType"] .custom-select-trigger')
-                    ?.style.setProperty('border-color', 'var(--red)');
-                return;
-            }
-            
-            const provider = getStoredProvider();
-            const apiKeyB64 = sessionStorage.getItem('_llm_token');
-            if (!isFreeProvider(provider)) {
-                if (!apiKeyB64 || apiKeyB64.trim() === '' || apiKeyB64 === btoa('')) {
-                    showError(`An API Key is required for ${document.querySelector('#llmProvider option:checked')?.text || provider}. Configure it first.`);
-                    if (analyzeBtn) {
-                        analyzeBtn.disabled = false;
-                        analyzeBtn.textContent = 'Configure API Key First →';
-                    }
-                    return;
-                }
+        setProgressText("Calculating accurate stats...");
+        const analyticsResult = analytics.runPipeline(
+          filteredMessages,
+          connectionType,
+        );
+        if (!analyticsResult)
+          throw new Error("No valid dated messages found after parsing.");
+        if (activeAbortController?.signal.aborted)
+          throw new Error("Analysis cancelled.");
 
-                const rawKey = decodeURIComponent(escape(atob(apiKeyB64))).trim();
-                let isKeyValid = true;
-                let keyError = '';
+        setProgressText("Extracting receipts and predictions...");
+        const sourceQuality = intelligence.assessSourceQuality(
+          filteredMessages,
+          inputMode,
+          sourceExtra,
+        );
+        const evidencePack = intelligence.buildEvidencePack(
+          filteredMessages,
+          analyticsResult,
+          sourceQuality,
+        );
+        const rawExcerptPack =
+          privacyMode === "opt_in_raw"
+            ? intelligence.buildRawExcerptPack(
+                filteredMessages,
+                evidencePack.receipts,
+              )
+            : null;
 
-                if (provider === 'openai' && !rawKey.startsWith('sk-')) {
-                    isKeyValid = false;
-                    keyError = 'OpenAI keys must start with "sk-"';
-                } else if (provider === 'anthropic' && !rawKey.startsWith('sk-ant-')) {
-                    isKeyValid = false;
-                    keyError = 'Anthropic keys must start with "sk-ant-"';
-                } else if (provider === 'gemini' && rawKey.length !== 39) {
-                    isKeyValid = false;
-                    keyError = 'Gemini keys must be exactly 39 characters';
-                } else if (provider === 'openrouter' && rawKey.length < 20) {
-                    isKeyValid = false;
-                    keyError = 'OpenRouter keys look too short';
-                }
+        const dashboardData = {
+          id: Date.now().toString(),
+          stats: analyticsResult,
+          my_name: myName,
+          partner_name: partnerName,
+          highlights: [],
+          flashbacks: {},
+          connection_type: connectionType,
+          language: outputLanguage,
+          context: userContext,
+          tone: analysisTone,
+          msg_count: filteredMessages.length,
+          platform: detectedPlatform,
+          input_mode: inputMode,
+          privacy_mode: privacyMode,
+          source_quality: sourceQuality,
+          evidence_pack: evidencePack,
+        };
+        if (rawExcerptPack) dashboardData.raw_excerpt_pack = rawExcerptPack;
 
-                if (!isKeyValid) {
-                    showError(`Invalid API Key format: ${keyError}.`);
-                    if (analyzeBtn) {
-                        analyzeBtn.disabled = false;
-                        analyzeBtn.textContent = 'Fix API Key First →';
-                    }
-                    return;
-                }
-            }
-            
-            // C-05: Create abort controller for this request
-            activeAbortController = new AbortController();
-            
-            const loadingOverlay = document.getElementById('loading-overlay');
-            const progressText = document.getElementById('progress-text');
-            if (loadingOverlay) {
-                loadingOverlay.classList.remove('hidden');
-                if (progressText) {
-                    const steps = ['Reading source...', 'Normalizing messages...', 'Extracting evidence...', 'Calculating statistics...', 'Preparing dashboard...'];
-                    let stepIndex = 0;
-                    progressText.textContent = steps[stepIndex++];
-                    progressInterval = setInterval(() => {
-                        if (stepIndex < steps.length) {
-                            progressText.textContent = steps[stepIndex++];
-                        }
-                    }, 2500);
-                }
-            }
+        const savedEntry = historyManager.save(dashboardData);
+        dashboardData.id = savedEntry.id;
+        sessionStorage.setItem("dashboard_data", JSON.stringify(dashboardData));
+        setProgressText("Opening dashboard...");
 
-                const parser = new ChatParser();
-                const analytics = new AnalyticsEngine();
+        // M-01: Success toast/feedback before redirect
+        const loadingOverlay = document.getElementById("loading-overlay");
+        if (loadingOverlay) {
+          loadingOverlay.innerHTML = `<div style="font-size:4rem;margin-bottom:1rem;animation:pulse 1.5s infinite">✅</div><h2 style="color:var(--green);text-shadow:2px 2px 0 var(--black)">Analysis Complete!</h2><p style="font-weight:700">Opening your personalized report...</p>`;
+        }
 
-            if (analyzeBtn) {
-                analyzeBtn.disabled = true;
-                analyzeBtn.setAttribute('aria-busy', 'true');
-                analyzeBtn.innerHTML = '<span class="animate-spin inline-block mr-2">⟳</span> Analyzing...';
-            }
-
-            try {
-                // Check if aborted
-                if (activeAbortController?.signal.aborted) throw new Error('Analysis cancelled.');
-                if (!intelligence) throw new Error('Conversation intelligence module failed to load. Please refresh and try again.');
-                
-                const myName = document.getElementById('myName').value;
-                const partnerName = document.getElementById('partnerName').value;
-                const connectionType = document.getElementById('connectionType').value;
-                const outputLanguage = document.getElementById('outputLanguage') ? document.getElementById('outputLanguage').value : 'english';
-                const userContext = document.getElementById('userContext') ? document.getElementById('userContext').value.trim() : '';
-                const analysisTone = document.getElementById('analysisTone') ? document.getElementById('analysisTone').value : 'balanced';
-                const privacyMode = rawAiConsent?.checked ? 'opt_in_raw' : 'stats_only';
-
-                let rawMessages = [];
-                let detectedPlatform = intelligence.getInputModeLabel(inputMode);
-                let sourceExtra = {};
-
-                if (inputMode === 'export') {
-                    const file = fileInput.files[0];
-                    if (file.size > 20 * 1024 * 1024) {
-                        showError('File too large. Max 20MB. Try exporting a shorter date range.');
-                        resetFormState();
-                        return;
-                    }
-                    setProgressText('Reading export...');
-                    const content = await file.text();
-                    const jsonPlat = document.getElementById('jsonPlatform') ? document.getElementById('jsonPlatform').value : 'Instagram';
-                    setProgressText('Detecting chat platform...');
-                    detectedPlatform = parser.detect(content, file.name);
-                    if (detectedPlatform === 'JSON') detectedPlatform = jsonPlat;
-                    setProgressText(`Parsing ${detectedPlatform} messages...`);
-                    if (detectedPlatform === 'Telegram') rawMessages = parser.parseTelegram(content);
-                    else if (detectedPlatform === 'Discord') rawMessages = parser.parseDiscord(content);
-                    else if (detectedPlatform === 'Instagram') rawMessages = parser.parseInstagram(content);
-                    else if (detectedPlatform === 'Signal') rawMessages = parser.parseSignal(content);
-                    else rawMessages = parser.parseWhatsApp(content);
-                    sourceExtra = { warnings: [] };
-                } else if (inputMode === 'paste') {
-                    setProgressText('Parsing pasted conversation...');
-                    detectedPlatform = document.getElementById('pastePlatformHint')?.value || 'Pasted Chat';
-                    rawMessages = intelligence.parsePaste(pasteChatText.value, detectedPlatform);
-                    sourceExtra = { warnings: [] };
-                } else if (inputMode === 'screenshots') {
-                    setProgressText('Parsing OCR text...');
-                    detectedPlatform = 'Screenshots';
-                    rawMessages = intelligence.parsePaste(screenshotText.value, 'Screenshots');
-                    sourceExtra = { warnings: latestOcrMeta.warnings || [], ocr_confidence: latestOcrMeta.confidence };
-                } else if (inputMode === 'transcript') {
-                    setProgressText('Parsing transcript...');
-                    detectedPlatform = 'Transcript';
-                    rawMessages = intelligence.parseTranscript(transcriptText.value);
-                    sourceExtra = { warnings: [] };
-                }
-
-                if (!rawMessages || !rawMessages.length) throw new Error("No readable messages found in this source.");
-                if (activeAbortController?.signal.aborted) throw new Error('Analysis cancelled.');
-
-                setProgressText('Normalizing sender names...');
-                const filteredMessages = intelligence.standardize(rawMessages, myName, partnerName, inputMode, detectedPlatform);
-                if (!filteredMessages.length) throw new Error("Sender names not mapped correctly. Check the names or correct the source text.");
-
-                setProgressText('Calculating accurate stats...');
-                const analyticsResult = analytics.runPipeline(filteredMessages, connectionType);
-                if (!analyticsResult) throw new Error("No valid dated messages found after parsing.");
-                if (activeAbortController?.signal.aborted) throw new Error('Analysis cancelled.');
-
-                setProgressText('Extracting receipts and predictions...');
-                const sourceQuality = intelligence.assessSourceQuality(filteredMessages, inputMode, sourceExtra);
-                const evidencePack = intelligence.buildEvidencePack(filteredMessages, analyticsResult, sourceQuality);
-                const rawExcerptPack = privacyMode === 'opt_in_raw'
-                    ? intelligence.buildRawExcerptPack(filteredMessages, evidencePack.receipts)
-                    : null;
-
-                const dashboardData = {
-                    id: Date.now().toString(),
-                    stats: analyticsResult,
-                    my_name: myName,
-                    partner_name: partnerName,
-                    highlights: [], flashbacks: {},
-                    connection_type: connectionType,
-                    language: outputLanguage,
-                    context: userContext,
-                    tone: analysisTone,
-                    msg_count: filteredMessages.length,
-                    platform: detectedPlatform,
-                    input_mode: inputMode,
-                    privacy_mode: privacyMode,
-                    source_quality: sourceQuality,
-                    evidence_pack: evidencePack
-                };
-                if (rawExcerptPack) dashboardData.raw_excerpt_pack = rawExcerptPack;
-
-                const savedEntry = historyManager.save(dashboardData);
-                dashboardData.id = savedEntry.id;
-                sessionStorage.setItem('dashboard_data', JSON.stringify(dashboardData));
-                setProgressText('Opening dashboard...');
-                
-                // M-01: Success toast/feedback before redirect
-                const loadingOverlay = document.getElementById('loading-overlay');
-                if (loadingOverlay) {
-                    loadingOverlay.innerHTML = `<div style="font-size:4rem;margin-bottom:1rem;animation:pulse 1.5s infinite">✅</div><h2 style="color:var(--green);text-shadow:2px 2px 0 var(--black)">Analysis Complete!</h2><p style="font-weight:700">Opening your personalized report...</p>`;
-                }
-                
-                setTimeout(() => {
-                    window.location.href = '/dashboard.html';
-                }, 1200);
-
-            } catch (err) {
-                showError(err.message);
-                resetFormState();
-            } finally {
-                if (progressInterval) {
-                    clearInterval(progressInterval);
-                    progressInterval = null;
-                }
-                if (analyzeBtn) {
-                    analyzeBtn.removeAttribute('aria-busy');
-                }
-            }
-        });
-    }
-    // Keep trust details user-initiated; auto-modals block the upload flow on phones.
-    const markTrustSeen = () => localStorage.setItem('algo_seen', '1');
-    closeTrustCenter?.addEventListener('click', markTrustSeen);
-    understoodBtn?.addEventListener('click', markTrustSeen);
+        setTimeout(() => {
+          window.location.href = "/dashboard.html";
+        }, 1200);
+      } catch (err) {
+        showError(err.message);
+        resetFormState();
+      } finally {
+        if (progressInterval) {
+          clearInterval(progressInterval);
+          progressInterval = null;
+        }
+        if (analyzeBtn) {
+          analyzeBtn.removeAttribute("aria-busy");
+        }
+      }
+    });
+  }
+  // Keep trust details user-initiated; auto-modals block the upload flow on phones.
+  const markTrustSeen = () => localStorage.setItem("algo_seen", "1");
+  closeTrustCenter?.addEventListener("click", markTrustSeen);
+  understoodBtn?.addEventListener("click", markTrustSeen);
 });

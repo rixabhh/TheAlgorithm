@@ -1,0 +1,3 @@
+# .prettierignore
+# We ignore the .jules directory to prevent unnecessary modifications.
+.jules/

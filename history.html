@@ -1,225 +1,449 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
     <title>The Algorithm — Analysis History</title>
-    <link rel="stylesheet" href="static/css/style.css?v=5.0">
-    <link rel="stylesheet" href="static/css/revamp.css?v=15">
+    <link rel="stylesheet" href="static/css/style.css?v=5.0" />
+    <link rel="stylesheet" href="static/css/revamp.css?v=15" />
 
     <!-- Open Graph / Twitter Card tags -->
-    <meta property="og:title" content="The Algorithm — AI Relationship Analyzer" />
-    <meta property="og:description" content="Find out what your chats really say about your relationship. Privacy-first, BYOK, zero data stored." />
-    <meta property="og:image" content="https://thealgorithm.rixabh.workers.dev/static/og-image.png" />
-    <meta property="og:url" content="https://thealgorithm.rixabh.workers.dev/" />
+    <meta
+      property="og:title"
+      content="The Algorithm — AI Relationship Analyzer"
+    />
+    <meta
+      property="og:description"
+      content="Find out what your chats really say about your relationship. Privacy-first, BYOK, zero data stored."
+    />
+    <meta
+      property="og:image"
+      content="https://thealgorithm.rixabh.workers.dev/static/og-image.png"
+    />
+    <meta
+      property="og:url"
+      content="https://thealgorithm.rixabh.workers.dev/"
+    />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="The Algorithm" />
-    <meta name="twitter:description" content="What do your chats say about your relationship? Find out — your data never leaves your device." />
-    <meta name="twitter:image" content="https://thealgorithm.rixabh.workers.dev/static/og-image.png" />
-
-</head>
-<body class="comic-dots history-body">
-
-<header class="nav">
-    <div class="container">
+    <meta
+      name="twitter:description"
+      content="What do your chats say about your relationship? Find out — your data never leaves your device."
+    />
+    <meta
+      name="twitter:image"
+      content="https://thealgorithm.rixabh.workers.dev/static/og-image.png"
+    />
+  </head>
+  <body class="comic-dots history-body">
+    <header class="nav">
+      <div class="container">
         <a href="/" class="nav-logo">
-            <span style="font-size:1.3rem;line-height:1;letter-spacing:-0.03em">The Algorithm</span>
-            <span style="font-size:.55rem;font-family:var(--font-body);font-weight:500;color:var(--gray-400);font-style:italic;letter-spacing:0.02em;text-transform:none">decode your chats</span>
+          <span
+            style="font-size: 1.3rem; line-height: 1; letter-spacing: -0.03em"
+            >The Algorithm</span
+          >
+          <span
+            style="
+              font-size: 0.55rem;
+              font-family: var(--font-body);
+              font-weight: 500;
+              color: var(--gray-400);
+              font-style: italic;
+              letter-spacing: 0.02em;
+              text-transform: none;
+            "
+            >decode your chats</span
+          >
         </a>
-        <button class="nav-hamburger" aria-label="Toggle Menu" aria-expanded="false">
-            <span class="material-symbols-outlined">menu</span>
+        <button
+          class="nav-hamburger"
+          aria-label="Toggle Menu"
+          aria-expanded="false"
+        >
+          <span class="material-symbols-outlined">menu</span>
         </button>
         <nav class="nav-links">
-            <a href="/#upload" class="nav-link" style="padding:.25rem .7rem;border:1.5px solid var(--gray-600);border-radius:var(--r-pill);font-size:.62rem">Analyze</a>
-            <a href="history.html" class="nav-link" style="padding:.25rem .7rem;border:1.5px solid var(--gray-600);border-radius:var(--r-pill);font-size:.62rem;background:var(--cream);color:var(--black);font-weight:900">Archives</a>
-            <a href="instructions.html" class="nav-link" style="padding:.25rem .7rem;border:1.5px solid var(--gray-600);border-radius:var(--r-pill);font-size:.62rem">How to Export</a>
-            <a href="privacy.html" class="nav-link" style="padding:.25rem .7rem;border:1.5px solid var(--gray-600);border-radius:var(--r-pill);font-size:.62rem">Privacy</a>
-            <a href="/#upload" class="btn btn--yellow" style="font-size:.62rem;padding:.28rem .85rem;box-shadow:2px 2px 0 0 rgba(255,255,255,0.15);border-color:var(--yellow)">Analyse Now</a>
+          <a
+            href="/#upload"
+            class="nav-link"
+            style="
+              padding: 0.25rem 0.7rem;
+              border: 1.5px solid var(--gray-600);
+              border-radius: var(--r-pill);
+              font-size: 0.62rem;
+            "
+            >Analyze</a
+          >
+          <a
+            href="history.html"
+            class="nav-link"
+            style="
+              padding: 0.25rem 0.7rem;
+              border: 1.5px solid var(--gray-600);
+              border-radius: var(--r-pill);
+              font-size: 0.62rem;
+              background: var(--cream);
+              color: var(--black);
+              font-weight: 900;
+            "
+            >Archives</a
+          >
+          <a
+            href="instructions.html"
+            class="nav-link"
+            style="
+              padding: 0.25rem 0.7rem;
+              border: 1.5px solid var(--gray-600);
+              border-radius: var(--r-pill);
+              font-size: 0.62rem;
+            "
+            >How to Export</a
+          >
+          <a
+            href="privacy.html"
+            class="nav-link"
+            style="
+              padding: 0.25rem 0.7rem;
+              border: 1.5px solid var(--gray-600);
+              border-radius: var(--r-pill);
+              font-size: 0.62rem;
+            "
+            >Privacy</a
+          >
+          <a
+            href="/#upload"
+            class="btn btn--yellow"
+            style="
+              font-size: 0.62rem;
+              padding: 0.28rem 0.85rem;
+              box-shadow: 2px 2px 0 0 rgba(255, 255, 255, 0.15);
+              border-color: var(--yellow);
+            "
+            >Analyse Now</a
+          >
         </nav>
-    </div>
-</header>
+      </div>
+    </header>
 
-<section class="section-py relative overflow-hidden" style="padding-bottom:2rem; padding-top:4rem">
-    <div class="container">
+    <section
+      class="section-py relative overflow-hidden"
+      style="padding-bottom: 2rem; padding-top: 4rem"
+    >
+      <div class="container">
         <!-- Main Dashboard Header (No Profile) -->
-        <div class="card flex justify-between items-center mb-6" style="padding:1.5rem 2rem; border-width:4px">
-            <div>
-                <h1 style="font-size:2.5rem; margin:0">Archives</h1>
-                <p style="font-size:0.9rem; color:var(--gray-500); margin-top:0.25rem">Reports stored locally on this device.</p>
+        <div
+          class="card flex justify-between items-center mb-6"
+          style="padding: 1.5rem 2rem; border-width: 4px"
+        >
+          <div>
+            <h1 style="font-size: 2.5rem; margin: 0">Archives</h1>
+            <p
+              style="
+                font-size: 0.9rem;
+                color: var(--gray-500);
+                margin-top: 0.25rem;
+              "
+            >
+              Reports stored locally on this device.
+            </p>
+          </div>
+          <div class="flex items-center gap-8 text-right">
+            <div
+              style="border-right: 2px solid var(--black); padding-right: 2rem"
+            >
+              <div
+                id="stats-chats-count"
+                style="
+                  font-size: 3rem;
+                  font-family: var(--font-heading);
+                  font-weight: 900;
+                  line-height: 1;
+                  color: var(--purple);
+                  text-shadow: 2px 2px 0 var(--black);
+                "
+              >
+                0
+              </div>
+              <div
+                style="
+                  font-size: 0.65rem;
+                  font-weight: 900;
+                  text-transform: uppercase;
+                  color: var(--black);
+                  margin-top: 0.35rem;
+                  letter-spacing: 0.05em;
+                "
+              >
+                Chats Decoded
+              </div>
             </div>
-            <div class="flex items-center gap-8 text-right">
-                <div style="border-right:2px solid var(--black); padding-right:2rem">
-                    <div id="stats-chats-count" style="font-size:3rem; font-family:var(--font-heading); font-weight:900; line-height:1; color:var(--purple); text-shadow:2px 2px 0 var(--black)">0</div>
-                    <div style="font-size:0.65rem; font-weight:900; text-transform:uppercase; color:var(--black); margin-top:0.35rem; letter-spacing:0.05em">Chats Decoded</div>
-                </div>
-            </div>
+          </div>
         </div>
 
         <!-- Action Bar -->
-        <div class="card flex justify-between items-center mb-8" style="padding:1.5rem 2rem; border-width:4px">
-            <div class="flex gap-4">
-                <a href="index.html#upload" class="btn btn--pink btn--lg flex items-center gap-2">
-                    <span class="material-symbols-outlined">analytics</span> Analyse New Chat
-                </a>
-                <button id="compareChatsBtn" class="btn btn--white btn--lg flex items-center gap-2 compare-trigger">
-                    <span class="material-symbols-outlined">compare_arrows</span> Compare Past Chats
-                </button>
+        <div
+          class="card flex justify-between items-center mb-8"
+          style="padding: 1.5rem 2rem; border-width: 4px"
+        >
+          <div class="flex gap-4">
+            <a
+              href="index.html#upload"
+              class="btn btn--pink btn--lg flex items-center gap-2"
+            >
+              <span class="material-symbols-outlined">analytics</span> Analyse
+              New Chat
+            </a>
+            <button
+              id="compareChatsBtn"
+              class="btn btn--white btn--lg flex items-center gap-2 compare-trigger"
+            >
+              <span class="material-symbols-outlined">compare_arrows</span>
+              Compare Past Chats
+            </button>
+          </div>
+          <div class="flex items-center gap-3 text-left">
+            <div style="font-size: 1.5rem">🛡️</div>
+            <div style="max-width: 300px">
+              <div style="font-weight: 900; font-size: 0.8rem">
+                Privacy First
+              </div>
+              <div style="font-size: 0.65rem; color: var(--gray-500)">
+                These records are only visible to you on this browser.
+              </div>
             </div>
-            <div class="flex items-center gap-3 text-left">
-                <div style="font-size:1.5rem">🛡️</div>
-                <div style="max-width:300px">
-                    <div style="font-weight:900; font-size:0.8rem">Privacy First</div>
-                    <div style="font-size:0.65rem; color:var(--gray-500)">These records are only visible to you on this browser.</div>
-                </div>
-            </div>
+          </div>
         </div>
 
         <!-- Tabbed Section -->
-        <div class="card overflow-hidden" style="border-width:4px; padding:0">
-            <div class="flex border-b-4 border-black" style="background:var(--white)">
-                <button class="tab-btn active" data-tab="history">
-                    <span class="mr-2">🕒</span> Analysis History
-                </button>
-                <button class="tab-btn" data-tab="export">
-                    <span class="mr-2">ⓘ</span> How To Export
-                </button>
-            </div>
+        <div class="card overflow-hidden" style="border-width: 4px; padding: 0">
+          <div
+            class="flex border-b-4 border-black"
+            style="background: var(--white)"
+          >
+            <button class="tab-btn active" data-tab="history">
+              <span class="mr-2">🕒</span> Analysis History
+            </button>
+            <button class="tab-btn" data-tab="export">
+              <span class="mr-2">ⓘ</span> How To Export
+            </button>
+          </div>
 
-            <div id="tab-history" class="tab-content active p-8">
-                <div class="flex justify-between items-center mb-8">
-                    <div>
-                        <h2 style="font-size:1.75rem; margin-bottom:0.25rem">Recent Reports</h2>
-                        <p style="font-size:0.85rem; color:var(--gray-500)">Showing your last 5 detections.</p>
-                    </div>
-                    <button id="clearHistoryBtn" class="btn btn--white btn--sm flex items-center gap-2" style="font-size:0.8rem">
-                        🗑️ Clear History
-                    </button>
-                </div>
-                <div id="history-list" class="flex flex-column gap-4">
-                    <div id="history-empty-state" class="text-center py-12">
-                        <div style="font-size:3rem; margin-bottom:1rem; opacity:0.3">📭</div>
-                        <h3 style="font-size:1.2rem; margin-bottom:0.5rem; color:var(--black)">You haven't analysed any chats yet</h3>
-                        <p style="color:var(--gray-500); font-weight:500; max-width:400px; margin:0 auto 1.5rem">Upload a chat export and get deep behavioural insights, emotional analytics, and AI coaching.</p>
-                        <a href="index.html#upload" class="btn btn--pink btn--lg">Analyse Your First Chat →</a>
-                        <p style="font-size:0.7rem; color:var(--gray-400); margin-top:1rem; font-weight:500">All reports are stored locally on this device only.</p>
-                    </div>
-                </div>
+          <div id="tab-history" class="tab-content active p-8">
+            <div class="flex justify-between items-center mb-8">
+              <div>
+                <h2 style="font-size: 1.75rem; margin-bottom: 0.25rem">
+                  Recent Reports
+                </h2>
+                <p style="font-size: 0.85rem; color: var(--gray-500)">
+                  Showing your last 5 detections.
+                </p>
+              </div>
+              <button
+                id="clearHistoryBtn"
+                class="btn btn--white btn--sm flex items-center gap-2"
+                style="font-size: 0.8rem"
+              >
+                🗑️ Clear History
+              </button>
             </div>
+            <div id="history-list" class="flex flex-column gap-4">
+              <div id="history-empty-state" class="text-center py-12">
+                <div style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3">
+                  📭
+                </div>
+                <h3
+                  style="
+                    font-size: 1.2rem;
+                    margin-bottom: 0.5rem;
+                    color: var(--black);
+                  "
+                >
+                  You haven't analysed any chats yet
+                </h3>
+                <p
+                  style="
+                    color: var(--gray-500);
+                    font-weight: 500;
+                    max-width: 400px;
+                    margin: 0 auto 1.5rem;
+                  "
+                >
+                  Upload a chat export and get deep behavioural insights,
+                  emotional analytics, and AI coaching.
+                </p>
+                <a href="index.html#upload" class="btn btn--pink btn--lg"
+                  >Analyse Your First Chat →</a
+                >
+                <p
+                  style="
+                    font-size: 0.7rem;
+                    color: var(--gray-400);
+                    margin-top: 1rem;
+                    font-weight: 500;
+                  "
+                >
+                  All reports are stored locally on this device only.
+                </p>
+              </div>
+            </div>
+          </div>
 
-            <div id="tab-export" class="tab-content p-8 hidden">
-                <h2>How To Export</h2>
-                <div class="grid gap-6 mt-6" style="grid-template-columns:1fr 1fr">
-                    <div class="card p-6 bg-cream">
-                        <h4 class="mb-2" style="color:var(--green)">WhatsApp</h4>
-                        <ol class="text-sm pl-4">
-                            <li>Open the chat</li>
-                            <li>Tap menu > More</li>
-                            <li>Export chat > Without Media</li>
-                        </ol>
-                    </div>
-                    <div class="card p-6 bg-cream">
-                        <h4 class="mb-2" style="color:var(--blue)">Telegram</h4>
-                        <ol class="text-sm pl-4">
-                            <li>Open on PC</li>
-                            <li>Tap menu</li>
-                            <li>Export chat history > HTML</li>
-                        </ol>
-                    </div>
-                    <div class="card p-6 bg-cream">
-                        <h4 class="mb-2" style="color:var(--pink)">Instagram</h4>
-                        <ol class="text-sm pl-4">
-                            <li>Go to Your Activity > Download Your Information</li>
-                            <li>Select "Messages" only</li>
-                            <li>Choose JSON format</li>
-                            <li>Extract <code>message_1.json</code></li>
-                        </ol>
-                    </div>
-                    <div class="card p-6 bg-cream">
-                        <h4 class="mb-2" style="color:var(--purple)">Discord</h4>
-                        <ol class="text-sm pl-4">
-                            <li>Use DiscordChatExporter</li>
-                            <li>Select the DM or channel</li>
-                            <li>Choose JSON format</li>
-                            <li>Save the <code>.json</code> file</li>
-                        </ol>
-                    </div>
-                </div>
-                <div class="text-center mt-6">
-                    <a href="instructions.html" class="btn btn--purple">Full Export Guide →</a>
-                </div>
+          <div id="tab-export" class="tab-content p-8 hidden">
+            <h2>How To Export</h2>
+            <div class="grid gap-6 mt-6" style="grid-template-columns: 1fr 1fr">
+              <div class="card p-6 bg-cream">
+                <h4 class="mb-2" style="color: var(--green)">WhatsApp</h4>
+                <ol class="text-sm pl-4">
+                  <li>Open the chat</li>
+                  <li>Tap menu > More</li>
+                  <li>Export chat > Without Media</li>
+                </ol>
+              </div>
+              <div class="card p-6 bg-cream">
+                <h4 class="mb-2" style="color: var(--blue)">Telegram</h4>
+                <ol class="text-sm pl-4">
+                  <li>Open on PC</li>
+                  <li>Tap menu</li>
+                  <li>Export chat history > HTML</li>
+                </ol>
+              </div>
+              <div class="card p-6 bg-cream">
+                <h4 class="mb-2" style="color: var(--pink)">Instagram</h4>
+                <ol class="text-sm pl-4">
+                  <li>Go to Your Activity > Download Your Information</li>
+                  <li>Select "Messages" only</li>
+                  <li>Choose JSON format</li>
+                  <li>Extract <code>message_1.json</code></li>
+                </ol>
+              </div>
+              <div class="card p-6 bg-cream">
+                <h4 class="mb-2" style="color: var(--purple)">Discord</h4>
+                <ol class="text-sm pl-4">
+                  <li>Use DiscordChatExporter</li>
+                  <li>Select the DM or channel</li>
+                  <li>Choose JSON format</li>
+                  <li>Save the <code>.json</code> file</li>
+                </ol>
+              </div>
             </div>
+            <div class="text-center mt-6">
+              <a href="instructions.html" class="btn btn--purple"
+                >Full Export Guide →</a
+              >
+            </div>
+          </div>
         </div>
-    </div>
-</section>
+      </div>
+    </section>
 
-<!-- Modals -->
-<div id="compareModal" class="modal-backdrop" role="dialog" aria-modal="true">
-    <div class="modal-content" style="max-width:600px">
+    <!-- Modals -->
+    <div
+      id="compareModal"
+      class="modal-backdrop"
+      role="dialog"
+      aria-modal="true"
+    >
+      <div class="modal-content" style="max-width: 600px">
         <button id="closeCompare" class="modal-close">&times;</button>
         <div class="mb-6">
-            <h2 style="font-size:1.8rem; margin-bottom:0.5rem">Compare Setup</h2>
-            <p style="color:var(--gray-500); font-size:0.9rem">Choose 2 analysed chats available on this device.</p>
+          <h2 style="font-size: 1.8rem; margin-bottom: 0.5rem">
+            Compare Setup
+          </h2>
+          <p style="color: var(--gray-500); font-size: 0.9rem">
+            Choose 2 analysed chats available on this device.
+          </p>
         </div>
         <div class="compare-stepper mb-8">
-            <div class="step-item active" id="step-1"><span class="step-num">1</span> CHAT A</div>
-            <div style="color:var(--gray-300)">→</div>
-            <div class="step-item" id="step-2"><span class="step-num">2</span> CHAT B</div>
-            <div style="color:var(--gray-300)">→</div>
-            <div class="step-item" id="step-3"><span class="step-num">3</span> COMPARE</div>
+          <div class="step-item active" id="step-1">
+            <span class="step-num">1</span> CHAT A
+          </div>
+          <div style="color: var(--gray-300)">→</div>
+          <div class="step-item" id="step-2">
+            <span class="step-num">2</span> CHAT B
+          </div>
+          <div style="color: var(--gray-300)">→</div>
+          <div class="step-item" id="step-3">
+            <span class="step-num">3</span> COMPARE
+          </div>
         </div>
         <div class="compare-slots mb-8">
-            <div id="slot-a" class="pick-slot active">
-                <div class="pick-slot__label">Chat A — Picking ↓</div>
-                <div id="slot-a-name" class="pick-slot__name">Click to pick</div>
-            </div>
-            <div id="slot-b" class="pick-slot">
-                <div class="pick-slot__label">Chat B</div>
-                <div id="slot-b-name" class="pick-slot__name">Click to pick</div>
-            </div>
+          <div id="slot-a" class="pick-slot active">
+            <div class="pick-slot__label">Chat A — Picking ↓</div>
+            <div id="slot-a-name" class="pick-slot__name">Click to pick</div>
+          </div>
+          <div id="slot-b" class="pick-slot">
+            <div class="pick-slot__label">Chat B</div>
+            <div id="slot-b-name" class="pick-slot__name">Click to pick</div>
+          </div>
         </div>
         <div class="picker-container">
-            <div class="flex justify-between items-center mb-3">
-                <div style="font-weight:900; font-size:0.7rem; text-transform:uppercase" id="picker-status">Picking for Chat A</div>
-                <div style="font-size:0.7rem; color:var(--gray-500)" id="picker-count">0 available</div>
+          <div class="flex justify-between items-center mb-3">
+            <div
+              style="
+                font-weight: 900;
+                font-size: 0.7rem;
+                text-transform: uppercase;
+              "
+              id="picker-status"
+            >
+              Picking for Chat A
             </div>
-            <div id="compare-history-picker" class="history-picker"></div>
+            <div
+              style="font-size: 0.7rem; color: var(--gray-500)"
+              id="picker-count"
+            >
+              0 available
+            </div>
+          </div>
+          <div id="compare-history-picker" class="history-picker"></div>
         </div>
         <div class="flex justify-end gap-4 mt-8">
-            <button id="cancelCompareBtn" class="btn btn--white">Cancel</button>
-            <button id="executeCompareBtn" class="btn btn--pink" disabled>Compare Now</button>
+          <button id="cancelCompareBtn" class="btn btn--white">Cancel</button>
+          <button id="executeCompareBtn" class="btn btn--pink" disabled>
+            Compare Now
+          </button>
         </div>
+      </div>
     </div>
-</div>
 
-<nav class="revamp-bottom-nav" aria-label="Primary">
-    <a href="index.html#upload">
+    <nav class="revamp-bottom-nav" aria-label="Primary">
+      <a href="index.html#upload">
         <span class="material-symbols-outlined">analytics</span>
         <span>Analyze</span>
-    </a>
-    <a href="index.html#quick-paste"><span class="material-symbols-outlined">psychology</span><span>Vibe Check</span></a>
-    <a class="is-active" href="history.html">
+      </a>
+      <a href="index.html#quick-paste"
+        ><span class="material-symbols-outlined">psychology</span
+        ><span>Vibe Check</span></a
+      >
+      <a class="is-active" href="history.html">
         <span class="material-symbols-outlined">folder_open</span>
         <span>Archives</span>
-    </a>
-    <a href="privacy.html">
+      </a>
+      <a href="privacy.html">
         <span class="material-symbols-outlined">lock</span>
         <span>Privacy</span>
-    </a>
-</nav>
+      </a>
+    </nav>
 
-<script src="static/js/utils/parser.js"></script>
-<script src="static/js/utils/analytics_engine.js"></script>
-<script src="static/js/app.js"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const hamburger = document.querySelector('.nav-hamburger');
-        const navLinks = document.querySelector('.nav-links');
+    <script src="static/js/utils/parser.js"></script>
+    <script src="static/js/utils/analytics_engine.js"></script>
+    <script src="static/js/app.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const hamburger = document.querySelector(".nav-hamburger");
+        const navLinks = document.querySelector(".nav-links");
         if (hamburger && navLinks && !hamburger.dataset.navBound) {
-            hamburger.dataset.navBound = 'true';
-            hamburger.addEventListener('click', () => navLinks.classList.toggle('active'));
+          hamburger.dataset.navBound = "true";
+          hamburger.addEventListener("click", () =>
+            navLinks.classList.toggle("active"),
+          );
         }
-    });
-</script>
-</body>
+      });
+    </script>
+  </body>
 </html>

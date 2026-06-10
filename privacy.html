@@ -1,119 +1,433 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
     <title>Privacy Policy — The Algorithm</title>
-    <link rel="stylesheet" href="static/css/style.css">
-    <link rel="stylesheet" href="static/css/revamp.css?v=15">
-    <link rel="icon" type="image/png" href="static/favicon.png">
+    <link rel="stylesheet" href="static/css/style.css" />
+    <link rel="stylesheet" href="static/css/revamp.css?v=15" />
+    <link rel="icon" type="image/png" href="static/favicon.png" />
 
     <!-- Open Graph / Twitter Card tags -->
-    <meta property="og:title" content="The Algorithm — AI Relationship Analyzer" />
-    <meta property="og:description" content="Find out what your chats really say about your relationship. Privacy-first, BYOK, zero data stored." />
-    <meta property="og:image" content="https://thealgorithm.rixabh.workers.dev/static/og-image.png" />
-    <meta property="og:url" content="https://thealgorithm.rixabh.workers.dev/" />
+    <meta
+      property="og:title"
+      content="The Algorithm — AI Relationship Analyzer"
+    />
+    <meta
+      property="og:description"
+      content="Find out what your chats really say about your relationship. Privacy-first, BYOK, zero data stored."
+    />
+    <meta
+      property="og:image"
+      content="https://thealgorithm.rixabh.workers.dev/static/og-image.png"
+    />
+    <meta
+      property="og:url"
+      content="https://thealgorithm.rixabh.workers.dev/"
+    />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="The Algorithm" />
-    <meta name="twitter:description" content="What do your chats say about your relationship? Find out — your data never leaves your device." />
-    <meta name="twitter:image" content="https://thealgorithm.rixabh.workers.dev/static/og-image.png" />
-
-</head>
-<body class="comic-dots">
+    <meta
+      name="twitter:description"
+      content="What do your chats say about your relationship? Find out — your data never leaves your device."
+    />
+    <meta
+      name="twitter:image"
+      content="https://thealgorithm.rixabh.workers.dev/static/og-image.png"
+    />
+  </head>
+  <body class="comic-dots">
     <!-- ═══ NAV ═══ -->
     <header class="nav">
-        <div class="container">
-            <a href="/" class="nav-logo">
-                <span style="font-size:1.3rem;line-height:1;letter-spacing:-0.03em">The Algorithm</span>
-                <span style="font-size:.55rem;font-family:var(--font-body);font-weight:500;color:var(--gray-400);font-style:italic;letter-spacing:0.02em;text-transform:none">decode your chats</span>
-            </a>
-            <button class="nav-hamburger" aria-label="Toggle Menu" aria-expanded="false">
-                <span class="material-symbols-outlined">menu</span>
-            </button>
-            <nav class="nav-links">
-                <a href="history.html" class="nav-link" style="padding:.25rem .7rem;border:1.5px solid var(--gray-600);border-radius:var(--r-pill);font-size:.62rem">Reports</a>
-                <a href="instructions.html" class="nav-link" style="padding:.25rem .7rem;border:1.5px solid var(--gray-600);border-radius:var(--r-pill);font-size:.62rem">How to Export</a>
-                <a href="privacy.html" class="nav-link" style="padding:.25rem .7rem;border:1.5px solid var(--gray-600);border-radius:var(--r-pill);font-size:.62rem;background:var(--cream);color:var(--black);font-weight:900">Privacy</a>
-                <a href="/#upload" class="btn btn--yellow" style="font-size:.62rem;padding:.28rem .85rem;box-shadow:2px 2px 0 0 rgba(255,255,255,0.15);border-color:var(--yellow)">Analyse Now</a>
-            </nav>
-        </div>
+      <div class="container">
+        <a href="/" class="nav-logo">
+          <span
+            style="font-size: 1.3rem; line-height: 1; letter-spacing: -0.03em"
+            >The Algorithm</span
+          >
+          <span
+            style="
+              font-size: 0.55rem;
+              font-family: var(--font-body);
+              font-weight: 500;
+              color: var(--gray-400);
+              font-style: italic;
+              letter-spacing: 0.02em;
+              text-transform: none;
+            "
+            >decode your chats</span
+          >
+        </a>
+        <button
+          class="nav-hamburger"
+          aria-label="Toggle Menu"
+          aria-expanded="false"
+        >
+          <span class="material-symbols-outlined">menu</span>
+        </button>
+        <nav class="nav-links">
+          <a
+            href="history.html"
+            class="nav-link"
+            style="
+              padding: 0.25rem 0.7rem;
+              border: 1.5px solid var(--gray-600);
+              border-radius: var(--r-pill);
+              font-size: 0.62rem;
+            "
+            >Reports</a
+          >
+          <a
+            href="instructions.html"
+            class="nav-link"
+            style="
+              padding: 0.25rem 0.7rem;
+              border: 1.5px solid var(--gray-600);
+              border-radius: var(--r-pill);
+              font-size: 0.62rem;
+            "
+            >How to Export</a
+          >
+          <a
+            href="privacy.html"
+            class="nav-link"
+            style="
+              padding: 0.25rem 0.7rem;
+              border: 1.5px solid var(--gray-600);
+              border-radius: var(--r-pill);
+              font-size: 0.62rem;
+              background: var(--cream);
+              color: var(--black);
+              font-weight: 900;
+            "
+            >Privacy</a
+          >
+          <a
+            href="/#upload"
+            class="btn btn--yellow"
+            style="
+              font-size: 0.62rem;
+              padding: 0.28rem 0.85rem;
+              box-shadow: 2px 2px 0 0 rgba(255, 255, 255, 0.15);
+              border-color: var(--yellow);
+            "
+            >Analyse Now</a
+          >
+        </nav>
+      </div>
     </header>
 
     <div class="container section-py">
-        <div class="card card--lg" style="max-width:800px; margin:0 auto">
-            <h1 class="mb-4" style="color:var(--black)">Data Privacy Architecture</h1>
-            <p class="mb-6 font-weight-500" style="color:var(--gray-600)">Effective: January 1, 2026</p>
-            
-            <div class="mb-6">
-                <h3 class="mb-2" style="color:var(--purple)">1. Extreme Local-First Processing</h3>
-                <p style="color:var(--gray-600); line-height:1.6">When you upload a chat export, it never leaves your browser directly. We utilize robust client-side JavaScript regex filtering to immediately identify and strip phone numbers, email addresses, and PII right inside your browser memory.</p>
-            </div>
+      <div class="card card--lg" style="max-width: 800px; margin: 0 auto">
+        <h1 class="mb-4" style="color: var(--black)">
+          Data Privacy Architecture
+        </h1>
+        <p class="mb-6 font-weight-500" style="color: var(--gray-600)">
+          Effective: January 1, 2026
+        </p>
 
-            <div class="mb-6">
-                <h3 class="mb-2" style="color:var(--pink)">2. Edge Server Abstraction</h3>
-                <p style="color:var(--gray-600); line-height:1.6">Your actual chat file never leaves your device. It is parsed entirely locally in your browser. Only anonymous numerical frequencies and aggregated statistics are securely transmitted to our Cloudflare Workers. These numerical payloads are processed entirely in RAM without database or disk volume persistence, and permanently garbage-collected within milliseconds.</p>
-            </div>
-            
-            <div class="mb-6">
-                <h3 class="mb-2" style="color:var(--orange)">3. Third Party Processors</h3>
-                <p style="color:var(--gray-600); line-height:1.6">The analytics output is forwarded via secure TLS to the AI provider selected in settings or to our server-side free insights route. We configure privacy-focused headers where providers support them and never send raw message content unless you explicitly enable raw evidence mode.</p>
-            </div>
-
-            <div class="mb-6">
-                <h3 class="mb-2" style="color:var(--blue)">4. Free Insights Route</h3>
-                <p style="color:var(--gray-600); line-height:1.6">When using free insights, anonymous statistics such as message counts, response times, and derived signals are processed by the configured server-side AI route. Raw message content is not sent in the default mode.</p>
-            </div>
-            
-            <div class="mt-10 pt-6 text-center" style="border-top:2px dashed var(--gray-300)">
-                <a href="/" class="btn btn--black btn--lg">Back to Home</a>
-            </div>
+        <div class="mb-6">
+          <h3 class="mb-2" style="color: var(--purple)">
+            1. Extreme Local-First Processing
+          </h3>
+          <p style="color: var(--gray-600); line-height: 1.6">
+            When you upload a chat export, it never leaves your browser
+            directly. We utilize robust client-side JavaScript regex filtering
+            to immediately identify and strip phone numbers, email addresses,
+            and PII right inside your browser memory.
+          </p>
         </div>
+
+        <div class="mb-6">
+          <h3 class="mb-2" style="color: var(--pink)">
+            2. Edge Server Abstraction
+          </h3>
+          <p style="color: var(--gray-600); line-height: 1.6">
+            Your actual chat file never leaves your device. It is parsed
+            entirely locally in your browser. Only anonymous numerical
+            frequencies and aggregated statistics are securely transmitted to
+            our Cloudflare Workers. These numerical payloads are processed
+            entirely in RAM without database or disk volume persistence, and
+            permanently garbage-collected within milliseconds.
+          </p>
+        </div>
+
+        <div class="mb-6">
+          <h3 class="mb-2" style="color: var(--orange)">
+            3. Third Party Processors
+          </h3>
+          <p style="color: var(--gray-600); line-height: 1.6">
+            The analytics output is forwarded via secure TLS to the AI provider
+            selected in settings or to our server-side free insights route. We
+            configure privacy-focused headers where providers support them and
+            never send raw message content unless you explicitly enable raw
+            evidence mode.
+          </p>
+        </div>
+
+        <div class="mb-6">
+          <h3 class="mb-2" style="color: var(--blue)">
+            4. Free Insights Route
+          </h3>
+          <p style="color: var(--gray-600); line-height: 1.6">
+            When using free insights, anonymous statistics such as message
+            counts, response times, and derived signals are processed by the
+            configured server-side AI route. Raw message content is not sent in
+            the default mode.
+          </p>
+        </div>
+
+        <div
+          class="mt-10 pt-6 text-center"
+          style="border-top: 2px dashed var(--gray-300)"
+        >
+          <a href="/" class="btn btn--black btn--lg">Back to Home</a>
+        </div>
+      </div>
     </div>
 
     <!-- ═══ FOOTER ═══ -->
-    <footer style="background:var(--black);color:var(--white);padding:4rem 0 2.5rem;position:relative;overflow:hidden">
-        <svg style="position:absolute;top:0;left:0;width:100%;transform:translateY(-98%)" preserveAspectRatio="none" viewBox="0 0 1440 64"><path fill="var(--black)" d="M0,32L120,37.3C240,43,480,53,720,48C960,43,1200,37,1320,34.7L1440,32L1440,64L0,64Z"/></svg>
-        <div style="position:absolute;top:2rem;left:2rem;display:flex;gap:6px;opacity:0.15">
-            <span style="width:8px;height:8px;border-radius:50%;background:var(--pink)"></span>
-            <span style="width:8px;height:8px;border-radius:50%;background:var(--yellow)"></span>
-            <span style="width:8px;height:8px;border-radius:50%;background:var(--green)"></span>
-        </div>
-        <div style="position:absolute;bottom:2rem;right:2rem;display:flex;gap:6px;opacity:0.15">
-            <span style="width:8px;height:8px;border-radius:50%;background:var(--orange)"></span>
-            <span style="width:8px;height:8px;border-radius:50%;background:var(--purple)"></span>
-            <span style="width:8px;height:8px;border-radius:50%;background:var(--blue)"></span>
+    <footer
+      style="
+        background: var(--black);
+        color: var(--white);
+        padding: 4rem 0 2.5rem;
+        position: relative;
+        overflow: hidden;
+      "
+    >
+      <svg
+        style="
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          transform: translateY(-98%);
+        "
+        preserveAspectRatio="none"
+        viewBox="0 0 1440 64"
+      >
+        <path
+          fill="var(--black)"
+          d="M0,32L120,37.3C240,43,480,53,720,48C960,43,1200,37,1320,34.7L1440,32L1440,64L0,64Z"
+        />
+      </svg>
+      <div
+        style="
+          position: absolute;
+          top: 2rem;
+          left: 2rem;
+          display: flex;
+          gap: 6px;
+          opacity: 0.15;
+        "
+      >
+        <span
+          style="
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--pink);
+          "
+        ></span>
+        <span
+          style="
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--yellow);
+          "
+        ></span>
+        <span
+          style="
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--green);
+          "
+        ></span>
+      </div>
+      <div
+        style="
+          position: absolute;
+          bottom: 2rem;
+          right: 2rem;
+          display: flex;
+          gap: 6px;
+          opacity: 0.15;
+        "
+      >
+        <span
+          style="
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--orange);
+          "
+        ></span>
+        <span
+          style="
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--purple);
+          "
+        ></span>
+        <span
+          style="
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--blue);
+          "
+        ></span>
+      </div>
+
+      <div class="container text-center" style="position: relative; z-index: 1">
+        <p
+          style="
+            font-family: var(--font-heading);
+            font-weight: 900;
+            font-size: 2rem;
+            color: var(--yellow);
+            text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.4);
+            margin-bottom: 0.25rem;
+            letter-spacing: -0.03em;
+          "
+        >
+          The Algorithm
+        </p>
+        <p
+          style="
+            font-family: var(--font-heading);
+            font-style: italic;
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: var(--gray-400);
+            margin-bottom: 2rem;
+          "
+        >
+          Decode your digital relationships
+        </p>
+
+        <div
+          style="
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+          "
+        >
+          <a
+            href="/#upload"
+            style="
+              font-size: 0.65rem;
+              font-weight: 700;
+              text-transform: uppercase;
+              letter-spacing: 0.08em;
+              color: var(--black);
+              background: var(--yellow);
+              padding: 0.35rem 0.9rem;
+              border-radius: var(--r-pill);
+              border: 2px solid var(--black);
+              box-shadow: 2px 2px 0 0 rgba(255, 255, 255, 0.1);
+              text-decoration: none;
+              transition: all 0.15s;
+            "
+            >Analyse</a
+          >
+          <a
+            href="instructions.html"
+            style="
+              font-size: 0.65rem;
+              font-weight: 700;
+              text-transform: uppercase;
+              letter-spacing: 0.08em;
+              color: var(--white);
+              background: transparent;
+              padding: 0.35rem 0.9rem;
+              border-radius: var(--r-pill);
+              border: 1.5px solid var(--gray-600);
+              text-decoration: none;
+              transition: all 0.15s;
+            "
+            >How to Export</a
+          >
+          <a
+            href="privacy.html"
+            style="
+              font-size: 0.65rem;
+              font-weight: 700;
+              text-transform: uppercase;
+              letter-spacing: 0.08em;
+              color: var(--white);
+              background: transparent;
+              padding: 0.35rem 0.9rem;
+              border-radius: var(--r-pill);
+              border: 1.5px solid var(--gray-600);
+              text-decoration: none;
+              transition: all 0.15s;
+              background: rgba(255, 255, 255, 0.1);
+            "
+            >Privacy</a
+          >
         </div>
 
-        <div class="container text-center" style="position:relative;z-index:1">
-            <p style="font-family:var(--font-heading);font-weight:900;font-size:2rem;color:var(--yellow);text-shadow:3px 3px 0 rgba(0,0,0,0.4);margin-bottom:.25rem;letter-spacing:-0.03em">The Algorithm</p>
-            <p style="font-family:var(--font-heading);font-style:italic;font-weight:700;font-size:.85rem;color:var(--gray-400);margin-bottom:2rem">Decode your digital relationships</p>
-
-            <div style="display:flex;justify-content:center;flex-wrap:wrap;gap:.5rem;margin-bottom:2rem">
-                <a href="/#upload" style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--black);background:var(--yellow);padding:.35rem .9rem;border-radius:var(--r-pill);border:2px solid var(--black);box-shadow:2px 2px 0 0 rgba(255,255,255,0.1);text-decoration:none;transition:all .15s">Analyse</a>
-                <a href="instructions.html" style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--white);background:transparent;padding:.35rem .9rem;border-radius:var(--r-pill);border:1.5px solid var(--gray-600);text-decoration:none;transition:all .15s">How to Export</a>
-                <a href="privacy.html" style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--white);background:transparent;padding:.35rem .9rem;border-radius:var(--r-pill);border:1.5px solid var(--gray-600);text-decoration:none;transition:all .15s;background:rgba(255,255,255,0.1)">Privacy</a>
-            </div>
-
-            <div style="width:60px;height:3px;background:var(--purple);margin:0 auto 1.5rem;border-radius:2px"></div>
-            <p style="font-size:.7rem;color:var(--gray-600);font-weight:500;margin:0">Privacy-first AI analysis. &copy; 2026 The Algorithm.</p>
-        </div>
+        <div
+          style="
+            width: 60px;
+            height: 3px;
+            background: var(--purple);
+            margin: 0 auto 1.5rem;
+            border-radius: 2px;
+          "
+        ></div>
+        <p
+          style="
+            font-size: 0.7rem;
+            color: var(--gray-600);
+            font-weight: 500;
+            margin: 0;
+          "
+        >
+          Privacy-first AI analysis. &copy; 2026 The Algorithm.
+        </p>
+      </div>
     </footer>
     <nav class="revamp-bottom-nav" aria-label="Primary">
-        <a href="/#upload"><span class="material-symbols-outlined">analytics</span><span>Analyze</span></a>
-        <a href="index.html#quick-paste"><span class="material-symbols-outlined">psychology</span><span>Vibe Check</span></a>
-        <a href="history.html"><span class="material-symbols-outlined">folder_open</span><span>Archives</span></a>
-        <a class="is-active" href="privacy.html"><span class="material-symbols-outlined">lock</span><span>Privacy</span></a>
+      <a href="/#upload"
+        ><span class="material-symbols-outlined">analytics</span
+        ><span>Analyze</span></a
+      >
+      <a href="index.html#quick-paste"
+        ><span class="material-symbols-outlined">psychology</span
+        ><span>Vibe Check</span></a
+      >
+      <a href="history.html"
+        ><span class="material-symbols-outlined">folder_open</span
+        ><span>Archives</span></a
+      >
+      <a class="is-active" href="privacy.html"
+        ><span class="material-symbols-outlined">lock</span
+        ><span>Privacy</span></a
+      >
     </nav>
 
     <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const hamburger = document.querySelector('.nav-hamburger');
-        const navLinks = document.querySelector('.nav-links');
+      document.addEventListener("DOMContentLoaded", () => {
+        const hamburger = document.querySelector(".nav-hamburger");
+        const navLinks = document.querySelector(".nav-links");
         if (hamburger && navLinks) {
-            hamburger.addEventListener('click', () => navLinks.classList.toggle('active'));
+          hamburger.addEventListener("click", () =>
+            navLinks.classList.toggle("active"),
+          );
         }
-    });
-</script>
-</body>
+      });
+    </script>
+  </body>
 </html>
