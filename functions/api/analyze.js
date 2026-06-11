@@ -4,8 +4,9 @@ export async function onRequestPost(context) {
     const { request, env } = context;
     const ip = request.headers.get('cf-connecting-ip') || 'unknown';
 
+    let data;
     try {
-        const data = await request.json();
+        data = await request.json();
         const { stats, my_name, partner_name, connection_type, language, context, compare_data, provider = 'free', api_key = '', evidence_pack = null, source_quality = null, privacy_mode = 'stats_only', raw_excerpt_pack = null } = data;
         const tone = data.tone || 'balanced';
 
@@ -373,8 +374,17 @@ CRITICAL RULES:
 
     } catch (e) {
         let errorMsg = e.message || "Analysis failed. Check your API key and try again.";
-        // Mask any API keys that might have leaked in the error message
+
+        // Mask any API keys that might have leaked in the error message safely
+        // First fallback: classic sk- prefix mask
         errorMsg = errorMsg.replace(/sk-[a-zA-Z0-9_-]+/g, 'sk-...');
+        errorMsg = errorMsg.replace(/xai-[a-zA-Z0-9_-]+/g, 'xai-...');
+
+        // Second fallback: mask exact provided string, only if it's long enough to avoid mangling
+        if (data && data.api_key && data.api_key.length > 8) {
+            errorMsg = errorMsg.split(data.api_key).join('[REDACTED]');
+        }
+
         return new Response(JSON.stringify({ error: errorMsg }), { status: 500 });
     }
 }
