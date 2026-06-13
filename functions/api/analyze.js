@@ -4,14 +4,11 @@ export async function onRequestPost(context) {
     const { request, env } = context;
     const ip = request.headers.get('cf-connecting-ip') || 'unknown';
 
+    let data;
     try {
-        const data = await request.json();
+        data = await request.json();
         const { stats, my_name, partner_name, connection_type, language, context, compare_data, provider = 'free', api_key = '', evidence_pack = null, source_quality = null, privacy_mode = 'stats_only', raw_excerpt_pack = null } = data;
         const tone = data.tone || 'balanced';
-
-        if (raw_excerpt_pack && privacy_mode !== 'opt_in_raw') {
-            return new Response(JSON.stringify({ error: "Raw excerpts require opt-in raw evidence mode." }), { status: 400 });
-        }
 
         const clampHeuristic = (value, fallback = 70) => {
             const num = Number(value);
@@ -255,6 +252,7 @@ CRITICAL RULES:
 
         const PROVIDER_SYSTEM_PROMPTS = {
             "anthropic": `<role>\n${baseSystemPrompt}\n</role>`,
+            "gemini": `${baseSystemPrompt}\n\nIMPORTANT: Return ONLY raw valid JSON. Do not wrap the response in markdown blocks (e.g., \`\`\`json).`,
             "default": baseSystemPrompt
         };
         const systemPrompt = PROVIDER_SYSTEM_PROMPTS[provider] || PROVIDER_SYSTEM_PROMPTS["default"];
@@ -282,9 +280,6 @@ CRITICAL RULES:
         userPrompt += `\n## Statistics\n${JSON.stringify(stats)}`;
         if (source_quality) userPrompt += `\n\n## Source Quality\n${JSON.stringify(source_quality)}`;
         if (evidence_pack) userPrompt += `\n\n## Local Evidence Pack\n${JSON.stringify(evidence_pack)}`;
-        if (raw_excerpt_pack && privacy_mode === 'opt_in_raw') {
-            userPrompt += `\n\n## Opt-In Raw Evidence Excerpts\nThe user explicitly enabled raw evidence mode. Use only these short scrubbed excerpts as supporting evidence; do not quote more than needed.\n${JSON.stringify(raw_excerpt_pack)}`;
-        }
         
         if (compare_data) {
             userPrompt = `COMPARE two anonymous chat statistics for ${my_name}.
@@ -308,13 +303,23 @@ CRITICAL RULES:
 
             clearTimeout(timeoutId);
 
+            const validateAnalysisResponse = (parsed) => {
+                const criticalKeys = ["overall_health_score", "key_insights", "coaching_advice", "communication_style"];
+                if (!criticalKeys.every(k => Object.hasOwn(parsed, k))) {
+                    return false;
+                }
+                if (!parsed.communication_style || !Object.hasOwn(parsed.communication_style, "dominant_pattern")) {
+                    return false;
+                }
+                return true;
+            };
+
             const parseResponse = (text) => {
                 const match = text.match(/\{[\s\S]*\}/);
                 if (match) {
                     try {
                         const parsed = JSON.parse(match[0]);
-                        const isValid = requiredKeys.every(k => Object.hasOwn(parsed, k));
-                        if (isValid || Object.hasOwn(parsed, 'compatibility_score')) {
+                        if (validateAnalysisResponse(parsed)) {
                             return normalizeReport(parsed);
                         }
                     } catch (e) {
@@ -373,8 +378,9 @@ CRITICAL RULES:
 
     } catch (e) {
         let errorMsg = e.message || "Analysis failed. Check your API key and try again.";
-        // Mask any API keys that might have leaked in the error message
-        errorMsg = errorMsg.replace(/sk-[a-zA-Z0-9_-]+/g, 'sk-...');
+        if (data && data.api_key && data.api_key.length > 8) {
+            errorMsg = errorMsg.split(data.api_key).join('[REDACTED]');
+        }
         return new Response(JSON.stringify({ error: errorMsg }), { status: 500 });
     }
 }
