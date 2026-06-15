@@ -40,6 +40,7 @@ class ChatParser {
             // Defaulting to JSON platform based on what app.js handles
             if (content.includes('"author":') && content.includes('"timestamp":')) return 'Discord';
             if (content.includes('"sender_name":') && content.includes('"timestamp_ms":')) return 'Instagram';
+            if (content.includes('"ts":') && (content.includes('"user":') || content.includes('"username":'))) return 'Slack';
             return 'JSON';
         }
 
@@ -197,6 +198,48 @@ class ChatParser {
                 const sender = fixText(msg.sender_name || "UNKNOWN");
                 const text = fixText(msg.content || "");
                 const tsMs = msg.timestamp_ms;
+
+                if (tsMs && text) {
+                    const timestamp = new Date(tsMs);
+                    if (isNaN(timestamp.getTime())) continue;
+                    messages.push({
+                        timestamp,
+                        sender: sender,
+                        text: text
+                    });
+                }
+            }
+        }
+        return messages;
+    }
+
+    /**
+     * Parses Discord (.json)
+     */
+
+    /**
+     * Parses Slack (.json)
+     */
+    parseSlack(jsonData) {
+        const messages = [];
+        const data = typeof jsonData === 'string' ? JSON.parse(jsonData) : jsonData;
+
+        const msgArray = Array.isArray(data) ? data : (data.messages || []);
+
+        if (msgArray && Array.isArray(msgArray)) {
+            for (const msg of msgArray) {
+                if (messages.length >= 50000) break;
+
+                // Skip messages without text or ts
+                if (!msg.text || !msg.ts) continue;
+
+                // Slack export: sender can be in user_profile.real_name, user, or username
+                const sender = (msg.user_profile && msg.user_profile.real_name) || msg.user || msg.username || "UNKNOWN";
+                const text = msg.text || "";
+                const tsStr = msg.ts;
+
+                // Slack ts are strings of seconds.microseconds since epoch, e.g. "1618210000.000100"
+                const tsMs = parseFloat(tsStr) * 1000;
 
                 if (tsMs && text) {
                     const timestamp = new Date(tsMs);
