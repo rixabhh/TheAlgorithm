@@ -18,6 +18,13 @@ The UI uses a premium neobrutal design system: cream app shell, dark report side
 - Vanilla JavaScript for parsing, analytics, dashboard rendering, local history, compare mode, and share cards.
 - No Flask, Python runtime, Docker app server, or server-rendered templates.
 
+## How It Works
+
+The Algorithm provides a privacy-first, 3-step process to decode your chat data:
+1. **Upload your source**: Provide a chat export, screenshot, pasted messages, or transcript.
+2. **Local Analysis**: Your browser parses the data natively. Nothing is sent to our servers. Your data is analyzed using mathematical models directly in the browser.
+3. **Deep AI (Optional)**: Choose an AI provider (BYOK) to get deeper context and pattern analysis by sending only computed statistics and anonymized evidence.
+
 ## Features
 
 - Browser-local parsing for chat exports, pasted chats, screenshots with OCR, and transcripts.
