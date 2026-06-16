@@ -84,6 +84,8 @@ export async function onRequestPost(context) {
                 ice_breaker: ((stats?.silence_breakers?.ME || 0) >= (stats?.silence_breakers?.PARTNER || 0)) ? my_name : partner_name,
                 insight: "Long gaps are counted from local chat statistics only."
             },
+            conflict_dynamics: "Conflict resolution and apology patterns are measured based on local word analysis.",
+            temporal_rhythm: `Peak communication happens around ${stats?.peak_hours?.peak_hour || 'midday'} on ${stats?.peak_hours?.peak_day || 'weekdays'}.`,
             key_insights: [
                 `${totalMessages} messages analysed with a ${messageSplit} message split.`,
                 topReceipt?.evidence || `Conversation symmetry is ${stats?.symmetry?.label || 'balanced'}.`,
@@ -129,6 +131,8 @@ export async function onRequestPost(context) {
             report.attachment_style = { ...fallback.attachment_style, ...(candidate?.attachment_style || {}) };
             report.humor_dynamics = { ...fallback.humor_dynamics, ...(candidate?.humor_dynamics || {}) };
             report.silence_breaking = { ...fallback.silence_breaking, ...(candidate?.silence_breaking || {}) };
+            report.conflict_dynamics = candidate?.conflict_dynamics || fallback.conflict_dynamics;
+            report.temporal_rhythm = candidate?.temporal_rhythm || fallback.temporal_rhythm;
             report.ai_insight = { ...fallback.ai_insight, ...(candidate?.ai_insight || {}) };
             report.verdict_summary = { ...fallback.verdict_summary, ...(candidate?.verdict_summary || {}) };
             report.predictive_outlook = { ...fallback.predictive_outlook, ...(candidate?.predictive_outlook || {}) };
@@ -153,7 +157,7 @@ export async function onRequestPost(context) {
         let report = null;
 
         // Define standard keys we need back
-        const requiredKeys = ["relationship_persona", "compatibility_score", "ai_insight", "overall_health_score", "communication_style", "attachment_style", "humor_dynamics", "silence_breaking", "key_insights", "strengths", "growth_areas", "coaching_advice", "fun_fact", "verdict_summary", "receipts", "predictive_outlook"];
+        const requiredKeys = ["relationship_persona", "compatibility_score", "ai_insight", "overall_health_score", "communication_style", "attachment_style", "humor_dynamics", "silence_breaking", "key_insights", "strengths", "growth_areas", "coaching_advice", "fun_fact", "verdict_summary", "receipts", "predictive_outlook", "conflict_dynamics", "temporal_rhythm"];
 
         const toneGuidance = {
             playful: "Playful: witty, meme-aware, light on its feet, but still useful. Use short punchy lines and one tasteful social-native phrase when it fits the data.",
@@ -192,6 +196,8 @@ CRITICAL RULES:
     "ice_breaker": "string",
     "insight": "string"
   },
+  "conflict_dynamics": "string",
+  "temporal_rhythm": "string",
   "key_insights": ["string", "string", "string"],
   "strengths": ["string"],
   "growth_areas": ["string"],
@@ -236,9 +242,10 @@ CRITICAL RULES:
 6. Style: premium social-native, not generic therapy copy. Use punchy, specific observations that sound like a sharp friend with data, not a horoscope.
 7. Make every report feel different. Anchor the copy to the unique fingerprint of this chat: names, message counts, message split, response timing, source quality, strongest receipt, pattern counts, and any user context.
 8. Do not rephrase the same generic verdict across chats. If two chats have different stats or receipts, their dynamic_title, reality_check, red_flags, green_flags, coaching_advice, and brutal_verdict must be meaningfully different.
-9. Each major field should include at least one concrete signal when possible: a count, percentage, timing pattern, trend, source-quality warning, or named receipt pattern.
-10. Every serious claim must point to a concrete signal from Statistics, Source Quality, Local Evidence Pack, or Opt-In Raw Evidence Excerpts.
-11. Fill the report hierarchy intentionally:
+9. Interpret specific behavioral signals such as apology frequencies in `conflict_dynamics` and peak activity hours/sleep times in `temporal_rhythm` to provide deeper, empathetic context on the relationship's rhythms and emotional repair patterns.
+10. Each major field should include at least one concrete signal when possible: a count, percentage, timing pattern, trend, source-quality warning, or named receipt pattern.
+11. Every serious claim must point to a concrete signal from Statistics, Source Quality, Local Evidence Pack, or Opt-In Raw Evidence Excerpts.
+12. Fill the report hierarchy intentionally:
    - verdict_summary is the above-the-fold executive read: one sharp headline, risk, confidence, and best next move.
    - receipts are the proof cards: each claim needs evidence, pattern, confidence, and a useful action.
    - predictive_outlook is the forward-looking panel: scores are risk estimates, not certainty.

@@ -70,6 +70,10 @@ class AnalyticsEngine {
         const links = this.extractLinks(processed);
         const symmetry = this.calculateSymmetryScore(initiatorInfo, powerInfo);
         
+        // --- DEEP ANALYTICS ---
+        const apologies = this.calculateApologies(processed);
+        const peakHours = this.calculatePeakHours(processed);
+
         // --- MSG DISTRIBUTION FOR CHARTS ---
         const msgDist = { ME: 0, PARTNER: 0 };
         processed.forEach(m => { msgDist[m.sender]++; });
@@ -107,6 +111,8 @@ class AnalyticsEngine {
             lexical_diversity: lexicalDiversity,
             links: links,
             symmetry: symmetry,
+            apologies: apologies,
+            peak_hours: peakHours,
             sentiment_summary: {
                 partner_mean: sentimentInfo.partnerMean,
                 me_mean: sentimentInfo.meMean,
@@ -323,6 +329,39 @@ class AnalyticsEngine {
         if (score < 40) label = "One-Sided";
         else if (score < 70) label = "Leaning";
         return { score, label };
+    }
+
+    calculateApologies(messages) {
+        const apologies = { ME: 0, PARTNER: 0 };
+        const APOLOGY_RE = /\b(sorry|my bad|my fault|apologize|maaf|galti)\b/i;
+        for (const m of messages) {
+            if (APOLOGY_RE.test(m.text || '')) {
+                apologies[m.sender]++;
+            }
+        }
+        return apologies;
+    }
+
+    calculatePeakHours(messages) {
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const hourCounts = new Array(24).fill(0);
+        const dayCounts = new Array(7).fill(0);
+
+        for (const m of messages) {
+            const d = new Date(m.timestamp);
+            if (!isNaN(d.getTime())) {
+                hourCounts[d.getHours()]++;
+                dayCounts[d.getDay()]++;
+            }
+        }
+
+        const peakHour = hourCounts.indexOf(Math.max(...hourCounts));
+        const peakDay = dayCounts.indexOf(Math.max(...dayCounts));
+
+        return {
+            peak_hour: `${peakHour.toString().padStart(2, '0')}:00`,
+            peak_day: days[peakDay]
+        };
     }
 
     calculateBehavioralTraits(messages) {

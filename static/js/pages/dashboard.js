@@ -162,6 +162,8 @@ document.addEventListener('DOMContentLoaded', () => {
         renderHumorAndEnergy(stats);
         renderSilenceBreakers(stats);
         renderLinks(stats);
+        renderConflictStats(stats);
+        renderTemporalStats(stats);
 
         if (window.Chart) {
             initRatioChart(stats);
@@ -338,6 +340,31 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!words.length) { container.innerHTML = '<p class="op-30">No data</p>'; return; }
         const max = words[0].count;
         container.innerHTML = `<div class="flex flex-wrap justify-center p-4 gap-4">${words.slice(0, 20).map(w => `<span style="font-size:${0.8 + (w.count/max)*1.5}rem; font-weight:900; opacity:${0.4 + (w.count/max)*0.6}">${escapeHTML(w.word)}</span>`).join('')}</div>`;
+    };
+
+    const renderConflictStats = (stats) => {
+        const container = document.getElementById('conflict-container');
+        if (!container) return;
+        const apologies = stats.apologies || { ME: 0, PARTNER: 0 };
+        const myName = escapeHTML(activeData.my_name);
+        const partnerName = escapeHTML(activeData.partner_name);
+
+        container.innerHTML = `
+            <div class="flex justify-between"><span>Apologies (${myName})</span><span class="font-black">${escapeHTML(String(apologies.ME))}</span></div>
+            <div class="flex justify-between"><span>Apologies (${partnerName})</span><span class="font-black">${escapeHTML(String(apologies.PARTNER))}</span></div>
+        `;
+    };
+
+    const renderTemporalStats = (stats) => {
+        const container = document.getElementById('rhythm-container');
+        if (!container) return;
+        const peakHours = stats.peak_hours || { peak_hour: '--', peak_day: '--' };
+
+        container.innerHTML = `
+            <div class="flex justify-between"><span>Peak Time</span><span class="font-black">${escapeHTML(String(peakHours.peak_hour))}</span></div>
+            <div class="flex justify-between"><span>Peak Day</span><span class="font-black">${escapeHTML(String(peakHours.peak_day))}</span></div>
+            <div class="flex justify-between mt-2"><span>Estimated Sleep</span><span class="font-black">${escapeHTML(stats.sleep_time || '--')}</span></div>
+        `;
     };
 
     const renderLinks = (stats) => {
@@ -733,6 +760,10 @@ document.addEventListener('DOMContentLoaded', () => {
         setText('ai-comm-balance', commBalance ? scoreText(commBalance) : '--');
         const commBar = document.getElementById('ai-comm-bar');
         if (commBar) setTimeout(() => { commBar.style.width = barWidth(commBalance); }, 200);
+
+        // Conflict Dynamics and Temporal Rhythm
+        setText('ai-conflict-dynamics', report?.conflict_dynamics || 'No specific conflict dynamics noted in the AI report.');
+        setText('ai-temporal-rhythm', report?.temporal_rhythm || 'No specific temporal rhythm noted in the AI report.');
 
         // Attachment Styles
         const attach = report?.attachment_style || {};
