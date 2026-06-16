@@ -1,0 +1,4 @@
+## 2024-06-16 — Extracting Deeper Emotional Resonance from Analytics
+**Discovery:** Expanding the analytics engine to parse specific temporal communication rhythms (peak days, hours, sleep times) and concrete conflict resolution signals (apology frequency) allows the LLM to deliver much more nuanced insights. By moving beyond simple word/sentiment counts and incorporating these structural interaction rhythms, the resulting report feels significantly more "perceptive" and accurate to users.
+**Impact:** Deepens the value proposition of the AI insights, converting standard stats into personalized behavioral maps. This fulfills the core mission of creating insights that users want to share due to their accuracy.
+**Action:** When adding new analytical dimensions, prioritize concrete, human-relatable metrics (like apologies or sleep timings) and explicitly wire them into the LLM prompt instructions to ensure they are utilized rather than just sent.
