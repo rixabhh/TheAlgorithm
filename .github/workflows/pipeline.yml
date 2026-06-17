@@ -19,6 +19,8 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm install
+      - name: Check Formatting
+        run: npx prettier --check .
       - name: Check Cloudflare Functions syntax
         run: npm test
 
@@ -26,7 +28,6 @@ jobs:
     runs-on: ubuntu-latest
     name: Deploy to Cloudflare
     needs: test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -38,6 +39,7 @@ jobs:
         run: npm install
       - name: Publish to Cloudflare Pages
         id: cloudflare_deploy
+        if: ${{ github.event_name == 'push' || secrets.CLOUDFLARE_API_TOKEN != '' }}
         uses: cloudflare/wrangler-action@v3
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -45,7 +47,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy . --project-name=thealgorithm --branch=main --commit-dirty=true
+          command: pages deploy . --project-name=thealgorithm ${{ github.event_name == 'pull_request' && format('--branch={0}', github.head_ref) || '--branch=main' }} --commit-dirty=true
       - name: Deployment Summary
         if: success()
         run: |
