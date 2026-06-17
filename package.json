@@ -18,6 +18,7 @@
   "author": "rixabhh",
   "license": "MIT",
   "devDependencies": {
+    "prettier": "^3.8.4",
     "wrangler": "^4.87.0"
   }
 }

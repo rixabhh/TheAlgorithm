@@ -1,0 +1,15 @@
+# Protect zero-knowledge core logic from being reformatted
+functions/
+static/js/utils/parser.js
+static/js/utils/analytics_engine.js
+static/js/modules/conversation_intelligence.js
+
+# Protect neobrutalist inline styles/animations
+*.html
+static/css/
+static/js/
+static/fonts/
+README.md
+
+# Don't format logs/journals
+.jules/
