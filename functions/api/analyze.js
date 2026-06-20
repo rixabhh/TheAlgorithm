@@ -4,8 +4,14 @@ export async function onRequestPost(context) {
     const { request, env } = context;
     const ip = request.headers.get('cf-connecting-ip') || 'unknown';
 
+    let data;
     try {
-        const data = await request.json();
+        data = await request.json();
+    } catch (e) {
+        return new Response(JSON.stringify({ error: "Invalid JSON request." }), { status: 400 });
+    }
+
+    try {
         const { stats, my_name, partner_name, connection_type, language, context, compare_data, provider = 'free', api_key = '', evidence_pack = null, source_quality = null, privacy_mode = 'stats_only', raw_excerpt_pack = null } = data;
         const tone = data.tone || 'balanced';
 
@@ -166,7 +172,7 @@ export async function onRequestPost(context) {
             hindi: "Use Hindi wording if requested, but keep labels and JSON keys unchanged."
         }[String(language || 'english').toLowerCase()] || "Use the requested language naturally and keep JSON keys unchanged.";
 
-        const baseSystemPrompt = `You are 'The Algorithm', an expert relationship analyst and communication coach for new-age, social-native users. You act like a perceptive friend with data: warm, insightful, emotionally sharp, funny when appropriate, and honest without being cruel.
+        const baseSystemPrompt = `You are 'The Algorithm', an expert relationship analyst and communication coach for new-age, social-native users. You act like a brilliant friend who happens to be a therapist (warm, insightful, empathetic, but brutally honest).
 CRITICAL RULES:
 1. Return ONLY a valid JSON object. Do NOT wrap in markdown code blocks.
 2. The JSON keys MUST remain exactly as follows (in English):
@@ -255,6 +261,7 @@ CRITICAL RULES:
 
         const PROVIDER_SYSTEM_PROMPTS = {
             "anthropic": `<role>\n${baseSystemPrompt}\n</role>`,
+            "gemini": `${baseSystemPrompt}\nIMPORTANT: Return ONLY raw valid JSON. Do not wrap the response in markdown blocks.`,
             "default": baseSystemPrompt
         };
         const systemPrompt = PROVIDER_SYSTEM_PROMPTS[provider] || PROVIDER_SYSTEM_PROMPTS["default"];
@@ -282,9 +289,6 @@ CRITICAL RULES:
         userPrompt += `\n## Statistics\n${JSON.stringify(stats)}`;
         if (source_quality) userPrompt += `\n\n## Source Quality\n${JSON.stringify(source_quality)}`;
         if (evidence_pack) userPrompt += `\n\n## Local Evidence Pack\n${JSON.stringify(evidence_pack)}`;
-        if (raw_excerpt_pack && privacy_mode === 'opt_in_raw') {
-            userPrompt += `\n\n## Opt-In Raw Evidence Excerpts\nThe user explicitly enabled raw evidence mode. Use only these short scrubbed excerpts as supporting evidence; do not quote more than needed.\n${JSON.stringify(raw_excerpt_pack)}`;
-        }
         
         if (compare_data) {
             userPrompt = `COMPARE two anonymous chat statistics for ${my_name}.
@@ -373,8 +377,12 @@ CRITICAL RULES:
 
     } catch (e) {
         let errorMsg = e.message || "Analysis failed. Check your API key and try again.";
-        // Mask any API keys that might have leaked in the error message
-        errorMsg = errorMsg.replace(/sk-[a-zA-Z0-9_-]+/g, 'sk-...');
+        // Mask any API keys that might have leaked in the error message safely
+        if (data.api_key && data.api_key.length > 8) {
+            errorMsg = errorMsg.split(data.api_key).join('[REDACTED]');
+        } else {
+            errorMsg = errorMsg.replace(/sk-[a-zA-Z0-9_-]+/g, 'sk-...').replace(/xai-[a-zA-Z0-9_-]+/g, 'xai-...');
+        }
         return new Response(JSON.stringify({ error: errorMsg }), { status: 500 });
     }
 }
