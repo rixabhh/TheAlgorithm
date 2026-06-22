@@ -40,6 +40,7 @@ class ChatParser {
             // Defaulting to JSON platform based on what app.js handles
             if (content.includes('"author":') && content.includes('"timestamp":')) return 'Discord';
             if (content.includes('"sender_name":') && content.includes('"timestamp_ms":')) return 'Instagram';
+            if (content.includes('"user":') && content.includes('"ts":') && content.includes('"type":"message"')) return 'Slack';
             return 'JSON';
         }
 
@@ -232,6 +233,45 @@ class ChatParser {
                 if (ts && text) {
                     const timestamp = new Date(ts);
                     if (isNaN(timestamp.getTime())) continue;
+                    messages.push({
+                        timestamp,
+                        sender: sender,
+                        text: text
+                    });
+                }
+            }
+        }
+        return messages;
+    }
+
+    /**
+     * Parses Slack (.json)
+     */
+    parseSlack(jsonData) {
+        const messages = [];
+        const data = typeof jsonData === 'string' ? JSON.parse(jsonData) : jsonData;
+
+        // Slack exports are usually arrays of message objects
+        const msgArray = Array.isArray(data) ? data : (data.messages || []);
+
+        if (msgArray && Array.isArray(msgArray)) {
+            for (const msg of msgArray) {
+                if (messages.length >= 50000) break;
+                // Skip non-messages or subtype messages (like channel_join)
+                if (msg.type !== 'message' || msg.subtype) continue;
+
+                const sender = msg.user_profile?.real_name || msg.user_profile?.name || msg.user || "UNKNOWN";
+                const text = msg.text || "";
+                const tsStr = msg.ts;
+
+                if (tsStr && text) {
+                    // Slack timestamps are strings like "1618210000.000100" (seconds.milliseconds)
+                    const tsNumber = parseFloat(tsStr);
+                    if (isNaN(tsNumber)) continue;
+
+                    const timestamp = new Date(tsNumber * 1000);
+                    if (isNaN(timestamp.getTime())) continue;
+
                     messages.push({
                         timestamp,
                         sender: sender,

@@ -11,3 +11,24 @@ Title: Interactive "Pro" demo report or sample data
 The "Pro Features" locked UI is great for showing what's coming and capturing waitlist intent. However, to really drive conversion, users need to see *how* good the deep emotional mapping and PDF exports are.
 This drives retention and upgrades because showing is better than telling. If users can click into a "Sample Pro Report" (using dummy data of a famously dramatic fictional relationship, like Ross & Rachel), they'll immediately understand the value of the upgrade.
 Create a `/sample-pro` route or a toggle in the dashboard that loads a pre-computed `analysisData` payload showcasing the full premium features (emotional timeline, deep receipts, etc.) with a persistent CTA to "Unlock Pro for your chats".
+
+---
+
+Title: Slack parser occasionally misses threaded replies
+
+Noticed this while working on the parsers. Slack exports include threaded replies within the main channel JSON, often requiring `thread_ts` mapping or nested parsing to capture the full conversation context correctly. Currently, the Slack parser only extracts top-level messages or flattens threads without maintaining their relational context, which could skew behavioral metrics like response time.
+
+Expected: Threaded messages should be explicitly linked to their parent messages or properly ordered chronologically while maintaining thread context.
+Actual: Threaded replies are treated as independent messages or their context is lost depending on the JSON structure.
+
+Labels: bug
+
+---
+
+Title: Integrate Anthropic Haiku for faster, cheaper chat analysis
+
+Noticed this while reviewing the `functions/api/llm_helper.js` provider integrations. Currently, we support Claude 3.5 Sonnet, but Anthropic's Claude 3 Haiku is significantly faster and cheaper, making it an excellent option for the free-tier or for users with massive chat histories who are price-sensitive.
+
+Since it uses the identical Messages API structure as Sonnet, it would be trivial to add `claude-3-haiku-20240307` as an alternate option in the UI and routing logic, providing users with a "Speed/Economy" option alongside the "Quality" option.
+
+Labels: enhancement
