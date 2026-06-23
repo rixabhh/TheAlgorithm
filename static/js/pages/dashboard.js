@@ -331,11 +331,11 @@ document.addEventListener('DOMContentLoaded', () => {
         c.innerHTML = `
             <div class="flex justify-between align-center mb-2">
                 <span class="font-bold">Score</span>
-                <span class="badge badge--yellow" style="font-size:1.1rem; border-radius:4px; padding:2px 8px; border:2px solid black; background:var(--yellow); font-weight:black">${rec.score}/100</span>
+                <span class="badge badge--yellow" style="font-size:1.1rem; border-radius:4px; padding:2px 8px; border:2px solid black; background:var(--yellow); font-weight:black">${escapeHTML(String(rec.score))}/100</span>
             </div>
             <div class="flex justify-between align-center pt-2 border-t border-dashed">
                 <span class="font-bold">Verdict</span>
-                <span class="text-sm font-black" style="color:var(--purple)">${rec.label}</span>
+                <span class="text-sm font-black" style="color:var(--purple)">${escapeHTML(String(rec.label))}</span>
             </div>
             <p class="text-xs color-gray-500 mt-3 pt-3 border-t border-dashed">Measures how balanced your average response times are.</p>
         `;
@@ -353,11 +353,11 @@ document.addEventListener('DOMContentLoaded', () => {
         c.innerHTML = `
             <div class="flex justify-between align-center border-b border-dashed pb-2">
                 <span class="font-bold">${myName}</span>
-                <span class="text-xs font-bold">Arguments: <span style="color:var(--red)">${conf.ME.arguments}</span> | Apologies: <span style="color:var(--green)">${conf.ME.apologies}</span></span>
+                <span class="text-xs font-bold">Arguments: <span style="color:var(--red)">${escapeHTML(String(conf.ME.arguments))}</span> | Apologies: <span style="color:var(--green)">${escapeHTML(String(conf.ME.apologies))}</span></span>
             </div>
             <div class="flex justify-between align-center pt-2">
                 <span class="font-bold">${partnerName}</span>
-                <span class="text-xs font-bold">Arguments: <span style="color:var(--red)">${conf.PARTNER.arguments}</span> | Apologies: <span style="color:var(--green)">${conf.PARTNER.apologies}</span></span>
+                <span class="text-xs font-bold">Arguments: <span style="color:var(--red)">${escapeHTML(String(conf.PARTNER.arguments))}</span> | Apologies: <span style="color:var(--green)">${escapeHTML(String(conf.PARTNER.apologies))}</span></span>
             </div>
             <p class="text-xs color-gray-500 mt-3 pt-3 border-t border-dashed">Frequency of conflict and apology words.</p>
         `;
