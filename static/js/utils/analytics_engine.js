@@ -69,6 +69,8 @@ class AnalyticsEngine {
         const lexicalDiversity = this.calculateLexicalDiversity(processed);
         const links = this.extractLinks(processed);
         const symmetry = this.calculateSymmetryScore(initiatorInfo, powerInfo);
+        const reciprocity = this.calculateReciprocityScore(initiatorInfo);
+        const conflictInfo = this.calculateConflictIndicators(processed);
         
         // --- MSG DISTRIBUTION FOR CHARTS ---
         const msgDist = { ME: 0, PARTNER: 0 };
@@ -107,6 +109,8 @@ class AnalyticsEngine {
             lexical_diversity: lexicalDiversity,
             links: links,
             symmetry: symmetry,
+            reciprocity: reciprocity,
+            conflict_indicators: conflictInfo,
             sentiment_summary: {
                 partner_mean: sentimentInfo.partnerMean,
                 me_mean: sentimentInfo.meMean,
@@ -462,6 +466,38 @@ class AnalyticsEngine {
             me_char_count: meChars, partner_char_count: partnerChars,
             power_ratio: partnerWords > 0 ? meWords / partnerWords : (meWords > 0 ? 2 : 1.0)
         };
+    }
+
+    calculateReciprocityScore(init) {
+        const meAvg = init.me_latency_avg || 0;
+        const pAvg = init.partner_latency_avg || 0;
+        if (meAvg === 0 && pAvg === 0) return { score: 100, label: "Perfectly Reciprocal" };
+        const diff = Math.abs(meAvg - pAvg);
+        const max = Math.max(meAvg, pAvg);
+        // If max is 0, handled above. Otherwise, calc difference ratio
+        const balance = 1 - (diff / max);
+        const score = Math.round(balance * 100);
+        let label = "Reciprocal";
+        if (score < 40) label = "Highly Skewed";
+        else if (score < 70) label = "Slightly Uneven";
+        return { score, label };
+    }
+
+    calculateConflictIndicators(messages) {
+        const conflictStats = { ME: { apologies: 0, arguments: 0 }, PARTNER: { apologies: 0, arguments: 0 } };
+        const APOLOGY_RE = /sorry|my bad|apologize|forgive|maaf|galti/i;
+        for (const m of messages) {
+            const text = m.text || '';
+            const isApology = APOLOGY_RE.test(text);
+            const isConflict = this.CONFLICT_RE.test(text);
+
+            if (isApology) {
+                conflictStats[m.sender].apologies++;
+            } else if (isConflict) {
+                conflictStats[m.sender].arguments++;
+            }
+        }
+        return conflictStats;
     }
 
     calculateSupportGap(messages) {
