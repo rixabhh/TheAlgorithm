@@ -161,6 +161,8 @@ document.addEventListener('DOMContentLoaded', () => {
         renderEmoji(stats);
         renderHumorAndEnergy(stats);
         renderSilenceBreakers(stats);
+        renderReciprocity(stats);
+        renderConflict(stats);
         renderLinks(stats);
 
         if (window.Chart) {
@@ -317,6 +319,47 @@ document.addEventListener('DOMContentLoaded', () => {
         container.innerHTML = `
             <div class="flex justify-between"><span>Ice Broken by ${myName}</span><span class="font-black">${escapeHTML(String(breakers.ME))} times</span></div>
             <div class="flex justify-between"><span>Ice Broken by ${partnerName}</span><span class="font-black">${escapeHTML(String(breakers.PARTNER))} times</span></div>
+        `;
+    };
+
+    const renderReciprocity = (stats) => {
+        const c = document.getElementById('reciprocity-container');
+        if (!c) return;
+        const rec = stats.reciprocity;
+        if (!rec) { c.innerHTML = '<p class="color-gray-500 text-sm">Not enough data.</p>'; return; }
+
+        c.innerHTML = `
+            <div class="flex justify-between align-center mb-2">
+                <span class="font-bold">Score</span>
+                <span class="badge badge--yellow" style="font-size:1.1rem; border-radius:4px; padding:2px 8px; border:2px solid black; background:var(--yellow); font-weight:black">${escapeHTML(String(rec.score))}/100</span>
+            </div>
+            <div class="flex justify-between align-center pt-2 border-t border-dashed">
+                <span class="font-bold">Verdict</span>
+                <span class="text-sm font-black" style="color:var(--purple)">${escapeHTML(String(rec.label))}</span>
+            </div>
+            <p class="text-xs color-gray-500 mt-3 pt-3 border-t border-dashed">Measures how balanced your average response times are.</p>
+        `;
+    };
+
+    const renderConflict = (stats) => {
+        const c = document.getElementById('conflict-container');
+        if (!c) return;
+        const conf = stats.conflict_indicators;
+        if (!conf) { c.innerHTML = '<p class="color-gray-500 text-sm">Not enough data.</p>'; return; }
+
+        const myName = escapeHTML(activeData.my_name);
+        const partnerName = escapeHTML(activeData.partner_name);
+
+        c.innerHTML = `
+            <div class="flex justify-between align-center border-b border-dashed pb-2">
+                <span class="font-bold">${myName}</span>
+                <span class="text-xs font-bold">Arguments: <span style="color:var(--red)">${escapeHTML(String(conf.ME.arguments))}</span> | Apologies: <span style="color:var(--green)">${escapeHTML(String(conf.ME.apologies))}</span></span>
+            </div>
+            <div class="flex justify-between align-center pt-2">
+                <span class="font-bold">${partnerName}</span>
+                <span class="text-xs font-bold">Arguments: <span style="color:var(--red)">${escapeHTML(String(conf.PARTNER.arguments))}</span> | Apologies: <span style="color:var(--green)">${escapeHTML(String(conf.PARTNER.apologies))}</span></span>
+            </div>
+            <p class="text-xs color-gray-500 mt-3 pt-3 border-t border-dashed">Frequency of conflict and apology words.</p>
         `;
     };
 

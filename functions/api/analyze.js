@@ -40,18 +40,19 @@ export async function onRequestPost(context) {
         const makeFallbackReport = () => {
             const totalMessages = stats?.total_messages || ((stats?.messages?.ME || 0) + (stats?.messages?.PARTNER || 0));
             const messageSplit = `${stats?.messages?.ME || 0} vs ${stats?.messages?.PARTNER || 0}`;
+            const reciprocityLabel = stats?.reciprocity?.label || "Balanced";
             const dropOffRisk = clampHeuristic(evidence_pack?.predictive_outlook?.drop_off_risk ?? (100 - symmetryScore), 30);
             const stability = clampHeuristic(evidence_pack?.predictive_outlook?.stability ?? (100 - dropOffRisk), 65);
             const healthScore = clampHeuristic((symmetryScore * 0.75) + (sourceScore * 0.25), 75);
             const providedReceipts = Array.isArray(evidence_pack?.receipts) ? evidence_pack.receipts.filter(Boolean) : [];
             const localRiskClaim = dropOffRisk >= 65
                 ? "Drop-off risk is elevated"
-                : symmetryScore < 60
-                    ? "Participation imbalance"
+                : symmetryScore < 60 || stats?.reciprocity?.score < 40
+                    ? "Participation or response time imbalance"
                     : "No major local red flag";
             const fallbackReceipt = {
                 claim: localRiskClaim,
-                evidence: `The local parser analysed ${totalMessages} messages with a ${messageSplit} message split.`,
+                evidence: `The local parser analysed ${totalMessages} messages with a ${messageSplit} message split and ${reciprocityLabel.toLowerCase()} response times.`,
                 pattern: "local_stats",
                 confidence: totalMessages >= 100 ? "medium" : "low",
                 action: "Use the strongest repeated signal to ask for one clear change, then watch whether the pattern improves."
@@ -251,7 +252,8 @@ CRITICAL RULES:
 17. Personalize the read with the provided names, message counts, source quality, symmetry, response timing, and the strongest receipt pattern.
 18. If behavioral trait scores are close together, call that out as low differentiation instead of pretending every trait is 95+.
 19. Never use "not enough data" as the main insight when Statistics or Local Evidence Pack exists. Say which signals are strong and which parts are lower-confidence.
-20. Make the dashboard copy readable on mobile: short headlines, one idea per sentence, no giant paragraph blocks.`;
+20. Make the dashboard copy readable on mobile: short headlines, one idea per sentence, no giant paragraph blocks.
+21. Explicitly factor in temporal rhythms (like sleep time, active hours, streaks), the newly provided Reciprocity Score (response time balance), and Conflict/Apology patterns to generate insights about consistency, effort, and argument resolution.`;
 
         const PROVIDER_SYSTEM_PROMPTS = {
             "anthropic": `<role>\n${baseSystemPrompt}\n</role>`,
