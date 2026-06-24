@@ -21,12 +21,14 @@ jobs:
         run: npm install
       - name: Check Cloudflare Functions syntax
         run: npm test
+      - name: Check Prettier formatting
+        run: npm run lint
 
   deploy:
     runs-on: ubuntu-latest
     name: Deploy to Cloudflare
     needs: test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && secrets.CLOUDFLARE_API_TOKEN != '') }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -45,7 +47,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy . --project-name=thealgorithm --branch=main --commit-dirty=true
+          command: ${{ github.event_name == 'pull_request' && format('pages deploy . --project-name=thealgorithm --branch={0} --commit-dirty=true', github.head_ref) || 'pages deploy . --project-name=thealgorithm --branch=main --commit-dirty=true' }}
       - name: Deployment Summary
         if: success()
         run: |

@@ -1,0 +1,9 @@
+# Ignore zero-knowledge core logic and serverless functions
+functions/
+static/
+
+# Ignore frontend html and neobrutalist inline styles/animations
+*.html
+
+# Ignore jules agent journals
+.jules/
