@@ -976,6 +976,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (analyzeBtn) {
                     analyzeBtn.removeAttribute('aria-busy');
                 }
+                if (typeof rawMessages !== 'undefined' && Array.isArray(rawMessages)) {
+                    rawMessages.length = 0;
+                }
             }
         });
     }

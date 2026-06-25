@@ -4,19 +4,22 @@ export async function onRequestPost(context) {
     const { request, env } = context;
     const ip = request.headers.get('cf-connecting-ip') || 'unknown';
 
+    let data;
     try {
-        const data = await request.json();
+        data = await request.json();
         const { stats, llmReport, chat_history = [], message, provider = 'free', api_key = '', tone = 'balanced', language = 'english' } = data;
 
         const freeTierProviders = new Set(['free', 'cloudflare', 'openrouter_free']);
 
-        // 1. RATE LIMITING (KV-based, shared free tier)
-        if (freeTierProviders.has(provider) && env.KV_RATELIMIT) {
+        // 1. RATE LIMITING (KV-based)
+        if (env.KV_RATELIMIT) {
             const limitKey = `ratelimit_chat_${ip}`;
             const current = await env.KV_RATELIMIT.get(limitKey);
             const count = current ? parseInt(current) : 0;
-            // Slightly higher limit for chatting compared to full generation
-            if (count >= 10) return new Response(JSON.stringify({ error: "Free tier limit reached (10 chats/hr). Wait or configure your own API key to continue coaching." }), { status: 429 });
+            const maxRequests = freeTierProviders.has(provider) ? 10 : 50; // 10 for free, 50 for BYOK
+            if (count >= maxRequests) {
+                return new Response(JSON.stringify({ error: "Rate limit exceeded. Please wait before trying again." }), { status: 429 });
+            }
             await env.KV_RATELIMIT.put(limitKey, (count + 1).toString(), { expirationTtl: 3600 });
         }
 
@@ -76,7 +79,10 @@ ${JSON.stringify(llmReport)}
     } catch (e) {
         let errorMsg = e.message || "Chat failed. Check your API key and try again.";
         // Mask any API keys that might have leaked in the error message
-        errorMsg = errorMsg.replace(/sk-[a-zA-Z0-9_-]+/g, 'sk-...');
+        errorMsg = errorMsg.replace(/sk-[a-zA-Z0-9_-]+/g, 'sk-...').replace(/xai-[a-zA-Z0-9_-]+/g, 'xai-...');
+        if (data && data.api_key && data.api_key.length > 8) {
+            errorMsg = errorMsg.split(data.api_key).join('[REDACTED]');
+        }
         return new Response(JSON.stringify({ error: errorMsg }), { status: 500 });
     }
 }

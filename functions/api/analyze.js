@@ -4,8 +4,9 @@ export async function onRequestPost(context) {
     const { request, env } = context;
     const ip = request.headers.get('cf-connecting-ip') || 'unknown';
 
+    let data;
     try {
-        const data = await request.json();
+        data = await request.json();
         const { stats, my_name, partner_name, connection_type, language, context, compare_data, provider = 'free', api_key = '', evidence_pack = null, source_quality = null, privacy_mode = 'stats_only', raw_excerpt_pack = null } = data;
         const tone = data.tone || 'balanced';
 
@@ -23,18 +24,23 @@ export async function onRequestPost(context) {
 
         const freeTierProviders = new Set(['free', 'cloudflare', 'openrouter_free']);
 
-        // 1. RATE LIMITING & GLOBAL STATS (KV-based, shared free tier)
-        if (freeTierProviders.has(provider) && env.KV_RATELIMIT) {
+        // 1. RATE LIMITING & GLOBAL STATS (KV-based)
+        if (env.KV_RATELIMIT) {
             const limitKey = `ratelimit_${ip}`;
             const current = await env.KV_RATELIMIT.get(limitKey);
             const count = current ? parseInt(current) : 0;
-            if (count >= 2) return new Response(JSON.stringify({ error: "Free tier limit reached (2/hr). Wait or use BYOK." }), { status: 429 });
+            const maxRequests = freeTierProviders.has(provider) ? 2 : 20; // 2 for free, 20 for BYOK
+            if (count >= maxRequests) {
+                return new Response(JSON.stringify({ error: "Rate limit exceeded. Please wait before trying again." }), { status: 429 });
+            }
             await env.KV_RATELIMIT.put(limitKey, (count + 1).toString(), { expirationTtl: 3600 });
             
-            // Increment global stats counter
-            const globalCountKey = 'global_stats_chats_count';
-            const globalCount = await env.KV_RATELIMIT.get(globalCountKey) || '0';
-            await env.KV_RATELIMIT.put(globalCountKey, (parseInt(globalCount) + 1).toString());
+            if (freeTierProviders.has(provider)) {
+                // Increment global stats counter for free tier
+                const globalCountKey = 'global_stats_chats_count';
+                const globalCount = await env.KV_RATELIMIT.get(globalCountKey) || '0';
+                await env.KV_RATELIMIT.put(globalCountKey, (parseInt(globalCount) + 1).toString());
+            }
         }
 
         const makeFallbackReport = () => {
@@ -374,7 +380,10 @@ CRITICAL RULES:
     } catch (e) {
         let errorMsg = e.message || "Analysis failed. Check your API key and try again.";
         // Mask any API keys that might have leaked in the error message
-        errorMsg = errorMsg.replace(/sk-[a-zA-Z0-9_-]+/g, 'sk-...');
+        errorMsg = errorMsg.replace(/sk-[a-zA-Z0-9_-]+/g, 'sk-...').replace(/xai-[a-zA-Z0-9_-]+/g, 'xai-...');
+        if (data && data.api_key && data.api_key.length > 8) {
+            errorMsg = errorMsg.split(data.api_key).join('[REDACTED]');
+        }
         return new Response(JSON.stringify({ error: errorMsg }), { status: 500 });
     }
 }
