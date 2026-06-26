@@ -264,12 +264,40 @@ document.addEventListener('DOMContentLoaded', () => {
     if (apiKeyInput) {
         apiKeyInput.addEventListener('input', () => {
             const val = apiKeyInput.value.trim();
+            const provider = document.getElementById('llmProvider')?.value || 'free';
+            const formatHint = document.getElementById('apiKeyFormatHint');
+
+            let isValid = true;
+            let errorMsg = '';
+
             if (val === '') {
                 apiKeyInput.style.borderColor = '';
-            } else if (val.startsWith('sk-') || val.length > 20) {
-                apiKeyInput.style.borderColor = 'var(--green)';
+                if (formatHint) formatHint.style.display = 'none';
             } else {
-                apiKeyInput.style.borderColor = 'var(--red)';
+                if (provider === 'openai' && !val.startsWith('sk-')) {
+                    isValid = false;
+                    errorMsg = 'OpenAI keys must start with "sk-"';
+                } else if (provider === 'anthropic' && !val.startsWith('sk-ant-')) {
+                    isValid = false;
+                    errorMsg = 'Anthropic keys must start with "sk-ant-"';
+                } else if (provider === 'gemini' && val.length !== 39) {
+                    isValid = false;
+                    errorMsg = 'Gemini keys must be exactly 39 characters';
+                } else if (provider === 'openrouter' && val.length < 20) {
+                    isValid = false;
+                    errorMsg = 'Key appears too short';
+                }
+
+                if (isValid) {
+                    apiKeyInput.style.borderColor = '#10B981'; // Tailwind green-500
+                    if (formatHint) formatHint.style.display = 'none';
+                } else {
+                    apiKeyInput.style.borderColor = '#EF4444'; // Tailwind red-500
+                    if (formatHint) {
+                        formatHint.textContent = errorMsg;
+                        formatHint.style.display = 'block';
+                    }
+                }
             }
         });
     }
@@ -369,7 +397,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (detectionCard) {
             // Show loading state first
             detectionCard.innerHTML = `
-                <div class="flex items-center gap-3 p-4 bg-white/10 rounded-lg border border-white/20">
+                <div class="flex items-center gap-3 p-4 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl">
                     <span class="text-2xl animate-spin">⟳</span>
                     <div>
                         <p class="font-medium text-white">Analyzing file...</p>
@@ -411,7 +439,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Use textContent for user input to prevent XSS
                 detectionCard.innerHTML = `
-                    <div class="flex items-center gap-3 p-4 bg-white/10 rounded-lg border border-white/20">
+                    <div class="flex items-center gap-3 p-4 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl">
                         <span class="text-2xl">${PLATFORM_ICONS[platform] || '📄'}</span>
                         <div>
                             <p class="font-medium text-white">Detected: ${platform}</p>
@@ -422,7 +450,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('previewFileName').textContent = fileName;
             } catch (err) {
                  detectionCard.innerHTML = `
-                    <div class="flex items-center gap-3 p-4 bg-white/10 rounded-lg border border-white/20">
+                    <div class="flex items-center gap-3 p-4 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl">
                         <span class="text-2xl">📄</span>
                         <div>
                             <p class="font-medium text-white" id="fallbackPreviewFileName"></p>
@@ -835,15 +863,20 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const loadingOverlay = document.getElementById('loading-overlay');
             const progressText = document.getElementById('progress-text');
+            const progressBar = document.getElementById('loading-progress-bar');
+
             if (loadingOverlay) {
                 loadingOverlay.classList.remove('hidden');
+                if (progressBar) progressBar.style.width = '5%';
                 if (progressText) {
                     const steps = ['Reading source...', 'Normalizing messages...', 'Extracting evidence...', 'Calculating statistics...', 'Preparing dashboard...'];
                     let stepIndex = 0;
                     progressText.textContent = steps[stepIndex++];
                     progressInterval = setInterval(() => {
                         if (stepIndex < steps.length) {
-                            progressText.textContent = steps[stepIndex++];
+                            progressText.textContent = steps[stepIndex];
+                            if (progressBar) progressBar.style.width = `${(stepIndex / steps.length) * 100}%`;
+                            stepIndex++;
                         }
                     }, 2500);
                 }
