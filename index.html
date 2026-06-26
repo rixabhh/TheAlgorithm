@@ -556,12 +556,15 @@
 <!-- ═════════════ MODALS & OVERLAYS ═══════════ -->
 
 <!-- Loading Overlay -->
-<div id="loading-overlay" class="loading-overlay hidden">
-    <button id="loading-overlay-close" style="position:absolute;top:1.5rem;right:1.5rem;width:44px;height:44px;border-radius:50%;border:2px solid var(--white);background:rgba(255,255,255,0.15);color:var(--white);font-size:1.5rem;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;z-index:10" aria-label="Cancel analysis">&times;</button>
-    <div style="font-family:var(--font-heading);font-weight:900;font-size:3rem;margin-bottom:1rem;color:var(--yellow);text-shadow:3px 3px 0 var(--black)">...</div>
-    <h2>Decoding<br>Relationship…</h2>
-    <p id="progress-text" style="font-weight:700;font-size:1.1rem;margin-bottom:0.5rem">Running local ML + LLM extraction.</p>
-    <p style="opacity:0.8">Hold tight, this takes 10–20 seconds.</p>
+<div id="loading-overlay" class="loading-overlay hidden bg-white/10 backdrop-blur-md" role="dialog" aria-modal="true" aria-labelledby="loading-overlay-title">
+    <button id="loading-overlay-close" style="position:absolute;top:1.5rem;right:1.5rem;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.1);color:#fff;font-size:1.5rem;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;z-index:10" aria-label="Cancel analysis">&times;</button>
+    <div class="animate-pulse text-white" style="font-family:var(--font-heading);font-weight:900;font-size:3rem;margin-bottom:1rem;">⟳</div>
+    <h2 id="loading-overlay-title" class="text-white" style="text-shadow:none;">Decoding<br>Relationship…</h2>
+    <div class="progress-container" style="max-width: 300px; margin: 1.5rem auto 1rem; border:1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); border-radius: 999px;">
+        <div id="loading-progress-bar" class="progress-bar" style="width:0%; background: #fff; border-radius: 999px; transition: width 0.3s ease;"></div>
+    </div>
+    <p id="progress-text" style="font-weight:700;font-size:1.1rem;margin-bottom:0.5rem;color:#fff;" aria-live="polite">Running local ML + LLM extraction.</p>
+    <p style="opacity:0.8;color:#fff;">Hold tight, this takes 10–20 seconds.</p>
 </div>
 
 <!-- Settings Modal -->
@@ -593,16 +596,17 @@
 
             <div id="apiKeyContainer">
                 <div class="flex justify-between items-center mb-2">
-                    <label for="apiKey" style="font-weight:700;font-size:.8rem;text-transform:uppercase;margin:0">API Key</label>
+                    <label for="apiKey" style="font-weight:700;font-size:.8rem;text-transform:uppercase;margin:0">API Key <span style="color:var(--rose-400)">*</span></label>
                     <a href="instructions.html#api-keys" style="font-size:.7rem;font-weight:600;color:var(--pink);text-decoration:none">Where to get this?</a>
                 </div>
                 <div style="position:relative">
-                    <input type="password" id="apiKey" aria-describedby="providerHint apiKeyFormatHint" placeholder="sk-..." class="field-input" maxlength="512" style="padding-right:3rem">
+                    <input type="password" id="apiKey" autocomplete="off" aria-describedby="providerHint apiKeyFormatHint" placeholder="sk-..." class="field-input" maxlength="512" style="padding-right:3rem">
                     <button type="button" id="toggleApiKey" aria-label="Show API Key" style="position:absolute;right:.75rem;top:50%;transform:translateY(-50%);background:var(--white);border:var(--border-thin);border-radius:4px;padding:3px 5px;cursor:pointer;display:flex">
                         <svg id="eyeIcon" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                     </button>
                 </div>
                 <p id="providerHint" style="font-size:.65rem;font-weight:500;color:var(--gray-400);margin-top:.35rem;min-height:1rem"></p>
+                <p id="apiKeyFormatHint" style="font-size:.65rem;font-weight:600;color:var(--red);margin-top:.2rem;display:none;"></p>
             </div>
 
             <div id="hfUrlContainer" class="hidden">
@@ -658,12 +662,12 @@
 
 
 <!-- Compare Setup Modal -->
-<div id="compareModal" class="modal-backdrop" role="dialog" aria-modal="true">
+<div id="compareModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="compareSetupTitle">
     <div class="modal-content" style="max-width:600px">
-        <button id="closeCompare" class="modal-close">&times;</button>
+        <button id="closeCompare" class="modal-close" aria-label="Close compare setup">&times;</button>
         
         <div class="mb-6">
-            <h2 style="font-size:1.8rem; margin-bottom:0.5rem">Compare Setup</h2>
+            <h2 id="compareSetupTitle" style="font-size:1.8rem; margin-bottom:0.5rem">Compare Setup</h2>
             <p style="color:var(--gray-500); font-size:0.9rem">Choose 2 analysed chats available on this device.</p>
         </div>
 
