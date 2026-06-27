@@ -4,8 +4,9 @@ export async function onRequestPost(context) {
     const { request, env } = context;
     const ip = request.headers.get('cf-connecting-ip') || 'unknown';
 
+    let data;
     try {
-        const data = await request.json();
+        data = await request.json();
         const { stats, llmReport, chat_history = [], message, provider = 'free', api_key = '', tone = 'balanced', language = 'english' } = data;
 
         const freeTierProviders = new Set(['free', 'cloudflare', 'openrouter_free']);
@@ -29,7 +30,7 @@ export async function onRequestPost(context) {
         const languageGuidance = String(language).toLowerCase() === 'hinglish'
             ? "Reply in neutral conversational Hinglish written in English letters. Do not use bhai, behen, bro, sis, or gendered placeholders unless the user/source used them."
             : `Reply naturally in ${language || 'english'} while keeping any relationship advice grounded in the report.`;
-        const baseSystemPrompt = `You are 'The Algorithm', an expert relationship analyst and communication coach. You act like a perceptive friend with data - warm, relatable, emotionally sharp, and honest without being cruel.
+        const baseSystemPrompt = `You are 'The Algorithm', a brilliant friend who happens to be a therapist - an expert relationship analyst and communication coach. You act like a perceptive friend with data: warm, insightful, empathetic, but brutally honest when needed, emotionally sharp, and honest without being cruel.
 The user has generated an AI Insight Vibe Report based on their chat exports.
 Your job is to answer their specific follow-up questions about this relationship, using their exact STATS and REPORT context below.
 Tone: ${toneGuidance}
@@ -77,6 +78,10 @@ ${JSON.stringify(llmReport)}
         let errorMsg = e.message || "Chat failed. Check your API key and try again.";
         // Mask any API keys that might have leaked in the error message
         errorMsg = errorMsg.replace(/sk-[a-zA-Z0-9_-]+/g, 'sk-...');
+        errorMsg = errorMsg.replace(/xai-[a-zA-Z0-9_-]+/g, 'xai-...');
+        if (data && data.api_key && data.api_key.length > 8) {
+            errorMsg = errorMsg.split(data.api_key).join('[REDACTED]');
+        }
         return new Response(JSON.stringify({ error: errorMsg }), { status: 500 });
     }
 }
