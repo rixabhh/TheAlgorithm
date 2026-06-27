@@ -812,6 +812,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else if (provider === 'anthropic' && !rawKey.startsWith('sk-ant-')) {
                     isKeyValid = false;
                     keyError = 'Anthropic keys must start with "sk-ant-"';
+                } else if (provider === 'grok' && !rawKey.startsWith('xai-')) {
+                    isKeyValid = false;
+                    keyError = 'Grok keys must start with "xai-"';
                 } else if (provider === 'gemini' && rawKey.length !== 39) {
                     isKeyValid = false;
                     keyError = 'Gemini keys must be exactly 39 characters';
