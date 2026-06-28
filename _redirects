@@ -1,3 +1,4 @@
 /share /dashboard.html 200
 /robots.txt /static/robots.txt 200
 /sitemap.xml /static/sitemap.xml 200
+/pricing /pricing.html 200

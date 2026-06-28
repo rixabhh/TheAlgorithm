@@ -1,0 +1,5 @@
+# Memory rule: When configuring Prettier, use .prettierignore to exclude specific directories like functions/, static/, *.html, and .jules/
+functions/
+static/
+*.html
+.jules/

@@ -177,6 +177,8 @@
                 <button onclick="window.print()" class="btn btn--black" style="padding:0.5rem 1rem;font-size:0.8rem"><span class="material-symbols-outlined">print</span> Print</button>
 
                 <button id="shareLinkBtn" class="btn btn--yellow" style="padding:0.5rem 1rem;font-size:0.8rem"><span class="material-symbols-outlined">link</span> Share</button>
+                <button id="shareTwitterBtn" class="btn" style="background-color:#000;color:#fff;padding:0.5rem 1rem;font-size:0.8rem;font-weight:bold;border:2px solid #000"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:16px;height:16px;fill:currentColor;margin-right:4px;vertical-align:text-bottom"><g><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.008 4.094H5.078z"></path></g></svg> Post</button>
+                <button id="shareWhatsAppBtn" class="btn" style="background-color:#25D366;color:#fff;padding:0.5rem 1rem;font-size:0.8rem;font-weight:bold;border:2px solid #000">WhatsApp</button>
                 <button id="share-btn" class="btn btn--pink" style="padding:0.5rem 1rem;font-size:0.8rem"><span class="material-symbols-outlined">download</span> Save Card</button>
                 <button id="settingsBtn" class="btn btn--white" style="padding:0.5rem 1rem;font-size:0.8rem"><span class="material-symbols-outlined">settings</span> AI Settings</button>
 
@@ -502,7 +504,10 @@
 
                 <!-- Key Insights -->
                 <div class="card p-6 bg-white mb-8">
-                    <h4 class="insight-section-header insight-section-header--green">💡 Key Insights</h4>
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="insight-section-header insight-section-header--green" style="margin-bottom:0">💡 Key Insights</h4>
+                        <button id="copyInsightsBtn" class="btn btn--sm" style="background:var(--cream);border:2px solid var(--black);font-size:0.7rem;font-weight:bold;padding:0.25rem 0.5rem">Copy Insights</button>
+                    </div>
                     <div id="ai-key-insights" class="space-y-2"></div>
                 </div>
 
