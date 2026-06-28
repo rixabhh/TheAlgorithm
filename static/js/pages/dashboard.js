@@ -1181,6 +1181,58 @@ document.getElementById('shareLinkBtn')?.addEventListener('click', async () => {
     }
 });
 
+function getShareUrl() {
+    if (!window.activeData) return window.location.href;
+    const shareData = {
+        my_name: "Person A",
+        partner_name: "Person B",
+        stats: {
+            messages: window.activeData.stats?.messages,
+            duration: window.activeData.stats?.duration,
+            mirroring: window.activeData.stats?.mirroring,
+            symmetry: window.activeData.stats?.symmetry,
+            attachment_style: window.activeData.stats?.attachment_style,
+            streaks: window.activeData.stats?.streaks,
+        },
+        evidence_pack: {
+            receipts: (window.activeData.evidence_pack?.receipts || []).slice(0, 3),
+            predictive_outlook: window.activeData.evidence_pack?.predictive_outlook || null
+        },
+        source_quality: window.activeData.source_quality || null
+    };
+    const base64Data = btoa(encodeURIComponent(JSON.stringify(shareData)));
+    return `${window.location.origin}/share#${base64Data}`;
+}
+
+document.getElementById('shareTwitterBtn')?.addEventListener('click', () => {
+    const score = window.llmReport?.ai_insight?.health_score || window.llmReport?.overall_health_score || 0;
+    const text = `My chat health score is ${score}. The verdict: "${window.llmReport?.ai_insight?.brutal_verdict || 'Vibe checked.'}" Decode yours privately:`;
+    const url = getShareUrl();
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
+});
+
+document.getElementById('shareWhatsAppBtn')?.addEventListener('click', () => {
+    const score = window.llmReport?.ai_insight?.health_score || window.llmReport?.overall_health_score || 0;
+    const text = `My chat health score is ${score}. The verdict: "${window.llmReport?.ai_insight?.brutal_verdict || 'Vibe checked.'}" Decode yours privately here: ${getShareUrl()}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+});
+
+document.getElementById('copyInsightsBtn')?.addEventListener('click', async () => {
+    const btn = document.getElementById('copyInsightsBtn');
+    const originalText = btn.textContent;
+    try {
+        const insights = window.llmReport?.key_insights || [];
+        if (!insights.length) throw new Error("No insights");
+        const text = "Key Insights:\n" + insights.map((i, idx) => `${idx + 1}. ${i}`).join('\n');
+        await navigator.clipboard.writeText(text);
+        btn.textContent = "Copied!";
+        setTimeout(() => { btn.textContent = originalText; }, 2000);
+    } catch (err) {
+        btn.textContent = "Failed";
+        setTimeout(() => { btn.textContent = originalText; }, 2000);
+    }
+});
+
 // Check if we arrived via a share link
 window.addEventListener('DOMContentLoaded', () => {
     if (window.location.hash && window.location.hash.length > 10) {

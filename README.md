@@ -1,5 +1,11 @@
 # The Algorithm
 
+![The Algorithm Hero](/static/og-image.png)
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Privacy: Zero-Knowledge](https://img.shields.io/badge/Privacy-Zero--Knowledge-brightgreen.svg)]()
+[![Platform: Cloudflare Pages](https://img.shields.io/badge/Platform-Cloudflare_Pages-orange.svg)]()
+
 A privacy-first, social-native chat relationship analyzer built as a static Cloudflare Pages app with serverless API functions.
 
 ## Overview
@@ -21,6 +27,7 @@ The UI uses a premium neobrutal design system: cream app shell, dark report side
 ## How It Works
 
 The Algorithm provides a privacy-first, 3-step process to decode your chat data:
+
 1. **Upload your source**: Provide a chat export, screenshot, pasted messages, or transcript.
 2. **Local Analysis**: Your browser parses the data natively. Nothing is sent to our servers. Your data is analyzed using mathematical models directly in the browser.
 3. **Deep AI (Optional)**: Choose an AI provider (BYOK) to get deeper context and pattern analysis by sending only computed statistics and anonymized evidence.

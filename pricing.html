@@ -7,6 +7,18 @@
     <link rel="stylesheet" href="static/css/style.css">
     <link rel="stylesheet" href="static/css/revamp.css?v=15">
     <link rel="icon" type="image/png" href="static/favicon.png">
+
+    <!-- Open Graph / Twitter Card tags -->
+    <meta property="og:title" content="The Algorithm — AI Relationship Analyzer" />
+    <meta property="og:description" content="Find out what your chats really say about your relationship. Privacy-first, BYOK, zero data stored." />
+    <meta property="og:image" content="https://thealgorithm.rixabh.workers.dev/static/og-image.png" />
+    <meta property="og:url" content="https://thealgorithm.rixabh.workers.dev/" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="The Algorithm" />
+    <meta name="twitter:description" content="What do your chats say about your relationship? Find out — your data never leaves your device." />
+    <meta name="twitter:image" content="https://thealgorithm.rixabh.workers.dev/static/og-image.png" />
+
 </head>
 <body class="comic-dots">
 
@@ -49,11 +61,34 @@
                     <li>🔒 Deep PDF Exports</li>
                     <li>🔒 Early Access Features</li>
                 </ul>
-                <button class="btn btn--pink btn--full opacity-50" disabled>Join Waitlist</button>
+                <form id="waitlistForm" style="display:flex; flex-direction:column; gap:0.5rem">
+                    <input type="email" id="waitlistEmail" required placeholder="your@email.com" class="field-input" style="padding:0.6rem; font-size:0.9rem">
+                    <button type="submit" class="btn btn--pink btn--full">Get Early Access</button>
+                </form>
+                <div id="waitlistMessage" style="display:none; color:var(--green); font-weight:bold; margin-top:0.5rem; text-align:center;">You're on the list!</div>
             </div>
         </div>
     </div>
 </section>
+
+<script>
+    document.getElementById('waitlistForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const email = document.getElementById('waitlistEmail').value;
+        if (email) {
+            // Store locally to persist state without a backend
+            localStorage.setItem('pro_waitlist', 'true');
+            this.style.display = 'none';
+            document.getElementById('waitlistMessage').style.display = 'block';
+        }
+    });
+
+    // Check on load
+    if (localStorage.getItem('pro_waitlist') === 'true') {
+        document.getElementById('waitlistForm').style.display = 'none';
+        document.getElementById('waitlistMessage').style.display = 'block';
+    }
+</script>
 
 <nav class="revamp-bottom-nav" aria-label="Primary">
     <a href="/#upload"><span class="material-symbols-outlined">analytics</span><span>Analyze</span></a>
