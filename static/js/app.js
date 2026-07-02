@@ -880,11 +880,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (inputMode === 'export') {
                     const file = fileInput.files[0];
-                    if (file.size > 20 * 1024 * 1024) {
-                        showError('File too large. Max 20MB. Try exporting a shorter date range.');
+
+                    if (file.size > 10 * 1024 * 1024) { // 10MB limit as per security instructions
+                        showError('File too large. Max 10MB. Try exporting a shorter date range.');
                         resetFormState();
                         return;
                     }
+
+                    const allowedTypes = ['.txt', '.html', '.json', '.csv'];
+                    const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+                    if (!allowedTypes.includes(ext) && file.type && !file.type.includes('text') && !file.type.includes('json') && !file.type.includes('html')) {
+                        showError('File type not supported. Please upload a .txt, .html, .csv or .json file.');
+                        resetFormState();
+                        return;
+                    }
+
                     setProgressText('Reading export...');
                     const content = await file.text();
                     const jsonPlat = document.getElementById('jsonPlatform') ? document.getElementById('jsonPlatform').value : 'Instagram';
@@ -972,6 +982,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 showError(err.message);
                 resetFormState();
             } finally {
+                if (rawMessages && rawMessages.length) {
+                    rawMessages.length = 0;
+                }
                 if (progressInterval) {
                     clearInterval(progressInterval);
                     progressInterval = null;

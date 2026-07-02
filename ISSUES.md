@@ -27,3 +27,19 @@ Title: Add DeepSeek or Llama-3 endpoint integration support
 While OpenRouter provides access to many models, natively supporting DeepSeek-Chat or Meta's Llama-3 endpoints provides a high-quality open-weight alternative for privacy-focused users, aligning with our Zero-Knowledge guarantee.
 We need to add a new `DeepSeek` or `Llama3` class to the LLM helpers using standard OpenAI-compatible API schemas (`https://api.deepseek.com/chat/completions`), validate its API key formatting, and update the UI to allow selecting it.
 This gives power users more flexibility, lowers API costs drastically compared to GPT-4/Claude, and expands the BYOK audience to developers using alternative high-tier models.
+
+---
+
+Title: Add client-side validation of PII scrubbing effectiveness
+
+There is no client-side verification to confirm that the PII scrubbing logic was effective before passing the `raw_excerpt_pack` to the API. If the regex fails or encounters an unforeseen edge case, raw sensitive data might be sent to the LLM.
+We should implement a local validation check right after scrubbing that counts the remaining potentially sensitive patterns (e.g., using broader heuristics or entropy checks). If a threshold is exceeded, the upload/analysis should be aborted with a privacy warning to the user.
+High Priority - This serves as a critical defense-in-depth layer to protect the application's core Zero-Knowledge privacy promise against new forms of PII.
+
+---
+
+Title: Implement file upload size and MIME type validation in browser
+
+While Cloudflare Pages has native request limits, the client-side `app.js` currently allows reading extremely large files into memory without strict upfront size and type checks (it checks size but only broadly, and does not check MIME).
+We should enforce strict file size limits (e.g., max 10MB) and allowed extensions (`.txt`, `.json`, `.csv`) natively on the `<input type="file">` element, and explicitly re-verify these attributes in the JavaScript handler before triggering `file.text()` to avoid memory exhaustion (DoS on the client).
+Medium Priority - Prevents the browser tab from crashing during memory-intensive processing and protects the user experience against malformed files.

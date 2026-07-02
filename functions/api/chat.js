@@ -11,13 +11,19 @@ export async function onRequestPost(context) {
 
         const freeTierProviders = new Set(['free', 'cloudflare', 'openrouter_free']);
 
-        // 1. RATE LIMITING (KV-based, shared free tier)
-        if (freeTierProviders.has(provider) && env.KV_RATELIMIT) {
+        // 1. RATE LIMITING (KV-based, applied globally)
+        if (env.KV_RATELIMIT) {
             const limitKey = `ratelimit_chat_${ip}`;
             const current = await env.KV_RATELIMIT.get(limitKey);
             const count = current ? parseInt(current) : 0;
-            // Slightly higher limit for chatting compared to full generation
-            if (count >= 10) return new Response(JSON.stringify({ error: "Free tier limit reached (10 chats/hr). Wait or configure your own API key to continue coaching." }), { status: 429 });
+
+            if (freeTierProviders.has(provider)) {
+                // Slightly higher limit for chatting compared to full generation
+                if (count >= 10) return new Response(JSON.stringify({ error: "Free tier limit reached (10 chats/hr). Wait or configure your own API key to continue coaching." }), { status: 429 });
+            } else {
+                if (count >= 100) return new Response(JSON.stringify({ error: "Rate limit reached. Please try again later." }), { status: 429 });
+            }
+
             await env.KV_RATELIMIT.put(limitKey, (count + 1).toString(), { expirationTtl: 3600 });
         }
 
