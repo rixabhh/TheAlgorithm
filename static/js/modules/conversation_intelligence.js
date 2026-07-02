@@ -347,6 +347,9 @@ class ConversationIntelligence {
             .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, '[email]')
             .replace(/\+?\d[\d\s().-]{7,}\d/g, '[phone]')
             .replace(/https?:\/\/\S+/gi, '[link]')
+            .replace(/\b[A-Z][0-9]{7}\b/g, '[passport]')
+            .replace(/\b\d{3}-\d{2}-\d{4}\b/g, '[ssn]')
+            .replace(/\b(?:\d[ -]*?){13,16}\b/g, '[credit-card]')
             .slice(0, 240);
         return {
             version: 1,

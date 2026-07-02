@@ -24,18 +24,26 @@ export async function onRequestPost(context) {
 
         const freeTierProviders = new Set(['free', 'cloudflare', 'openrouter_free']);
 
-        // 1. RATE LIMITING & GLOBAL STATS (KV-based, shared free tier)
-        if (freeTierProviders.has(provider) && env.KV_RATELIMIT) {
+        // 1. RATE LIMITING & GLOBAL STATS (KV-based, applied globally to all requests)
+        if (env.KV_RATELIMIT) {
             const limitKey = `ratelimit_${ip}`;
             const current = await env.KV_RATELIMIT.get(limitKey);
             const count = current ? parseInt(current) : 0;
-            if (count >= 2) return new Response(JSON.stringify({ error: "Free tier limit reached (2/hr). Wait or use BYOK." }), { status: 429 });
+
+            if (freeTierProviders.has(provider)) {
+                if (count >= 2) return new Response(JSON.stringify({ error: "Free tier limit reached (2/hr). Wait or use BYOK." }), { status: 429 });
+            } else {
+                if (count >= 50) return new Response(JSON.stringify({ error: "Rate limit reached. Please try again later." }), { status: 429 });
+            }
+
             await env.KV_RATELIMIT.put(limitKey, (count + 1).toString(), { expirationTtl: 3600 });
             
-            // Increment global stats counter
-            const globalCountKey = 'global_stats_chats_count';
-            const globalCount = await env.KV_RATELIMIT.get(globalCountKey) || '0';
-            await env.KV_RATELIMIT.put(globalCountKey, (parseInt(globalCount) + 1).toString());
+            if (freeTierProviders.has(provider)) {
+                // Increment global stats counter for free tier
+                const globalCountKey = 'global_stats_chats_count';
+                const globalCount = await env.KV_RATELIMIT.get(globalCountKey) || '0';
+                await env.KV_RATELIMIT.put(globalCountKey, (parseInt(globalCount) + 1).toString());
+            }
         }
 
         const makeFallbackReport = () => {
