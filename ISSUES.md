@@ -27,3 +27,27 @@ Title: Add DeepSeek or Llama-3 endpoint integration support
 While OpenRouter provides access to many models, natively supporting DeepSeek-Chat or Meta's Llama-3 endpoints provides a high-quality open-weight alternative for privacy-focused users, aligning with our Zero-Knowledge guarantee.
 We need to add a new `DeepSeek` or `Llama3` class to the LLM helpers using standard OpenAI-compatible API schemas (`https://api.deepseek.com/chat/completions`), validate its API key formatting, and update the UI to allow selecting it.
 This gives power users more flexibility, lowers API costs drastically compared to GPT-4/Claude, and expands the BYOK audience to developers using alternative high-tier models.
+
+## Add keyboard shortcuts for common actions
+
+[Describe what the current experience is]
+Currently, power users must use the mouse to navigate the dashboard (switching tabs, closing modals, generating insights).
+
+[Describe what it should be]
+We should add simple keyboard shortcuts (e.g., `Esc` to close modals, `Cmd+Enter` to generate insights, `Ctrl+1/2/3` to switch insight tabs).
+
+[Why this matters for users]
+Keyboard navigation significantly increases the feeling of a premium, power-user friendly product and improves accessibility for users who cannot use a mouse.
+
+---
+
+## Add "Scroll to Top" button on long dashboard pages
+
+[Describe what the current experience is]
+On mobile devices or smaller screens, the dashboard can get very long. Once a user scrolls to the bottom to see deep insights or action items, they have to manually scroll all the way back up to switch categories or view their overview.
+
+[Describe what it should be]
+A floating "Scroll to Top" action button should appear in the bottom right corner once the user scrolls past the first fold.
+
+[Why this matters for users]
+It reduces friction on mobile devices where scrolling is tedious, making the rich dashboard feel much more navigable and polished.

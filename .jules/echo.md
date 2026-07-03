@@ -1,0 +1,5 @@
+## 2024-07-03 — Upload friction, API Key UI, and Accessibility issues
+**UX Issue:** Uploading a file provides no feedback until analysis starts, the API key input lacks visual security reassurance (no hint and no `aria-describedby`), the analysis progress indicator feels stuck ("just loads"), and several icon-only buttons lack ARIA labels.
+**Root Cause:** The initial UI implementation focused on functional completeness over edge-case user trust signals and accessibility norms.
+**Solution:** Added an immediate preview of the file (detected platform, message count) in `detectionCard`. Added security hints below the API key input and tied them via `aria-describedby`. Replaced static loading states with a stepped `setInterval` progress text. Added descriptive `aria-label`s to all icon-only buttons.
+**Pattern:** Always pair file selection with immediate validation/preview, provide step-by-step progress for long operations, and ensure accessibility constraints (labels, hints) match the security posture (trust signals) of the privacy-first product.
