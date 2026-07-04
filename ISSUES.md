@@ -27,3 +27,25 @@ Title: Add DeepSeek or Llama-3 endpoint integration support
 While OpenRouter provides access to many models, natively supporting DeepSeek-Chat or Meta's Llama-3 endpoints provides a high-quality open-weight alternative for privacy-focused users, aligning with our Zero-Knowledge guarantee.
 We need to add a new `DeepSeek` or `Llama3` class to the LLM helpers using standard OpenAI-compatible API schemas (`https://api.deepseek.com/chat/completions`), validate its API key formatting, and update the UI to allow selecting it.
 This gives power users more flexibility, lowers API costs drastically compared to GPT-4/Claude, and expands the BYOK audience to developers using alternative high-tier models.
+
+Title: Add Attachment Style Trajectory Analysis
+
+[Why this feature matters]
+Understanding how attachment styles shift over the course of a relationship (e.g., from secure to anxious) provides deeper insights into relationship stability.
+
+[Rough implementation approach]
+Calculate attachment scores on a rolling monthly basis and plot them on a line chart. Pass this trajectory data to the LLM for predictive outlook.
+
+[User benefit]
+Users can visualize exactly when their communication patterns changed and get targeted advice on how to repair insecure attachment phases.
+
+Title: Add Local/On-Device LLM Integration (e.g. WebGPU Llama 3)
+
+[Why this provider matters]
+A local WebGPU LLM ensures absolute zero-knowledge privacy, as no data ever leaves the user's browser, even for Deep AI features.
+
+[Rough implementation approach]
+Use WebLLM or similar WebGPU frameworks to load a lightweight quantized Llama-3 model directly in the browser and run the analysis prompt locally.
+
+[User benefit]
+Complete privacy guarantees for highly sensitive relationship data while still enjoying AI-driven insights.
