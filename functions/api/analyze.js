@@ -315,8 +315,10 @@ CRITICAL RULES:
                 if (match) {
                     try {
                         const parsed = JSON.parse(match[0]);
+                        // Stricter validation: Require essential keys for a deep emotional read
+                        const hasEssential = Object.hasOwn(parsed, 'overall_health_score') && Object.hasOwn(parsed, 'key_insights') && Object.hasOwn(parsed, 'coaching_advice');
                         const isValid = requiredKeys.every(k => Object.hasOwn(parsed, k));
-                        if (isValid || Object.hasOwn(parsed, 'compatibility_score')) {
+                        if (isValid || hasEssential || Object.hasOwn(parsed, 'compatibility_score')) {
                             return normalizeReport(parsed);
                         }
                     } catch (e) {
@@ -333,7 +335,7 @@ CRITICAL RULES:
                 const canRetry = provider !== 'cloudflare' && (api_key || provider === 'free' || provider === 'openrouter_free');
                 if (!report && canRetry) {
                     // Try one more time with a stricter prompt if parsing failed
-                    const stricterUserPrompt = userPrompt + "\n\nWARNING: Your previous response failed validation. You MUST return ONLY a valid JSON object matching the requested schema. No conversational text.";
+                    const stricterUserPrompt = userPrompt + "\n\nWARNING: Your previous response failed validation. You MUST return ONLY a valid JSON object matching the requested schema. No conversational text. Do not wrap in markdown blocks.";
                     const retryController = new AbortController();
                     const retryTimeoutId = setTimeout(() => retryController.abort(), 30000);
                     try {

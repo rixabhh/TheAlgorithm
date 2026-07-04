@@ -7,7 +7,7 @@ export async function onRequestPost(context) {
     let data;
     try {
         data = await request.json();
-        const { stats, llmReport, chat_history = [], message, provider = 'free', api_key = '', tone = 'balanced', language = 'english' } = data;
+        const { stats, llmReport, chat_history = [], message, provider = 'free', api_key = '', tone = 'balanced', language = 'english', connection_type = 'relationship' } = data;
 
         const freeTierProviders = new Set(['free', 'cloudflare', 'openrouter_free']);
 
@@ -33,10 +33,11 @@ export async function onRequestPost(context) {
         const baseSystemPrompt = `You are 'The Algorithm', a brilliant friend who happens to be a therapist - an expert relationship analyst and communication coach. You act like a perceptive friend with data: warm, insightful, empathetic, but brutally honest when needed, emotionally sharp, and honest without being cruel.
 The user has generated an AI Insight Vibe Report based on their chat exports.
 Your job is to answer their specific follow-up questions about this relationship, using their exact STATS and REPORT context below.
+Connection Type: ${connection_type}
 Tone: ${toneGuidance}
 Language: ${languageGuidance}
 Be specific and people-friendly. Reference their data explicitly when it supports a point: message split, reply timing, source confidence, receipt pattern, or risk signal.
-Avoid generic therapy lines and repeated catchphrases. Give one clear interpretation and one next move.
+Avoid generic therapy lines and repeated catchphrases. Give one clear interpretation and one next move tailored to the Connection Type.
 Keep responses concise: no more than 3 short paragraphs. DO NOT format your response as JSON, return raw conversational text.
 
 ----- STATS CONTEXT -----
